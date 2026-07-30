@@ -3,11 +3,18 @@ import { StaggerContainer, StaggerItem } from './ScrollReveal';
 
 const Hero = () => {
   return (
-    <div className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-white">
-      {/* Subtle background decoration for light theme */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-50 via-white to-white pointer-events-none -z-10" />
+    <div className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-white isolate">
+      {/* Premium Abstract Background */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <img 
+          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=2560" 
+          alt="Abstract Background" 
+          className="w-full h-full object-cover opacity-[0.12] scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white" />
+      </div>
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <StaggerContainer>
           <StaggerItem>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-gray-100 text-sm font-semibold text-indigo-600 mb-8 shadow-sm">
@@ -19,7 +26,7 @@ const Hero = () => {
           <StaggerItem>
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6">
               Foto Produk Profesional.<br />
-              <span className="text-indigo-600">Produk Tetap Asli.</span>
+              <span className="text-gradient-animated">Produk Tetap Asli.</span>
             </h1>
           </StaggerItem>
           

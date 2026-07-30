@@ -1,56 +1,51 @@
-import { Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { Sparkles, Crown, Sun, Palette, Box } from 'lucide-react';
 
 const InteractiveSandbox = () => {
   const styles = [
-    { id: 'marble', name: 'Marble Studio', thumb: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80&w=200', bg: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80&w=1200' },
-    { id: 'nature', name: 'Nature Vibes', thumb: 'https://images.unsplash.com/photo-1508614999368-9260051292e5?auto=format&fit=crop&q=80&w=200', bg: 'https://images.unsplash.com/photo-1508614999368-9260051292e5?auto=format&fit=crop&q=80&w=1200' },
-    { id: 'abstract', name: 'Modern Abstract', thumb: 'https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&q=80&w=200', bg: 'https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&q=80&w=1200' },
-    { id: 'wood', name: 'Rustic Wood', thumb: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&q=80&w=200', bg: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&q=80&w=1200' }
+    { 
+      id: 'professional', 
+      name: 'Professional', 
+      prompt: 'Parfum Mystiq, foto di atas keyboard laptop, — mau jadi elegan dengan background batu alam, kain sutra, dan pencahayaan dramatis.',
+      icon: <Crown className="w-4 h-4" />,
+      afterImage: '/mystic-after.jpg' 
+    }
   ];
 
-  const [activeBg, setActiveBg] = useState(styles[0]);
-  const [downloadSuccess, setDownloadSuccess] = useState(false);
+  // Raw product snapshot (Before AI)
+  const beforeImage = '/mystic-before.jpg';
+
+  const [activeStyle, setActiveStyle] = useState(styles[0]);
   
   // Animation State
-  const revealProgress = useMotionValue(0); // 0 to 100
+  const revealProgress = useMotionValue(50); // initial 50% split
   const [isHovered, setIsHovered] = useState(false);
-
-  // Constants for assets
-  const beforeBgUrl = 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&q=80&w=1200'; // Simple grey background simulating a raw photo table
-  const productAsset = 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=800'; // Real product
 
   useEffect(() => {
     if (isHovered) return;
 
-    // Cinematic 6-second loop: Pause Before (0%) -> Transition -> Pause After (100%) -> Transition back
-    const controls = animate(revealProgress, [0, 0, 100, 100, 0, 0], {
-      duration: 7,
-      times: [0, 0.15, 0.45, 0.65, 0.95, 1],
+    // Cinematic loop animation: 10% -> 90% -> 10%
+    const controls = animate(revealProgress, [10, 90, 90, 10, 10], {
+      duration: 8,
+      times: [0, 0.4, 0.5, 0.9, 1],
       repeat: Infinity,
       ease: "easeInOut"
     });
 
     return () => controls.stop();
-  }, [isHovered, revealProgress, activeBg]); // re-run if activeBg changes to restart loop smoothly
+  }, [isHovered, revealProgress, activeStyle]);
 
-  const handleStyleClick = (newStyle: typeof styles[0]) => {
-    if (newStyle.id === activeBg.id) return;
-    setActiveBg(newStyle);
-    // When changing style, smoothly animate to the 'after' state to show it off
+  const handleStyleClick = (style: typeof styles[0]) => {
+    if (style.id === activeStyle.id) return;
+    setActiveStyle(style);
+    // Smooth transition reveal to show off the new style
     setIsHovered(true);
-    animate(revealProgress, 100, { duration: 0.8, ease: "easeOut" }).then(() => {
-      setTimeout(() => setIsHovered(false), 500); // release interaction hold after a short delay
+    animate(revealProgress, 90, { duration: 0.8, ease: "easeOut" }).then(() => {
+      setTimeout(() => setIsHovered(false), 800);
     });
   };
 
-  const handleDownload = () => {
-    setDownloadSuccess(true);
-    setTimeout(() => setDownloadSuccess(false), 3000);
-  };
-
-  // Interaction handlers for manual drag/explore
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isHovered) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -62,151 +57,125 @@ const InteractiveSandbox = () => {
   const handlePointerEnter = () => setIsHovered(true);
   const handlePointerLeave = () => setIsHovered(false);
 
-  // Derived values for styling based on reveal progress
-  const clipPathValue = useTransform(revealProgress, (val) => `inset(0 ${100 - val}% 0 0)`);
+  // Derived values for clipPath and handle placement
+  const clipPathValue = useTransform(revealProgress, (val) => `inset(0 0 0 ${val}%)`);
   const lineLeftValue = useTransform(revealProgress, (val) => `${val}%`);
-  const beforeLabelOpacity = useTransform(revealProgress, [0, 30], [1, 0]);
-  const afterLabelOpacity = useTransform(revealProgress, [70, 100], [0, 1]);
 
   return (
-    <section className="py-24 bg-[#F8F9FA] relative overflow-hidden" id="fitur">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header */}
-        <div className="text-center mb-16 flex flex-col items-center">
-          <div className="inline-flex items-center justify-center p-3 bg-white rounded-full shadow-sm border border-gray-100 mb-6">
-            <Sparkles className="w-6 h-6 text-indigo-600" />
-          </div>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-slate-900 tracking-tight mb-4 max-w-3xl leading-tight text-balance">
-            Create professional product photos with AI
-          </h2>
-          <p className="text-lg text-slate-500 max-w-2xl font-medium text-pretty">
-            Transform plain images into studio-quality visuals that capture attention, build trust, and drive sales.
-          </p>
-        </div>
-
-        {/* Interactive App UI */}
-        <div className="bg-white rounded-[32px] p-4 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 max-w-5xl mx-auto flex flex-col md:flex-row gap-6 lg:gap-8">
+    <section className="bg-[rgba(240,240,240,0.3)] py-20 md:py-24 border-t border-neutral-100/80" id="fitur">
+      <div className="max-w-[1200px] mx-auto px-6">
+        <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
           
-          {/* Left Preview Box - Cinematic Reveal */}
-          <div 
-            className="w-full md:w-3/5 aspect-square md:aspect-[4/3] rounded-[24px] overflow-hidden relative bg-white shadow-inner isolate border border-gray-100 cursor-ew-resize select-none touch-none"
-            onPointerEnter={handlePointerEnter}
-            onPointerLeave={handlePointerLeave}
-            onPointerDown={handlePointerEnter}
-            onPointerUp={handlePointerLeave}
-            onPointerCancel={handlePointerLeave}
-            onPointerMove={handlePointerMove}
-          >
-            {/* Layer 1: Before Background */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center z-0" 
-              style={{ backgroundImage: `url(${beforeBgUrl})`, filter: 'brightness(1.05)' }} 
-            />
+          {/* Left Side Content */}
+          <div>
+            <h2 className="text-[28px] sm:text-[36px] md:text-[48px] font-extrabold tracking-tight mb-6 text-[#0A0A0A] leading-[1.1]">
+              Masuk dengan kualitas biasa,<br />keluar dengan kualitas studio.
+            </h2>
+            <p className="text-[#888888] text-base md:text-lg mb-8 leading-relaxed">
+              Geser untuk bandingkan: foto produk dari HP vs hasil setelah AI — pencahayaan studio, background rapi, tetap natural tanpa mengubah bentuk asli.
+            </p>
             
-            {/* Layer 2: After Background (Revealed via CSS clip-path) */}
-            <motion.div 
-              className="absolute inset-0 bg-cover bg-center z-0"
-              style={{ 
-                backgroundImage: `url(${activeBg.bg})`,
-                clipPath: clipPathValue,
-                // Subtle zoom out effect linked to the reveal to add cinematic depth
-                scale: useTransform(revealProgress, [0, 100], [1.05, 1]),
-              }}
-            />
-            
-            {/* Layer 3: Product & Shadows (Persistent) */}
-            {/* Using mix-blend-multiply to blend the product's natural shadow dynamically with both backgrounds */}
-            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none mix-blend-multiply">
-              <img 
-                src={productAsset} 
-                className="max-h-[85%] object-contain" 
-                alt="Original Product" 
-                draggable="false"
-              />
+            <div className="mb-10">
+              <p className="text-sm font-semibold text-[#0A0A0A] mb-3">Pilih Style Studio:</p>
+              <div className="flex flex-wrap gap-2.5">
+                {styles.map(style => {
+                  const isActive = activeStyle.id === style.id;
+                  return (
+                    <button
+                      key={style.id}
+                      onClick={() => handleStyleClick(style)}
+                      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
+                        isActive
+                          ? 'bg-[#0A0A0A] text-white shadow-md'
+                          : 'bg-white border border-neutral-200 text-[#0A0A0A] hover:bg-neutral-50 hover:border-neutral-300'
+                      }`}
+                    >
+                      <span className={isActive ? 'text-white' : 'text-neutral-500'}>
+                        {style.icon}
+                      </span>
+                      {style.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            
-            {/* Layer 4: Transition Scanner Line */}
-            <motion.div 
-              className="absolute top-0 bottom-0 w-[2px] bg-white/90 shadow-[0_0_20px_4px_rgba(255,255,255,0.7)] z-20 pointer-events-none"
-              style={{ left: lineLeftValue }}
-            >
-              {/* Drag Handle Knob */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-12 bg-white/95 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center border border-gray-100">
-                <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 9l-4 3 4 3M16 9l4 3-4 3"/></svg>
-              </div>
-            </motion.div>
-            
-            {/* Layer 5: UI Overlays */}
-            <motion.div 
-              className="absolute top-4 left-4 z-30 pointer-events-none"
-              style={{ opacity: beforeLabelOpacity }}
-            >
-              <div className="px-3 py-1.5 bg-black/60 backdrop-blur-md text-white text-[11px] font-bold rounded-full shadow-sm tracking-[0.2em]">
-                BEFORE
-              </div>
-            </motion.div>
 
-            <motion.div 
-              className="absolute top-4 right-4 z-30 pointer-events-none"
-              style={{ opacity: afterLabelOpacity }}
-            >
-              <div className="px-3 py-1.5 bg-indigo-600/90 backdrop-blur-md text-white text-[11px] font-bold rounded-full shadow-sm tracking-[0.2em] shadow-indigo-600/20">
-                AFTER
-              </div>
-            </motion.div>
-
-            <motion.div 
-              className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-opacity duration-300"
-              style={{ opacity: isHovered ? 0 : 1 }}
-            >
-              <div className="px-4 py-2 bg-white/90 backdrop-blur-md text-slate-700 text-[10px] font-extrabold rounded-full shadow-xl tracking-[0.2em] border border-gray-100 uppercase animate-pulse">
-                Drag To Explore
-              </div>
-            </motion.div>
-            
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <a 
+                href="#pricing"
+                className="bg-[#0A0A0A] text-white px-8 py-3.5 rounded-full font-medium hover:bg-neutral-800 transition-colors w-full sm:w-auto text-center shadow-lg shadow-black/5"
+              >
+                Coba Sekarang
+              </a>
+              <span className="text-sm text-[#888888]">Gratis 10 foto/bulan</span>
+            </div>
           </div>
 
-          {/* Right Controls Box */}
-          <div className="w-full md:w-2/5 flex flex-col pt-2">
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">Pilih Background</h3>
-            <p className="text-sm text-slate-500 mb-6">Pilih template dan lihat bagaimana AI mempertahankan keaslian produk Anda dengan sempurna.</p>
-            
-            <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-6">
-              {styles.map(style => (
-                <button 
-                  key={style.id}
-                  onClick={() => handleStyleClick(style)}
-                  className={`relative aspect-square rounded-[20px] overflow-hidden border-2 transition-all ${
-                    activeBg.id === style.id 
-                      ? 'border-indigo-600 ring-4 ring-indigo-50 shadow-md transform scale-[1.02]' 
-                      : 'border-transparent hover:border-indigo-200 hover:shadow-sm'
-                  } cursor-pointer`}
-                >
-                  <img src={style.thumb} alt={style.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 pt-6 text-left">
-                    <span className="text-white text-sm font-semibold tracking-wide">{style.name}</span>
-                  </div>
-                  
-                  {/* Active Indicator Check */}
-                  {activeBg.id === style.id && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    </div>
-                  )}
-                </button>
-              ))}
+          {/* Right Side Card (Before/After Slider) */}
+          <div className="bg-white rounded-3xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-neutral-200">
+            <div className="text-xs font-bold text-[#888888] uppercase tracking-wider mb-2">
+              Contoh produk
             </div>
             
-            <button 
-              onClick={handleDownload}
-              className={`mt-auto w-full py-4 rounded-xl font-bold shadow-md transition-all flex justify-center items-center gap-2 group ${
-                downloadSuccess ? 'bg-emerald-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white hover:shadow-lg'
-              }`}
+            <div className="bg-[#F9F9F9] rounded-xl p-4 border border-neutral-200 mb-5 font-medium text-[#0A0A0A] text-sm md:text-base italic">
+              "{activeStyle.prompt}"
+            </div>
+            
+            <div 
+              className="aspect-square rounded-2xl overflow-hidden relative bg-slate-900 isolate border border-neutral-200 cursor-ew-resize select-none touch-none shadow-inner"
+              onPointerEnter={handlePointerEnter}
+              onPointerLeave={handlePointerLeave}
+              onPointerDown={handlePointerEnter}
+              onPointerUp={handlePointerLeave}
+              onPointerCancel={handlePointerLeave}
+              onPointerMove={handlePointerMove}
             >
-              <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              {downloadSuccess ? 'Menyiapkan Download 4K...' : 'Download High-Res 4K'}
-            </button>
+              {/* Layer 1: BEFORE Image */}
+              <img 
+                src={beforeImage} 
+                alt="Foto Mentah Asli" 
+                className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+              />
+              
+              {/* Layer 2: AFTER Image */}
+              <motion.div 
+                className="absolute inset-0 overflow-hidden z-10 pointer-events-none select-none"
+                style={{ clipPath: clipPathValue }}
+              >
+                <img 
+                  src={activeStyle.afterImage} 
+                  alt={activeStyle.name} 
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              </motion.div>
+              
+              {/* Layer 3: Transition Line */}
+              <motion.div 
+                className="absolute top-0 bottom-0 w-[3px] bg-white shadow-[0_0_15px_rgba(0,0,0,0.4)] z-20 pointer-events-none"
+                style={{ left: lineLeftValue }}
+              >
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-12 bg-white rounded-full shadow-xl flex items-center justify-center border border-gray-200">
+                  <svg className="w-5 h-5 text-[#0A0A0A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l-4 3 4 3M16 9l4 3-4 3"/>
+                  </svg>
+                </div>
+              </motion.div>
+              
+              {/* Layer 4: Badges */}
+              <div className="absolute top-4 left-4 z-30 pointer-events-none">
+                <div className="px-3 py-1.5 bg-black/80 backdrop-blur-md text-white text-[11px] font-bold rounded-lg shadow-md tracking-wider flex items-center gap-1.5 border border-white/10">
+                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                  BEFORE
+                </div>
+              </div>
+
+              <div className="absolute top-4 right-4 z-30 pointer-events-none">
+                <div className="px-3 py-1.5 bg-black/80 backdrop-blur-md text-white text-[11px] font-bold rounded-lg shadow-md tracking-wider flex items-center gap-1.5 border border-white/10">
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  AFTER
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>

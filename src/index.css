@@ -19,4 +19,19 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
   }
+  
+  .text-gradient-animated {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600;
+    background-size: 200% auto;
+    animation: text-shimmer 3s linear infinite;
+  }
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
-import { Sparkles, Crown, Sun, Palette, Box } from 'lucide-react';
+import { Sparkles, Crown } from 'lucide-react';
 
 const InteractiveSandbox = () => {
   const styles = [

@@ -1,4 +1,5 @@
 import { Check, X } from 'lucide-react';
+import BeforeAfterSlider from './BeforeAfterSlider';
 
 const features = [
   { name: 'Kualitas Foto Studio', prodify: true, others: true },
@@ -11,11 +12,22 @@ const features = [
 
 const CompetitiveComparison = () => {
   return (
-    <section className="py-24 bg-white border-t border-gray-100">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-12 text-center">Kenapa Memilih Prodify?</h2>
+    <section className="py-12 md:py-16 bg-white border-t border-gray-100">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 text-center">Kenapa Memilih Prodify?</h2>
         
-        <div className="bg-white rounded-[32px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-200">
+        <p className="text-lg text-slate-500 font-medium text-center mb-12 max-w-2xl mx-auto">
+          Lihat sendiri perbedaannya. Prodify menyulap foto seadanya menjadi standar studio profesional hanya dalam hitungan detik.
+        </p>
+
+        <div className="mb-16">
+          <BeforeAfterSlider 
+            beforeImage="/earfun-before.jpg" 
+            afterImage="/earfun-after.jpg" 
+          />
+        </div>
+        
+        <div className="bg-white rounded-[32px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-200 max-w-4xl mx-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">

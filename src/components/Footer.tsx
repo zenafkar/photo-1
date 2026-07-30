@@ -1,5 +1,3 @@
-import { Camera } from 'lucide-react';
-
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
@@ -27,9 +25,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-2 mb-6">
-              <div className="p-2 bg-indigo-600 rounded-lg">
-                <Camera className="w-5 h-5 text-white" />
-              </div>
+              <img src="/favicon.png" alt="Prodify Logo" className="w-8 h-8 rounded-lg object-cover shadow-sm" />
               <span className="text-xl font-bold text-slate-900 tracking-tight">Prodify</span>
             </div>
             <p className="text-slate-500 mb-6 text-sm">

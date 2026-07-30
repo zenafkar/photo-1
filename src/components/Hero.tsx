@@ -1,5 +1,7 @@
 import { ArrowRight, Image as ImageIcon, Zap, ShieldCheck } from 'lucide-react';
 import { StaggerContainer, StaggerItem } from './ScrollReveal';
+import { SignInButton, SignedOut, SignedIn } from '@clerk/clerk-react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
@@ -9,9 +11,10 @@ const Hero = () => {
         <img 
           src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=2560" 
           alt="Abstract Background" 
-          className="w-full h-full object-cover opacity-[0.12] scale-105"
+          className="w-full h-full object-cover opacity-[0.25] scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white" />
+        <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px]" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white to-transparent" />
       </div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -38,13 +41,20 @@ const Hero = () => {
           
           <StaggerItem>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-              <button className="w-full sm:w-auto px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-[0_8px_20px_rgba(15,23,42,0.15)] hover:shadow-[0_12px_25px_rgba(15,23,42,0.2)] hover:-translate-y-0.5">
-                Mulai Gratis (10 Foto/Bulan)
-                <ArrowRight className="w-5 h-5" />
-              </button>
-              <button className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-slate-900 border border-gray-200 rounded-full font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-sm">
-                Lihat Demo Live
-              </button>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button className="w-full sm:w-auto px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-[0_8px_20px_rgba(15,23,42,0.15)] hover:shadow-[0_12px_25px_rgba(15,23,42,0.2)] hover:-translate-y-0.5">
+                    Mulai Gratis (3 Foto/Bulan)
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <Link to="/studio" className="w-full sm:w-auto px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-[0_8px_20px_rgba(15,23,42,0.15)] hover:shadow-[0_12px_25px_rgba(15,23,42,0.2)] hover:-translate-y-0.5">
+                  Masuk Prodify Studio
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </SignedIn>
             </div>
           </StaggerItem>
 

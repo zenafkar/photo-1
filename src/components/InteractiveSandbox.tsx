@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
-import { Sparkles, Crown, Sun, Palette, Box } from 'lucide-react';
+import { Sparkles, Crown } from 'lucide-react';
+import { SignInButton, SignedOut, SignedIn } from '@clerk/clerk-react';
+import { Link } from 'react-router-dom';
 
 const InteractiveSandbox = () => {
   const styles = [
@@ -62,7 +64,7 @@ const InteractiveSandbox = () => {
   const lineLeftValue = useTransform(revealProgress, (val) => `${val}%`);
 
   return (
-    <section className="bg-[rgba(240,240,240,0.3)] py-20 md:py-24 border-t border-neutral-100/80" id="fitur">
+    <section className="bg-[rgba(240,240,240,0.3)] py-12 md:py-16 border-t border-neutral-100/80" id="fitur">
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
           
@@ -101,13 +103,19 @@ const InteractiveSandbox = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-              <a 
-                href="#pricing"
-                className="bg-[#0A0A0A] text-white px-8 py-3.5 rounded-full font-medium hover:bg-neutral-800 transition-colors w-full sm:w-auto text-center shadow-lg shadow-black/5"
-              >
-                Coba Sekarang
-              </a>
-              <span className="text-sm text-[#888888]">Gratis 10 foto/bulan</span>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button className="bg-[#0A0A0A] text-white px-8 py-3.5 rounded-full font-medium hover:bg-neutral-800 transition-colors w-full sm:w-auto text-center shadow-lg shadow-black/5">
+                    Coba Sekarang
+                  </button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <Link to="/studio" className="bg-[#0A0A0A] text-white px-8 py-3.5 rounded-full font-medium hover:bg-neutral-800 transition-colors w-full sm:w-auto text-center shadow-lg shadow-black/5 block">
+                  Masuk Studio
+                </Link>
+              </SignedIn>
+              <span className="text-sm text-[#888888]">Gratis 3 foto/bulan</span>
             </div>
           </div>
 

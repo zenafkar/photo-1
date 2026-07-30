@@ -1,19 +1,28 @@
-import { useState } from 'react';
-import { Camera, Menu, X, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Menu, X, Sparkles } from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <nav className="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-md border-b border-gray-100 py-3' : 'bg-transparent py-4'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-indigo-600 rounded-lg shadow-sm">
-              <Camera className="w-5 h-5 text-white" />
-            </div>
+          <a href="#" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <img src="/favicon.png" alt="Prodify Logo" className="w-8 h-8 rounded-lg object-cover shadow-sm" />
             <span className="text-xl font-bold text-slate-900 tracking-tight">Prodify</span>
-          </div>
+          </a>
           
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
@@ -25,11 +34,21 @@ const Navbar = () => {
           </div>
           
           <div className="hidden md:flex items-center gap-4">
-            <button className="text-slate-600 hover:text-indigo-600 font-medium text-sm transition-colors">Masuk</button>
-            <button className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-full text-sm font-medium transition-all shadow-sm flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              Coba Gratis
-            </button>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="text-slate-600 hover:text-indigo-600 font-medium text-sm transition-colors">Masuk</button>
+              </SignInButton>
+              <SignInButton mode="modal">
+                <button className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-full text-sm font-medium transition-all shadow-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Coba Gratis
+                </button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <Link to="/studio" className="text-slate-600 hover:text-indigo-600 font-medium text-sm transition-colors">Studio</Link>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
           </div>
           
           <div className="-mr-2 flex md:hidden">
@@ -50,11 +69,22 @@ const Navbar = () => {
             <a href="#integrity" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50">Integrity Engine</a>
             <a href="#harga" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50">Harga</a>
             <a href="#faq" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50">FAQ</a>
-            <button onClick={() => setIsOpen(false)} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50">Masuk</button>
-            <button onClick={() => setIsOpen(false)} className="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white px-3 py-2.5 rounded-xl text-base font-medium flex items-center gap-2 justify-center shadow-sm">
-              <Sparkles className="w-4 h-4" />
-              Coba Gratis
-            </button>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button onClick={() => setIsOpen(false)} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50">Masuk</button>
+              </SignInButton>
+              <SignInButton mode="modal">
+                <button onClick={() => setIsOpen(false)} className="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white px-3 py-2.5 rounded-xl text-base font-medium flex items-center gap-2 justify-center shadow-sm">
+                  <Sparkles className="w-4 h-4" />
+                  Coba Gratis
+                </button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <Link to="/studio" onClick={() => setIsOpen(false)} className="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white px-3 py-2.5 rounded-xl text-base font-medium flex items-center gap-2 justify-center shadow-sm">
+                Masuk Studio
+              </Link>
+            </SignedIn>
           </div>
         </div>
       )}

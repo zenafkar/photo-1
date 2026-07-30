@@ -1,33 +1,15 @@
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import IntegrityEngine from './components/IntegrityEngine';
-import InteractiveSandbox from './components/InteractiveSandbox';
-import MarketplacePresets from './components/MarketplacePresets';
-import CompetitiveComparison from './components/CompetitiveComparison';
-import WorkflowSteps from './components/WorkflowSteps';
-import PricingSection from './components/PricingSection';
-import Testimonials from './components/Testimonials';
-import FAQ from './components/FAQ';
-import Footer from './components/Footer';
-import { ScrollReveal } from './components/ScrollReveal';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import StudioDashboard from "./pages/StudioDashboard";
 
 function App() {
   return (
-    <div className="min-h-screen bg-background selection:bg-secondary/20 selection:text-primary text-text font-sans antialiased overflow-x-hidden">
-      <Navbar />
-      <main>
-        <Hero />
-        <ScrollReveal><IntegrityEngine /></ScrollReveal>
-        <ScrollReveal><InteractiveSandbox /></ScrollReveal>
-        <ScrollReveal><WorkflowSteps /></ScrollReveal>
-        <ScrollReveal><MarketplacePresets /></ScrollReveal>
-        <ScrollReveal><CompetitiveComparison /></ScrollReveal>
-        <ScrollReveal><Testimonials /></ScrollReveal>
-        <ScrollReveal><PricingSection /></ScrollReveal>
-        <ScrollReveal><FAQ /></ScrollReveal>
-      </main>
-      <Footer />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/studio" element={<StudioDashboard />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

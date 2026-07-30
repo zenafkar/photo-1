@@ -9,6 +9,7 @@ import PricingSection from './components/PricingSection';
 import Testimonials from './components/Testimonials';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
+import { ScrollReveal } from './components/ScrollReveal';
 
 function App() {
   return (
@@ -16,14 +17,14 @@ function App() {
       <Navbar />
       <main>
         <Hero />
-        <IntegrityEngine />
-        <InteractiveSandbox />
-        <WorkflowSteps />
-        <MarketplacePresets />
-        <CompetitiveComparison />
-        <Testimonials />
-        <PricingSection />
-        <FAQ />
+        <ScrollReveal><IntegrityEngine /></ScrollReveal>
+        <ScrollReveal><InteractiveSandbox /></ScrollReveal>
+        <ScrollReveal><WorkflowSteps /></ScrollReveal>
+        <ScrollReveal><MarketplacePresets /></ScrollReveal>
+        <ScrollReveal><CompetitiveComparison /></ScrollReveal>
+        <ScrollReveal><Testimonials /></ScrollReveal>
+        <ScrollReveal><PricingSection /></ScrollReveal>
+        <ScrollReveal><FAQ /></ScrollReveal>
       </main>
       <Footer />
     </div>

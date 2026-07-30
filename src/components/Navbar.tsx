@@ -16,72 +16,135 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-md border-b border-gray-100 py-3' : 'bg-transparent py-4'}`}>
+    <nav 
+      className={`fixed w-full z-50 transition-all duration-500 ${
+        isScrolled 
+          ? 'bg-slate-950/85 backdrop-blur-xl border-b border-cyan-500/20 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.8)]' 
+          : 'bg-transparent py-5'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <a href="#" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-            <img src="/favicon.png" alt="Prodify Logo" className="w-8 h-8 rounded-lg object-cover shadow-sm" />
-            <span className="text-xl font-bold text-slate-900 tracking-tight">Prodify</span>
+        <div className="flex items-center justify-between h-14">
+          {/* Logo */}
+          <a href="#" className="flex items-center gap-2.5 group">
+            <div className="relative p-1 rounded-xl bg-slate-900 border border-cyan-500/30 group-hover:border-cyan-400/60 transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+              <img src="/favicon.png" alt="Prodify Logo" className="w-7 h-7 rounded-lg object-cover" />
+            </div>
+            <span className="text-xl font-black text-white tracking-tight group-hover:text-cyan-300 transition-colors">
+              Prodify
+            </span>
           </a>
           
+          {/* Desktop Nav Links */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
-              <a href="#fitur" className="text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm">Fitur</a>
-              <a href="#integrity" className="text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm">Integrity Engine</a>
-              <a href="#harga" className="text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm">Harga</a>
-              <a href="#faq" className="text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm">FAQ</a>
+            <div className="ml-10 flex items-center space-x-1 px-4 py-1.5 rounded-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-md shadow-inner">
+              <a href="#fitur" className="px-4 py-1.5 rounded-full text-slate-300 hover:text-cyan-300 hover:bg-slate-800/60 transition-all text-sm font-medium">
+                Fitur
+              </a>
+              <a href="#integrity" className="px-4 py-1.5 rounded-full text-slate-300 hover:text-cyan-300 hover:bg-slate-800/60 transition-all text-sm font-medium">
+                Integrity Engine
+              </a>
+              <a href="#harga" className="px-4 py-1.5 rounded-full text-slate-300 hover:text-cyan-300 hover:bg-slate-800/60 transition-all text-sm font-medium">
+                Harga
+              </a>
+              <a href="#faq" className="px-4 py-1.5 rounded-full text-slate-300 hover:text-cyan-300 hover:bg-slate-800/60 transition-all text-sm font-medium">
+                FAQ
+              </a>
             </div>
           </div>
           
+          {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-4">
             <SignedOut>
               <SignInButton mode="modal">
-                <button className="text-slate-600 hover:text-indigo-600 font-medium text-sm transition-colors">Masuk</button>
+                <button className="text-slate-300 hover:text-cyan-300 font-semibold text-sm transition-colors px-3 py-1.5">
+                  Masuk
+                </button>
               </SignInButton>
               <SignInButton mode="modal">
-                <button className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-full text-sm font-medium transition-all shadow-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
+                <button className="bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] hover:scale-105 active:scale-95 flex items-center gap-2 border border-cyan-400/30">
+                  <Sparkles className="w-4 h-4 text-cyan-200 fill-cyan-200" />
                   Coba Gratis
                 </button>
               </SignInButton>
             </SignedOut>
             <SignedIn>
-              <Link to="/studio" className="text-slate-600 hover:text-indigo-600 font-medium text-sm transition-colors">Studio</Link>
+              <Link to="/studio" className="text-slate-300 hover:text-cyan-300 font-semibold text-sm transition-colors">
+                Studio
+              </Link>
               <UserButton afterSignOutUrl="/" />
             </SignedIn>
           </div>
           
+          {/* Mobile Toggle Button */}
           <div className="-mr-2 flex md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-slate-50 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-xl text-slate-300 hover:text-cyan-300 hover:bg-slate-900 border border-slate-800 focus:outline-none"
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? <X className="h-6 w-6 text-cyan-400" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
       </div>
 
+      {/* Mobile Menu Dropdown */}
       {isOpen && (
-        <div className="md:hidden bg-white border-b border-gray-100 shadow-lg">
-          <div className="px-4 pt-2 pb-4 space-y-2">
-            <a href="#fitur" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50">Fitur</a>
-            <a href="#integrity" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50">Integrity Engine</a>
-            <a href="#harga" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50">Harga</a>
-            <a href="#faq" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50">FAQ</a>
+        <div className="md:hidden bg-slate-950/95 border-b border-cyan-500/20 backdrop-blur-2xl shadow-2xl">
+          <div className="px-4 pt-3 pb-6 space-y-2">
+            <a 
+              href="#fitur" 
+              onClick={() => setIsOpen(false)} 
+              className="block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+            >
+              Fitur
+            </a>
+            <a 
+              href="#integrity" 
+              onClick={() => setIsOpen(false)} 
+              className="block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+            >
+              Integrity Engine
+            </a>
+            <a 
+              href="#harga" 
+              onClick={() => setIsOpen(false)} 
+              className="block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+            >
+              Harga
+            </a>
+            <a 
+              href="#faq" 
+              onClick={() => setIsOpen(false)} 
+              className="block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+            >
+              FAQ
+            </a>
             <SignedOut>
               <SignInButton mode="modal">
-                <button onClick={() => setIsOpen(false)} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50">Masuk</button>
+                <button 
+                  onClick={() => setIsOpen(false)} 
+                  className="w-full text-left block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+                >
+                  Masuk
+                </button>
               </SignInButton>
               <SignInButton mode="modal">
-                <button onClick={() => setIsOpen(false)} className="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white px-3 py-2.5 rounded-xl text-base font-medium flex items-center gap-2 justify-center shadow-sm">
+                <button 
+                  onClick={() => setIsOpen(false)} 
+                  className="w-full mt-4 bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 text-white px-4 py-3 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-lg shadow-cyan-500/20"
+                >
                   <Sparkles className="w-4 h-4" />
                   Coba Gratis
                 </button>
               </SignInButton>
             </SignedOut>
             <SignedIn>
-              <Link to="/studio" onClick={() => setIsOpen(false)} className="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white px-3 py-2.5 rounded-xl text-base font-medium flex items-center gap-2 justify-center shadow-sm">
+              <Link 
+                to="/studio" 
+                onClick={() => setIsOpen(false)} 
+                className="w-full mt-4 bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 text-white px-4 py-3 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-lg shadow-cyan-500/20"
+              >
                 Masuk Studio
               </Link>
             </SignedIn>
@@ -93,3 +156,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

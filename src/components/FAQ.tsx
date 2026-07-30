@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronDown, Terminal } from 'lucide-react';
 
 const faqs = [
   {
@@ -20,7 +20,7 @@ const faqs = [
   },
   {
     question: "Apakah ada versi gratis?",
-    answer: "Ada! Anda mendapatkan 10 foto gratis setiap bulan tanpa perlu memasukkan kartu kredit. Anda dapat mencoba semua fitur utama sebelum memutuskan untuk berlangganan."
+    answer: "Ada! Anda mendapatkan 3 foto gratis setiap bulan tanpa perlu memasukkan kartu kredit. Anda dapat mencoba semua fitur utama sebelum memutuskan untuk berlangganan."
   }
 ];
 
@@ -32,15 +32,22 @@ const FAQ = () => {
   };
 
   return (
-    <section id="faq" className="py-12 md:py-16 bg-white border-t border-gray-100">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="faq" className="py-16 md:py-24 bg-slate-950 border-t border-slate-800/80 relative overflow-hidden">
+      {/* Background Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none" />
+      
+      {/* Glow Effects */}
+      <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none" />
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center p-3 bg-white border border-gray-200 rounded-2xl mb-6 shadow-sm">
-            <HelpCircle className="w-6 h-6 text-indigo-600" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-xs font-mono text-cyan-300 mb-6 backdrop-blur-md">
+            <Terminal className="w-3.5 h-3.5 text-cyan-400" />
+            <span>KNOWLEDGE BASE // FAQ</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6">Pertanyaan Sering Diajukan (FAQ)</h2>
-          <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
-            Segala hal yang perlu Anda ketahui tentang Prodify dan teknologi Product Integrity Engine™.
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Pertanyaan Sering Diajukan</h2>
+          <p className="text-xl text-slate-400 max-w-2xl mx-auto font-medium">
+            Segala hal yang perlu Anda ketahui tentang Prodify dan teknologi <span className="text-cyan-400 font-bold">Product Integrity Engine™</span>.
           </p>
         </div>
 
@@ -50,17 +57,19 @@ const FAQ = () => {
             return (
               <div 
                 key={index}
-                className="border border-gray-200 rounded-2xl overflow-hidden transition-all duration-200 bg-white"
+                className={`border rounded-2xl overflow-hidden transition-all duration-300 bg-slate-900/80 backdrop-blur-md ${isOpen ? 'border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.15)]' : 'border-slate-700/50 hover:border-slate-600/80'}`}
               >
                 <button
                   onClick={() => toggleAccordion(index)}
-                  className="w-full p-6 text-left flex justify-between items-center gap-4 hover:bg-slate-50 transition-colors focus:outline-none"
+                  className="w-full p-6 text-left flex justify-between items-center gap-4 hover:bg-slate-800/50 transition-colors focus:outline-none group"
                 >
-                  <span className="text-lg font-bold text-slate-900">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} />
+                  <span className={`text-lg font-bold transition-colors ${isOpen ? 'text-cyan-300' : 'text-slate-200 group-hover:text-cyan-100'}`}>{faq.question}</span>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${isOpen ? 'bg-cyan-950/80 border border-cyan-500/50' : 'bg-slate-800 border border-slate-700'}`}>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180 text-cyan-400' : 'text-slate-400'}`} />
+                  </div>
                 </button>
                 {isOpen && (
-                  <div className="px-6 pb-6 text-slate-600 leading-relaxed font-medium border-t border-gray-100 pt-4">
+                  <div className="px-6 pb-6 text-slate-400 leading-relaxed font-medium border-t border-slate-800/50 pt-4">
                     {faq.answer}
                   </div>
                 )}

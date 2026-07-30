@@ -1,115 +1,122 @@
-import { Check, Sparkles } from 'lucide-react';
+import { Sparkles, Zap, Image as ImageIcon, Layers, Aperture, Shield, Type, FastForward } from 'lucide-react';
 import { SignInButton, SignedOut, SignedIn } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 
 const PricingSection = () => {
   return (
-    <section id="harga" className="py-12 md:py-16 bg-gray-50 border-t border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="harga" className="py-16 md:py-24 bg-slate-950 border-t border-slate-800/80 relative overflow-hidden text-slate-200">
+      {/* Glow Effects */}
+      <div className="absolute top-1/2 right-1/4 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[140px] pointer-events-none" />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6">Sistem Top Up, Bayar Sesuai Kebutuhan</h2>
-          <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">Beli kredit saat Anda butuh. Lebih hemat untuk UMKM, tanpa komitmen bulanan.</p>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-xs font-mono text-cyan-300 mb-6 backdrop-blur-md">
+            <Zap className="w-3.5 h-3.5 text-cyan-400" />
+            <span>PAY PER COMPUTE</span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Top Up AI Credits Sesuai Kebutuhan</h2>
+          <p className="text-xl text-slate-400 max-w-2xl mx-auto font-medium">Beli kredit saat Anda butuh. Lebih hemat untuk UMKM, tanpa komitmen bulanan.</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Free Tier */}
-          <div className="bg-white rounded-[32px] p-8 lg:p-10 border border-gray-100 flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
-            <h3 className="text-2xl font-extrabold text-slate-900 mb-2">Starter</h3>
-            <p className="text-slate-500 mb-6 font-medium text-sm">Cocok untuk mencoba dan jualan santai.</p>
+          <div className="bg-slate-900/80 backdrop-blur-md rounded-[32px] p-8 lg:p-10 border border-slate-700/50 flex flex-col shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:border-slate-500/50 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all">
+            <h3 className="text-2xl font-extrabold text-slate-100 mb-2">Starter</h3>
+            <p className="text-slate-400 mb-6 font-medium text-sm">Cocok untuk mencoba dan jualan santai.</p>
             <div className="mb-8">
-              <span className="text-4xl font-extrabold text-slate-900">Gratis</span>
+              <span className="text-4xl font-extrabold text-white">Gratis</span>
             </div>
             
             <ul className="space-y-4 mb-10 flex-grow text-sm">
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> 3 Kredit (Redesign) per bulan</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Semi-Auto Mode (Pilih template)</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Resolusi Standar (720p)</li>
-              <li className="flex gap-3 text-slate-400 font-medium"><XIcon className="w-5 h-5 shrink-0" /> Watermark Prodify</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><ImageIcon className="w-5 h-5 text-cyan-500 shrink-0" /> 3 Kredit (Redesign) per bulan</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-500 shrink-0" /> Semi-Auto Mode (Pilih template)</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-500 shrink-0" /> Resolusi Standar (720p)</li>
+              <li className="flex gap-3 text-slate-600 font-medium"><XIcon className="w-5 h-5 shrink-0" /> Watermark Prodify</li>
             </ul>
             
             <SignedOut>
               <SignInButton mode="modal">
-                <button className="w-full py-3.5 rounded-xl border-2 border-gray-200 text-slate-700 font-bold hover:bg-gray-50 transition-colors">
+                <button className="w-full py-3.5 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 font-bold hover:bg-slate-800 transition-colors">
                   Mulai Gratis
                 </button>
               </SignInButton>
             </SignedOut>
             <SignedIn>
-              <Link to="/studio" className="w-full py-3.5 rounded-xl border-2 border-gray-200 text-slate-700 font-bold flex justify-center hover:bg-gray-50 transition-colors">
+              <Link to="/studio" className="w-full py-3.5 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 font-bold flex justify-center hover:bg-slate-800 transition-colors">
                 Mulai Gratis
               </Link>
             </SignedIn>
           </div>
 
           {/* Basic Tier */}
-          <div className="bg-white rounded-[32px] p-8 lg:p-10 border border-gray-200 flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
-            <h3 className="text-2xl font-extrabold text-slate-900 mb-2">Pemula</h3>
-            <p className="text-slate-500 mb-6 font-medium text-sm">Untuk bisnis kecil yang mulai berkembang.</p>
+          <div className="bg-slate-900/80 backdrop-blur-md rounded-[32px] p-8 lg:p-10 border border-slate-700/50 flex flex-col shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:border-cyan-500/30 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all">
+            <h3 className="text-2xl font-extrabold text-slate-100 mb-2">Pemula</h3>
+            <p className="text-slate-400 mb-6 font-medium text-sm">Untuk bisnis kecil yang mulai berkembang.</p>
             <div className="mb-8 flex flex-col gap-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold text-slate-900">Rp 49.000</span>
+                <span className="text-4xl font-extrabold text-white">Rp 49.000</span>
               </div>
-              <span className="text-indigo-600 font-bold text-sm bg-indigo-50 inline-flex px-3 py-1 rounded-full w-fit mt-2">
+              <span className="text-cyan-400 font-bold text-sm bg-cyan-950/50 border border-cyan-500/30 inline-flex px-3 py-1 rounded-full w-fit mt-2">
                 Dapat 50 Kredit (~Rp 980/foto)
               </span>
             </div>
             
             <ul className="space-y-4 mb-10 flex-grow text-sm">
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> <strong>50 Kredit</strong> Saldo</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Custom Prompt (Ketik suasana)</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Batch Processing (Edit banyak)</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Ekspor Resolusi Tinggi</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Tanpa Watermark</li>
+              <li className="flex gap-3 text-slate-200 font-medium"><Zap className="w-5 h-5 text-cyan-400 shrink-0" /> <strong className="text-cyan-300">50 Kredit</strong> Saldo</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Type className="w-5 h-5 text-cyan-500 shrink-0" /> Custom Prompt (Ketik suasana)</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-500 shrink-0" /> Batch Processing (Edit banyak)</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-500 shrink-0" /> Ekspor Resolusi Tinggi</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Shield className="w-5 h-5 text-cyan-500 shrink-0" /> Tanpa Watermark</li>
             </ul>
             
             <SignedOut>
               <SignInButton mode="modal">
-                <button className="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition-all shadow-md hover:shadow-lg">
+                <button className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold transition-all shadow-md">
                   Beli Paket
                 </button>
               </SignInButton>
             </SignedOut>
             <SignedIn>
-              <Link to="/studio" className="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold flex justify-center transition-all shadow-md hover:shadow-lg">
+              <Link to="/studio" className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold flex justify-center transition-all shadow-md">
                 Beli Paket
               </Link>
             </SignedIn>
           </div>
 
           {/* Premium Tier */}
-          <div className="bg-white rounded-[32px] p-8 lg:p-10 border-2 border-indigo-600 relative flex flex-col transform md:-translate-y-4 shadow-[0_20px_40px_rgb(79,70,229,0.15)]">
-            <div className="absolute top-0 right-8 transform -translate-y-1/2 bg-indigo-600 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-md flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-blue-200" /> PALING POPULER
+          <div className="bg-slate-900/90 backdrop-blur-xl rounded-[32px] p-8 lg:p-10 border border-cyan-500/50 relative flex flex-col transform md:-translate-y-4 shadow-[0_0_50px_rgba(6,182,212,0.2)]">
+            <div className="absolute top-0 right-8 transform -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-100" /> PALING POPULER
             </div>
-            <h3 className="text-2xl font-extrabold text-indigo-600 mb-2">Profesional</h3>
-            <p className="text-slate-500 mb-6 font-medium text-sm">Untuk UMKM serius yang ingin mendominasi.</p>
+            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 mb-2">Profesional</h3>
+            <p className="text-slate-400 mb-6 font-medium text-sm">Untuk UMKM serius yang ingin mendominasi.</p>
             <div className="mb-8 flex flex-col gap-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold text-slate-900">Rp 129.000</span>
+                <span className="text-4xl font-extrabold text-white">Rp 129.000</span>
               </div>
-              <span className="text-green-700 font-bold text-sm bg-green-50 inline-flex px-3 py-1 rounded-full w-fit mt-2">
+              <span className="text-emerald-400 font-bold text-sm bg-emerald-950/50 border border-emerald-500/30 inline-flex px-3 py-1 rounded-full w-fit mt-2">
                 Dapat 200 Kredit (~Rp 645/foto)
               </span>
             </div>
             
             <ul className="space-y-4 mb-10 flex-grow text-sm">
-              <li className="flex gap-3 text-slate-900 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> <strong>200 Kredit</strong> Saldo</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Custom Prompt (Ketik suasana)</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Batch Processing (Edit banyak)</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Ekspor Resolusi 4K</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Priority Server (Lebih cepat)</li>
-              <li className="flex gap-3 text-slate-700 font-medium"><Check className="w-5 h-5 text-indigo-500 shrink-0" /> Tanpa Watermark</li>
+              <li className="flex gap-3 text-slate-100 font-medium"><Zap className="w-5 h-5 text-cyan-400 shrink-0 drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]" /> <strong className="text-cyan-300">200 Kredit</strong> Saldo</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Type className="w-5 h-5 text-cyan-400 shrink-0" /> Custom Prompt (Ketik suasana)</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-400 shrink-0" /> Batch Processing (Edit banyak)</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-400 shrink-0" /> Ekspor Resolusi 4K</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><FastForward className="w-5 h-5 text-cyan-400 shrink-0" /> Priority Server (Lebih cepat)</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Shield className="w-5 h-5 text-cyan-400 shrink-0" /> Tanpa Watermark</li>
             </ul>
             
             <SignedOut>
               <SignInButton mode="modal">
-                <button className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
+                <button className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:-translate-y-0.5 border border-cyan-400/50">
                   Beli Paket
                 </button>
               </SignInButton>
             </SignedOut>
             <SignedIn>
-              <Link to="/studio" className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold flex justify-center transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
+              <Link to="/studio" className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold flex justify-center transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:-translate-y-0.5 border border-cyan-400/50">
                 Beli Paket
               </Link>
             </SignedIn>

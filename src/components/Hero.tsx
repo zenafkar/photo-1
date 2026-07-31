@@ -49,11 +49,13 @@ const Hero = () => {
     <div className="relative pt-28 pb-20 lg:pt-36 lg:pb-28 overflow-hidden bg-slate-950 text-white isolate">
       {/* High-tech Cyber Grid Background & Glow Effects */}
       <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
-        {/* Background Image Overlay */}
+        {/* Background Image Overlay (Dioptimalkan untuk LCP Mobile) */}
         <img 
-          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=2560" 
+          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=60&w=1080" 
           alt="Abstract Cyber Background" 
-          className="w-full h-full object-cover opacity-15 scale-105 filter blur-sm"
+          className="w-full h-full object-cover opacity-15 scale-105 filter blur-md"
+          fetchPriority="high"
+          loading="eager"
         />
         {/* Glowing Orbs */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[160px]" />

@@ -226,7 +226,7 @@ const InteractiveSandbox = () => {
             
             {/* Interactive Before/After Image Slider */}
             <div 
-              className="aspect-square sm:aspect-[4/3] rounded-2xl overflow-hidden relative bg-slate-950 isolate border border-slate-800 cursor-ew-resize select-none touch-none shadow-2xl"
+              className="aspect-square sm:aspect-[4/3] rounded-2xl overflow-hidden relative bg-slate-950 isolate border border-slate-800 cursor-ew-resize select-none touch-pan-y shadow-2xl"
               onPointerEnter={handlePointerEnter}
               onPointerLeave={handlePointerLeave}
               onPointerDown={handlePointerEnter}

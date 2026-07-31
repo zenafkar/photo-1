@@ -294,14 +294,14 @@ export default function StudioDashboard() {
 
                     {/* Prompt Input */}
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <label className="flex items-center text-sm font-bold text-slate-800">
                           Prompt <span className="text-red-500 ml-1">*</span>
                         </label>
                         <button
                           type="button"
                           onClick={() => setIsPromptModalOpen(true)}
-                          className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:from-indigo-700 hover:to-cyan-600 text-white rounded-lg font-bold text-xs shadow-sm hover:shadow transition-all group"
+                          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:from-indigo-700 hover:to-cyan-600 text-white rounded-lg font-bold text-[11px] sm:text-xs shadow-sm hover:shadow transition-all group"
                         >
                           <Wand2 className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
                           <span>Auto Generate Prompt</span>

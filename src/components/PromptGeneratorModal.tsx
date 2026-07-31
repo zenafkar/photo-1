@@ -190,72 +190,73 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   const filteredPresets = PRESETS.filter(p => selectedCategory === 'all' || p.category === selectedCategory);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-white border border-slate-200/80 rounded-3xl w-full max-w-4xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl w-full max-w-4xl max-h-[92vh] sm:max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="px-6 py-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-slate-800 text-white flex items-center justify-between relative overflow-hidden">
+        <div className="px-4 py-3.5 sm:px-6 sm:py-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-slate-800 text-white flex items-center justify-between gap-3 relative overflow-hidden flex-shrink-0">
           {/* Subtle glow */}
           <div className="absolute top-0 right-1/4 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="flex items-center gap-3 relative z-10">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/30 flex items-center justify-center">
-              <div className="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center">
-                <Wand2 className="w-5 h-5 text-cyan-400" />
+          <div className="flex items-center gap-2.5 sm:gap-3 relative z-10 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/30 flex items-center justify-center flex-shrink-0">
+              <div className="w-full h-full bg-slate-900 rounded-[10px] sm:rounded-[14px] flex items-center justify-center">
+                <Wand2 className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
               </div>
             </div>
-            <div>
-              <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-                AI Auto Prompt Generator
-                <span className="text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full">
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-lg font-black tracking-tight flex items-center gap-1.5 flex-wrap truncate">
+                <span>AI Prompt Studio</span>
+                <span className="text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded-full whitespace-nowrap">
                   PRODUK JUALAN
                 </span>
               </h2>
-              <p className="text-xs text-slate-300 font-medium">
-                Formula prompt studio fotografi profesional untuk tingkatkan daya tarik konsumen & penjualan
+              <p className="text-[11px] sm:text-xs text-slate-300 font-medium truncate sm:whitespace-normal">
+                Formula prompt studio fotografi profesional untuk hasil jualan menarik
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="relative z-10 p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
+            className="relative z-10 p-1.5 sm:p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-colors flex-shrink-0"
+            title="Tutup Modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Tab Selector */}
-        <div className="px-6 pt-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+        <div className="px-3 sm:px-6 py-2.5 sm:py-3 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
             <button
               onClick={() => setActiveTab('presets')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all ${
                 activeTab === 'presets'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
                   : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-800'
               }`}
             >
-              <Sparkles className="w-4 h-4" />
-              Preset Foto Siap pakai ({PRESETS.length})
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Preset Siap Pakai ({PRESETS.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('custom')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all ${
                 activeTab === 'custom'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
                   : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-800'
               }`}
             >
-              <Sliders className="w-4 h-4" />
-              Kustom Prompt Builder
+              <Sliders className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Kustom Builder</span>
             </button>
           </div>
 
           {activeTab === 'custom' && (
             <button
               onClick={handleRandomizeCustom}
-              className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+              className="w-full sm:w-auto text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Acak Kombinasi
@@ -264,24 +265,24 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 bg-slate-50/50">
           {activeTab === 'presets' ? (
-            <div className="space-y-5">
+            <div className="space-y-4 sm:space-y-5">
               {/* Category Filter Chips */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1.5 scrollbar-none">
                 {[
                   { id: 'all', label: 'Semua Preset' },
-                  { id: 'beauty', label: '🧴 Skincare & Beauty' },
-                  { id: 'luxury', label: '💎 Mewah & Perhiasan' },
+                  { id: 'beauty', label: '🧴 Skincare' },
+                  { id: 'luxury', label: '💎 Mewah' },
                   { id: 'marketplace', label: '🛍️ Marketplace Clean' },
-                  { id: 'food', label: '☕ Makanan & Minuman' },
-                  { id: 'fashion', label: '👟 Fashion & Sepatu' },
-                  { id: 'tech', label: '💻 Gadget & Elektronik' },
+                  { id: 'food', label: '☕ Makanan' },
+                  { id: 'fashion', label: '👟 Fashion' },
+                  { id: 'tech', label: '💻 Gadget' },
                 ].map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                    className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all ${
                       selectedCategory === cat.id
                         ? 'bg-slate-900 text-white shadow-sm'
                         : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
@@ -293,34 +294,34 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
               </div>
 
               {/* Grid Presets */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 {filteredPresets.map((preset) => (
                   <div
                     key={preset.id}
-                    className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col justify-between group"
+                    className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col justify-between group"
                   >
                     <div>
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <h3 className="font-extrabold text-slate-800 text-base group-hover:text-indigo-600 transition-colors">
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <h3 className="font-extrabold text-slate-800 text-sm sm:text-base leading-snug group-hover:text-indigo-600 transition-colors">
                           {preset.title}
                         </h3>
-                        <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full border ${preset.badgeColor}`}>
+                        <span className={`text-[9px] sm:text-[10px] font-bold font-mono px-2 py-0.5 rounded-full border whitespace-nowrap flex-shrink-0 ${preset.badgeColor}`}>
                           {preset.badge}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 font-medium mb-3">
+                      <p className="text-[11px] sm:text-xs text-slate-500 font-medium mb-2.5 leading-relaxed">
                         {preset.description}
                       </p>
 
                       {/* Prompt Display */}
-                      <div className="bg-slate-900 text-slate-200 p-3 rounded-xl text-xs font-mono line-clamp-3 mb-3 border border-slate-800 leading-relaxed relative">
+                      <div className="bg-slate-900 text-slate-200 p-2.5 sm:p-3 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-mono line-clamp-3 sm:line-clamp-4 mb-2.5 border border-slate-800 leading-relaxed relative">
                         {preset.prompt}
                       </div>
 
                       {/* Tag Chips */}
-                      <div className="flex flex-wrap gap-1.5 mb-4">
+                      <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-3">
                         {preset.tags.map((tag) => (
-                          <span key={tag} className="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded-md">
+                          <span key={tag} className="bg-slate-100 text-slate-600 text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-md">
                             #{tag}
                           </span>
                         ))}
@@ -330,13 +331,13 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                     <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
                       <button
                         onClick={() => handleCopy(preset.id, preset.prompt)}
-                        className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors flex items-center justify-center text-xs font-bold gap-1"
+                        className="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors flex items-center justify-center text-xs font-bold gap-1 flex-shrink-0"
                         title="Salin Prompt"
                       >
                         {copiedId === preset.id ? (
-                          <><Check className="w-4 h-4 text-emerald-600" /> Tersalin!</>
+                          <><Check className="w-3.5 h-3.5 text-emerald-600" /> <span className="hidden xs:inline">Tersalin</span></>
                         ) : (
-                          <><Copy className="w-4 h-4" /> Salin</>
+                          <><Copy className="w-3.5 h-3.5" /> Salin</>
                         )}
                       </button>
 
@@ -345,10 +346,10 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                           onApplyPrompt(preset.prompt);
                           onClose();
                         }}
-                        className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5"
                       >
-                        Gunakan Prompt Ini
-                        <ArrowRight className="w-4 h-4" />
+                        <span>Gunakan Prompt Ini</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -357,10 +358,10 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
             </div>
           ) : (
             /* Custom Builder Tab */
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               
               {/* Product Name Input */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+              <div className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 space-y-2.5 sm:space-y-3">
                 <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <ShoppingBag className="w-4 h-4 text-indigo-500" />
                   1. Nama / Jenis Produk Anda
@@ -370,16 +371,16 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                   value={customProduct}
                   onChange={(e) => setCustomProduct(e.target.value)}
                   placeholder="Contoh: Botol Serum Skincare, Sepatu Sneakers, Jam Tangan..."
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-2.5 sm:p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
                 />
 
                 <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                  <span className="text-[11px] font-bold text-slate-400">Saran Cepat:</span>
+                  <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">Saran Cepat:</span>
                   {QUICK_SUGGESTIONS.map((sug) => (
                     <button
                       key={sug}
                       onClick={() => setCustomProduct(sug)}
-                      className="text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 font-semibold px-2.5 py-1 rounded-lg border border-slate-200 transition-colors"
+                      className="text-[10px] sm:text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 font-semibold px-2 py-0.5 sm:py-1 rounded-lg border border-slate-200 transition-colors"
                     >
                       + {sug}
                     </button>
@@ -388,18 +389,18 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
               </div>
 
               {/* Pedestal / Surface */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+              <div className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 space-y-2.5 sm:space-y-3">
                 <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-indigo-500" />
                   2. Latar Belakang / Surface Pedestal
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5">
                   {PEDESTAL_OPTIONS.map((item) => (
                     <button
                       key={item.label}
                       type="button"
                       onClick={() => setCustomPedestal(item.val)}
-                      className={`p-3 rounded-xl border text-left text-xs font-bold transition-all ${
+                      className={`p-2.5 sm:p-3 rounded-xl border text-left text-[11px] sm:text-xs font-bold transition-all ${
                         customPedestal === item.val
                           ? 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-sm'
                           : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
@@ -412,18 +413,18 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
               </div>
 
               {/* Lighting */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+              <div className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 space-y-2.5 sm:space-y-3">
                 <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Sun className="w-4 h-4 text-amber-500" />
                   3. Mood Pencahayaan (Lighting Studio)
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
                   {LIGHTING_OPTIONS.map((item) => (
                     <button
                       key={item.label}
                       type="button"
                       onClick={() => setCustomLighting(item.val)}
-                      className={`p-3 rounded-xl border text-left text-xs font-bold transition-all ${
+                      className={`p-2.5 sm:p-3 rounded-xl border text-left text-[11px] sm:text-xs font-bold transition-all ${
                         customLighting === item.val
                           ? 'bg-amber-50 border-amber-500 text-amber-800 shadow-sm'
                           : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
@@ -436,12 +437,12 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
               </div>
 
               {/* Extra Effects */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+              <div className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 space-y-2.5 sm:space-y-3">
                 <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Camera className="w-4 h-4 text-cyan-500" />
                   4. Efek Estetika Tambahan (Opsional)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5">
                   {EXTRA_EFFECTS.map((item) => {
                     const isSelected = selectedEffects.includes(item.val);
                     return (
@@ -449,14 +450,14 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                         key={item.label}
                         type="button"
                         onClick={() => toggleEffect(item.val)}
-                        className={`p-3 rounded-xl border text-left text-xs font-bold transition-all flex items-center justify-between ${
+                        className={`p-2.5 sm:p-3 rounded-xl border text-left text-[11px] sm:text-xs font-bold transition-all flex items-center justify-between ${
                           isSelected
                             ? 'bg-cyan-50 border-cyan-500 text-cyan-800 shadow-sm'
                             : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                         }`}
                       >
                         <span>{item.label}</span>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-cyan-600 flex-shrink-0" />}
+                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-600 flex-shrink-0" />}
                       </button>
                     );
                   })}
@@ -464,20 +465,20 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
               </div>
 
               {/* Live Preview Box */}
-              <div className="bg-slate-900 p-5 rounded-2xl text-white space-y-3 shadow-lg border border-slate-800">
+              <div className="bg-slate-900 p-4 sm:p-5 rounded-xl sm:rounded-2xl text-white space-y-2.5 sm:space-y-3 shadow-lg border border-slate-800">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-cyan-400 font-mono uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5" /> Live Generated Prompt Result
+                  <span className="text-[11px] sm:text-xs font-bold text-cyan-400 font-mono uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" /> Live Prompt Result
                   </span>
                   <button
                     onClick={() => handleCopy('custom-live', buildCustomPromptText())}
-                    className="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg transition-colors flex items-center gap-1 font-bold"
+                    className="text-[11px] text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 font-bold"
                   >
                     {copiedId === 'custom-live' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     {copiedId === 'custom-live' ? 'Tersalin' : 'Salin Text'}
                   </button>
                 </div>
-                <p className="font-mono text-xs text-slate-200 leading-relaxed bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80">
+                <p className="font-mono text-[11px] sm:text-xs text-slate-200 leading-relaxed bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
                   {buildCustomPromptText()}
                 </p>
                 <button
@@ -485,7 +486,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                     onApplyPrompt(buildCustomPromptText());
                     onClose();
                   }}
-                  className="w-full py-3 bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2"
+                  className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2"
                 >
                   Terapkan Prompt Kustom ke Studio
                   <ArrowRight className="w-4 h-4" />
@@ -497,14 +498,14 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
         </div>
 
         {/* Footer info strip */}
-        <div className="px-6 py-3 bg-slate-100 border-t border-slate-200 text-slate-500 text-xs flex items-center justify-between">
-          <span className="flex items-center gap-1 font-medium">
-            <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-            Tips: Gunakan prompt bahasa Inggris untuk hasil kualitas AI terbaik.
+        <div className="px-3.5 sm:px-6 py-2.5 sm:py-3 bg-slate-100 border-t border-slate-200 text-slate-500 text-[11px] sm:text-xs flex items-center justify-between gap-2 flex-shrink-0">
+          <span className="flex items-center gap-1 font-medium min-w-0 truncate">
+            <Lightbulb className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+            <span className="truncate">Tips: Gunakan prompt bahasa Inggris untuk hasil AI terbaik.</span>
           </span>
           <button
             onClick={onClose}
-            className="font-bold text-slate-700 hover:text-slate-900"
+            className="font-bold text-slate-700 hover:text-slate-900 flex-shrink-0 px-2 py-0.5 rounded hover:bg-slate-200 transition-colors"
           >
             Tutup
           </button>

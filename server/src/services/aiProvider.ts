@@ -1,7 +1,7 @@
 export interface AIGenerationOptions {
   imageUrl: string;
   prompt: string;
-  provider?: "replicate" | "falai" | "nanobanana" | "nanobanana2" | "openai" | "huggingface" | "pollinations" | "gptimage";
+  provider?: "replicate" | "nanobanana" | "nanobanana2" | "gptimage";
   aspectRatio?: string;
   resolution?: string;
   outputFormat?: string;
@@ -9,35 +9,37 @@ export interface AIGenerationOptions {
 
 export class AIService {
   static async generate(options: AIGenerationOptions): Promise<string> {
-    const provider = options.provider || "falai";
+    const provider = options.provider || "replicate";
 
     switch (provider) {
-      case "pollinations":
-      case "huggingface":
-        return this.callPollinations(options.imageUrl, options.prompt);
-      case "replicate":
-      case "nanobanana":
-        return this.callReplicate(options);
       case "nanobanana2":
         return this.callReplicateNanoBanana2(options);
       case "gptimage":
         return this.callReplicateGPTImage(options);
-      case "falai":
+      case "replicate":
+      case "nanobanana":
       default:
-        return this.callFalAI(options);
+        return this.callReplicate(options);
     }
   }
 
-  private static async callPollinations(imageUrl: string, prompt: string): Promise<string> {
-    console.log(`[AI] Calling Pollinations with prompt: ${prompt}`);
-    
-    // Simulate API latency
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const seed = Math.floor(Math.random() * 1000000);
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
-    
-    return pollinationsUrl;
+  private static getFetchOptions(body: any, token: string) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
+
+    return {
+      options: {
+        method: "POST",
+        headers: {
+          "Authorization": `Token ${token}`,
+          "Content-Type": "application/json",
+          "Prefer": "wait"
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      },
+      clearTimeout: () => clearTimeout(timeout)
+    };
   }
 
   private static async callReplicate(options: AIGenerationOptions): Promise<string> {
@@ -49,25 +51,19 @@ export class AIService {
       throw new Error("REPLICATE_API_TOKEN is missing or invalid");
     }
 
+    const { options: fetchOpts, clearTimeout: clear } = this.getFetchOptions({
+      input: {
+        prompt: prompt,
+        image_input: [imageUrl],
+        aspect_ratio: aspectRatio,
+        resolution: resolution ? resolution.toUpperCase() : "1K",
+        output_format: outputFormat || "jpg"
+      }
+    }, token);
+
     try {
-      // Menggunakan endpoint langsung ke model yang spesifik (google/nano-banana-pro)
-      const response = await fetch("https://api.replicate.com/v1/models/google/nano-banana-pro/predictions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Token ${token}`,
-          "Content-Type": "application/json",
-          "Prefer": "wait"
-        },
-        body: JSON.stringify({
-          input: {
-            prompt: prompt,
-            image_input: [imageUrl],
-            aspect_ratio: aspectRatio,
-            resolution: resolution ? resolution.toUpperCase() : "1K",
-            output_format: outputFormat || "jpg"
-          }
-        })
-      });
+      const response = await fetch("https://api.replicate.com/v1/models/google/nano-banana-pro/predictions", fetchOpts);
+      clear();
 
       if (!response.ok) {
         const errText = await response.text();
@@ -82,7 +78,6 @@ export class AIService {
       }
       
       if (data && data.output) {
-        // Some Replicate models return an array of strings, some return a single string
         if (typeof data.output === "string") {
           return data.output;
         } else if (Array.isArray(data.output) && data.output.length > 0) {
@@ -91,8 +86,12 @@ export class AIService {
       }
       
       throw new Error("Replicate API timeout or invalid format. Please try again.");
-    } catch (error) {
+    } catch (error: any) {
+      clear();
       console.error("[AIService Error]", error);
+      if (error.name === 'AbortError') {
+        throw new Error("Request to AI provider timed out after 60 seconds.");
+      }
       throw error;
     }
   }
@@ -106,24 +105,19 @@ export class AIService {
       throw new Error("REPLICATE_API_TOKEN is missing or invalid");
     }
 
+    const { options: fetchOpts, clearTimeout: clear } = this.getFetchOptions({
+      input: {
+        prompt: prompt,
+        image_input: [imageUrl],
+        aspect_ratio: aspectRatio,
+        resolution: resolution ? resolution.toUpperCase() : "1K",
+        output_format: outputFormat || "jpg"
+      }
+    }, token);
+
     try {
-      const response = await fetch("https://api.replicate.com/v1/models/google/nano-banana-2/predictions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Token ${token}`,
-          "Content-Type": "application/json",
-          "Prefer": "wait"
-        },
-        body: JSON.stringify({
-          input: {
-            prompt: prompt,
-            image_input: [imageUrl],
-            aspect_ratio: aspectRatio,
-            resolution: resolution ? resolution.toUpperCase() : "1K",
-            output_format: outputFormat || "jpg"
-          }
-        })
-      });
+      const response = await fetch("https://api.replicate.com/v1/models/google/nano-banana-2/predictions", fetchOpts);
+      clear();
 
       if (!response.ok) {
         const errText = await response.text();
@@ -146,8 +140,12 @@ export class AIService {
       }
       
       throw new Error("Replicate API timeout or invalid format. Please try again.");
-    } catch (error) {
+    } catch (error: any) {
+      clear();
       console.error("[AIService Error]", error);
+      if (error.name === 'AbortError') {
+        throw new Error("Request to AI provider timed out after 60 seconds.");
+      }
       throw error;
     }
   }
@@ -161,18 +159,15 @@ export class AIService {
       throw new Error("REPLICATE_API_TOKEN is missing or invalid");
     }
 
-    // Map aspect ratios to what GPT-Image 1.5 supports: ['1:1', '3:2', '2:3']
     let mappedRatio = "1:1";
     if (aspectRatio) {
       if (aspectRatio === "9:16" || aspectRatio === "4:5") mappedRatio = "2:3";
       else if (aspectRatio === "16:9") mappedRatio = "3:2";
-      else mappedRatio = aspectRatio; // '1:1' or '2:3'
+      else mappedRatio = aspectRatio;
     }
     
-    // Map output format to what GPT-Image 1.5 supports: ['png', 'jpeg', 'webp']
     const mappedFormat = outputFormat === "jpg" ? "jpeg" : (outputFormat || "jpeg");
 
-    // Map resolution to quality
     let mappedQuality = "auto";
     if (resolution) {
       const resLower = resolution.toLowerCase();
@@ -181,24 +176,19 @@ export class AIService {
       else if (resLower === "1k") mappedQuality = "low";
     }
 
+    const { options: fetchOpts, clearTimeout: clear } = this.getFetchOptions({
+      input: {
+        prompt: prompt,
+        input_images: [imageUrl],
+        aspect_ratio: mappedRatio,
+        output_format: mappedFormat,
+        quality: mappedQuality
+      }
+    }, token);
+
     try {
-      const response = await fetch("https://api.replicate.com/v1/models/openai/gpt-image-1.5/predictions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Token ${token}`,
-          "Content-Type": "application/json",
-          "Prefer": "wait"
-        },
-        body: JSON.stringify({
-          input: {
-            prompt: prompt,
-            input_images: [imageUrl],
-            aspect_ratio: mappedRatio,
-            output_format: mappedFormat,
-            quality: mappedQuality
-          }
-        })
-      });
+      const response = await fetch("https://api.replicate.com/v1/models/openai/gpt-image-1.5/predictions", fetchOpts);
+      clear();
 
       if (!response.ok) {
         const errText = await response.text();
@@ -221,76 +211,12 @@ export class AIService {
       }
       
       throw new Error("Replicate API timeout or invalid format. Please try again.");
-    } catch (error) {
+    } catch (error: any) {
+      clear();
       console.error("[AIService Error]", error);
-      throw error;
-    }
-  }
-
-  private static async callFalAI(options: AIGenerationOptions): Promise<string> {
-    const { imageUrl, prompt, aspectRatio, resolution, outputFormat } = options;
-    const token = process.env.FAL_KEY;
-    console.log(`[AI] Calling Fal.ai Flux Image-to-Image with prompt: ${prompt}`);
-
-    if (!token || token.includes("...")) {
-      throw new Error("FAL_KEY is missing or invalid");
-    }
-
-    // Hitung resolusi pasti berdasarkan aspect ratio & resolution tier
-    let width = 1024;
-    let height = 1024;
-    const baseSize = resolution === "4k" ? 4096 : resolution === "2k" ? 2048 : 1024;
-    
-    if (aspectRatio === "16:9") {
-      width = baseSize;
-      height = Math.round((baseSize * 9) / 16);
-    } else if (aspectRatio === "9:16") {
-      height = baseSize;
-      width = Math.round((baseSize * 9) / 16);
-    } else if (aspectRatio === "4:3") {
-      width = baseSize;
-      height = Math.round((baseSize * 3) / 4);
-    } else if (aspectRatio === "3:4") {
-      height = baseSize;
-      width = Math.round((baseSize * 3) / 4);
-    } else {
-      width = baseSize;
-      height = baseSize;
-    }
-
-    try {
-      const response = await fetch("https://fal.run/fal-ai/flux/dev/image-to-image", {
-        method: "POST",
-        headers: {
-          "Authorization": `Key ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          image_url: imageUrl,
-          prompt: prompt,
-          strength: 0.85,
-          num_inference_steps: resolution === "4k" ? 40 : resolution === "2k" ? 35 : 28,
-          guidance_scale: 3.5,
-          image_size: { width, height },
-          output_format: outputFormat || "jpeg"
-        })
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error("[FalAI Error]", errText);
-        throw new Error(`Fal.ai API Error: ${response.statusText}`);
+      if (error.name === 'AbortError') {
+        throw new Error("Request to AI provider timed out after 60 seconds.");
       }
-
-      const data = await response.json();
-      
-      if (data && data.images && data.images.length > 0) {
-        return data.images[0].url;
-      }
-      
-      throw new Error("Invalid response format from Fal.ai");
-    } catch (error) {
-      console.error("[AIService Error]", error);
       throw error;
     }
   }

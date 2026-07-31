@@ -17,6 +17,7 @@ const TwitterIcon = ({ className }: { className?: string }) => (
     <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
   </svg>
 );
+import { ZenLogo } from './ZenLogo';
 
 const Footer = () => {
   return (
@@ -29,10 +30,10 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-3 mb-6">
               <div className="relative">
-                <div className="absolute inset-0 bg-cyan-400 rounded-lg blur-md opacity-50" />
-                <img src="/favicon.png" alt="Prodify Logo" className="w-8 h-8 rounded-lg object-cover relative z-10" />
+                <div className="absolute inset-0 bg-cyan-400 rounded-xl blur-md opacity-50" />
+                <ZenLogo className="w-9 h-9 relative z-10" />
               </div>
-              <span className="text-xl font-bold text-slate-100 tracking-tight">Prodify</span>
+              <span className="text-xl font-bold text-slate-100 tracking-tight">ZenStudio</span>
             </div>
             <p className="text-slate-400 mb-6 text-sm leading-relaxed">
               Tingkatkan konversi dengan foto produk kelas dunia dalam hitungan detik. Tanpa studio, tanpa fotografer.
@@ -82,7 +83,7 @@ const Footer = () => {
         
         <div className="pt-8 border-t border-slate-800/80 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-slate-500 text-sm">
-            © {new Date().getFullYear()} Prodify. Hak cipta dilindungi undang-undang.
+            © {new Date().getFullYear()} ZenStudio. Hak cipta dilindungi undang-undang.
           </p>
           <div className="flex items-center gap-2 text-sm bg-slate-900/50 px-3 py-1.5 rounded-full border border-slate-800">
             <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse"></span>

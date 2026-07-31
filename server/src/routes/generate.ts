@@ -9,7 +9,7 @@ const router = Router();
 const generateSchema = z.object({
   imageUrl: z.string().min(1),
   prompt: z.string().min(3),
-  provider: z.enum(["replicate", "falai", "nanobanana", "nanobanana2", "openai", "huggingface", "pollinations", "gptimage"]).optional(),
+  provider: z.enum(["replicate", "nanobanana", "nanobanana2", "gptimage"]).optional(),
   aspectRatio: z.string().optional(),
   resolution: z.string().optional(),
   outputFormat: z.string().optional(),
@@ -89,7 +89,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const user = await prisma.user.findUnique({
       where: { clerkId }

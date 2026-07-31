@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X, Sparkles } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
+import { ZenLogo } from './ZenLogo';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,11 +28,9 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <a href="#" className="flex items-center gap-2.5 group">
-            <div className="relative p-1 rounded-xl bg-slate-900 border border-cyan-500/30 group-hover:border-cyan-400/60 transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-              <img src="/favicon.png" alt="Prodify Logo" className="w-7 h-7 rounded-lg object-cover" />
-            </div>
+            <ZenLogo className="w-9 h-9 group-hover:scale-105 transition-transform shadow-md" />
             <span className="text-xl font-black text-white tracking-tight group-hover:text-cyan-300 transition-colors">
-              Prodify
+              ZenStudio
             </span>
           </a>
           

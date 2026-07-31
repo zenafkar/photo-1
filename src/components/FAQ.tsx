@@ -3,20 +3,20 @@ import { ChevronDown, Terminal } from 'lucide-react';
 
 const faqs = [
   {
-    question: "Apa bedanya Prodify dengan AI Image Generator biasa?",
-    answer: "AI generator umum sering meregenerasi seluruh gambar sehingga mengubah bentuk produk, logo, atau detail teks/label Anda. Prodify dilengkapi Product Integrity Engine™ yang mengunci 100% bentuk, warna, dan tulisan asli produk Anda, hanya mengubah latar belakang dan pencahayaan studio secara realistis."
+    question: "Apa bedanya ZenStudio dengan AI Image Generator biasa?",
+    answer: "AI generator umum sering meregenerasi seluruh gambar sehingga mengubah bentuk produk, logo, atau detail teks/label Anda. ZenStudio dilengkapi Product Integrity Engine™ yang mengunci 100% bentuk, warna, dan tulisan asli produk Anda, hanya mengubah latar belakang dan pencahayaan studio secara realistis."
   },
   {
-    question: "Apakah foto hasil Prodify aman dari komplain pembeli?",
+    question: "Apakah foto hasil ZenStudio aman dari komplain pembeli?",
     answer: "Sangat aman! Setiap foto dilengkapi Authenticity Score Report yang memastikan tingkat kemiripan fisik produk 99%+. Pelanggan akan menerima produk fisik yang persis sama dengan yang ada di foto."
   },
   {
-    question: "Berapa lama proses pembuatan foto produk di Prodify?",
+    question: "Berapa lama proses pembuatan foto produk di ZenStudio?",
     answer: "Proses pengolahan hanya membutuhkan waktu 15–30 detik per foto. Anda juga dapat menggunakan fitur Batch Processing untuk mengedit puluhan foto produk sekaligus."
   },
   {
     question: "Apakah bisa digunakan untuk ukuran Shopee, TikTok Shop, dan Instagram?",
-    answer: "Ya! Prodify secara otomatis menyediakan Preset Ekspor Marketplace dalam rasio 1:1 (Shopee/Tokopedia), 9:16 (TikTok Shop/IG Story), dan 4:5 (Instagram Feed) tanpa memotong bagian penting produk Anda."
+    answer: "Ya! ZenStudio secara otomatis menyediakan Preset Ekspor Marketplace dalam rasio 1:1 (Shopee/Tokopedia), 9:16 (TikTok Shop/IG Story), dan 4:5 (Instagram Feed) tanpa memotong bagian penting produk Anda."
   },
   {
     question: "Apakah ada versi gratis?",
@@ -47,7 +47,7 @@ const FAQ = () => {
           </div>
           <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Pertanyaan Sering Diajukan</h2>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto font-medium">
-            Segala hal yang perlu Anda ketahui tentang Prodify dan teknologi <span className="text-cyan-400 font-bold">Product Integrity Engine™</span>.
+            Segala hal yang perlu Anda ketahui tentang ZenStudio dan teknologi <span className="text-cyan-400 font-bold">Product Integrity Engine™</span>.
           </p>
         </div>
 

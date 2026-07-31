@@ -149,7 +149,7 @@ const IntegrityEngine = () => {
           </h2>
           <p className="text-base md:text-xl text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
             Banyak AI generator yang mengubah produk asli Anda dan membuat pelanggan kecewa. 
-            <strong className="text-cyan-300 font-semibold"> Prodify menjamin produk Anda tetap autentik 100%.</strong>
+            <strong className="text-cyan-300 font-semibold"> ZenStudio menjamin produk Anda tetap autentik 100%.</strong>
           </p>
         </div>
 

@@ -23,10 +23,10 @@ const CompetitiveComparison = () => {
             <ShieldAlert className="w-3.5 h-3.5 text-indigo-400" />
             <span>INDUSTRY BENCHMARK</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Kenapa Memilih Prodify?</h2>
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Kenapa Memilih ZenStudio?</h2>
           
           <p className="text-lg text-slate-400 font-medium text-center max-w-2xl mx-auto">
-            Lihat sendiri perbedaannya. Prodify menyulap foto seadanya menjadi standar studio profesional dengan <span className="text-cyan-400 font-bold">100% perlindungan bentuk produk</span>.
+            Lihat sendiri perbedaannya. ZenStudio menyulap foto seadanya menjadi standar studio profesional dengan <span className="text-cyan-400 font-bold">100% perlindungan bentuk produk</span>.
           </p>
         </div>
 
@@ -51,7 +51,7 @@ const CompetitiveComparison = () => {
                     <div className="p-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 mb-1">
                       <ShieldAlert className="w-4 h-4 text-cyan-400" />
                     </div>
-                    <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 drop-shadow-sm">Prodify</span>
+                    <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 drop-shadow-sm">ZenStudio</span>
                   </div>
                 </th>
                 <th className="p-4 md:p-6 text-center text-slate-500 font-semibold">

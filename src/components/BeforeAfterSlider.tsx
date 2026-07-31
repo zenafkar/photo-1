@@ -125,7 +125,7 @@ const BeforeAfterSlider = ({ beforeImage, afterImage }: BeforeAfterSliderProps) 
         Original (HP)
       </div>
       <div className="absolute top-6 right-6 z-20 bg-indigo-600/90 backdrop-blur-md text-white px-4 py-1.5 rounded-full text-sm font-semibold pointer-events-none">
-        Prodify Studio
+        ZenStudio Studio
       </div>
     </div>
   );

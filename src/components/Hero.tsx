@@ -129,7 +129,7 @@ const Hero = () => {
               <SignedIn>
                 <Link to="/studio" className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white rounded-2xl font-extrabold text-lg transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(99,102,241,0.4)] hover:shadow-[0_0_40px_rgba(6,182,212,0.6)] hover:scale-105 active:scale-95 cursor-pointer">
                   <Sparkles className="w-5 h-5 text-cyan-200 fill-cyan-200" />
-                  Masuk Prodify Studio
+                  Masuk ZenStudio Studio
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </SignedIn>

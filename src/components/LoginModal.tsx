@@ -60,7 +60,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
 
               <div className="text-center mb-8 mt-2">
                 <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
-                  {mode === 'login' ? 'Masuk ke Prodify' : 'Daftar Prodify'}
+                  {mode === 'login' ? 'Masuk ke ZenStudio' : 'Daftar ZenStudio'}
                 </h2>
                 <p className="text-slate-500 text-sm font-medium">
                   {mode === 'login' 

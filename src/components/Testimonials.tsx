@@ -4,13 +4,13 @@ const testimonials = [
   {
     name: "Budi Santoso",
     role: "Top Seller Shopee Makanan",
-    content: "Dulu pusing mikirin biaya studio karena produk sambal kami banyak variannya. Pakai AI biasa labelnya sering berubah tulisan. Prodify gila sih, label 100% utuh, backgroundnya jadi kayak di cafe beneran. Konversi naik 45%!",
+    content: "Dulu pusing mikirin biaya studio karena produk sambal kami banyak variannya. Pakai AI biasa labelnya sering berubah tulisan. ZenStudio gila sih, label 100% utuh, backgroundnya jadi kayak di cafe beneran. Konversi naik 45%!",
     avatar: "BS"
   },
   {
     name: "Siti Amelia",
     role: "Owner Skincare Lokal",
-    content: "Buat produk kosmetik, warna botol dan tekstur itu krusial. Prodify satu-satunya AI yang ngerti ini. Product Integrity Score nya ngasih jaminan pelanggan gak akan komplain beda barang pas sampai.",
+    content: "Buat produk kosmetik, warna botol dan tekstur itu krusial. ZenStudio satu-satunya AI yang ngerti ini. Product Integrity Score nya ngasih jaminan pelanggan gak akan komplain beda barang pas sampai.",
     avatar: "SA"
   },
   {

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useApiClient } from "../services/api";
 import { Loader2, Upload, Sparkles, Image as ImageIcon, History, Trash2, Download, Home, Zap, AlertTriangle, Banana } from 'lucide-react';
 import ZoomableImage from '../components/ZoomableImage';
+import { ZenLogo } from '../components/ZenLogo';
 
 const OpenAIIcon = ({ className }: { className?: string }) => (
   <svg 
@@ -136,8 +137,8 @@ export default function StudioDashboard() {
           <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img src="/favicon.png" alt="Prodify" className="w-8 h-8 rounded-lg object-cover shadow-sm" />
-                <span className="font-bold text-xl tracking-tight text-slate-800">Prodify Studio</span>
+                <ZenLogo className="w-9 h-9 shadow-sm" />
+                <span className="font-bold text-xl tracking-tight text-slate-800">ZenStudio</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3 bg-white border border-slate-200 p-1 pl-3 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer group">

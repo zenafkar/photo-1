@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import dns from "node:dns";
+import compression from "compression";
+import helmet from "helmet";
 
 // Fix for Node.js fetch DNS resolution ENOTFOUND error on some Windows networks
 dns.setDefaultResultOrder("ipv4first");
@@ -18,6 +20,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+app.use(helmet());
+app.use(compression());
 app.use(cors({ origin: "*" })); // Configure this to frontend URL in production
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));

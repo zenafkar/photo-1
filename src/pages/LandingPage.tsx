@@ -1,12 +1,12 @@
 import { lazy, Suspense } from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
+import IntegrityEngine from '../components/IntegrityEngine';
+import InteractiveSandbox from '../components/InteractiveSandbox';
 import { ScrollReveal } from '../components/ScrollReveal';
 import GoToTop from '../components/GoToTop';
 
-// Lazy load komponen yang ada di bawah (below the fold)
-const IntegrityEngine = lazy(() => import('../components/IntegrityEngine'));
-const InteractiveSandbox = lazy(() => import('../components/InteractiveSandbox'));
+// Lazy load komponen yang letaknya jauh di bawah (below the fold)
 const MarketplacePresets = lazy(() => import('../components/MarketplacePresets'));
 const CompetitiveComparison = lazy(() => import('../components/CompetitiveComparison'));
 const WorkflowSteps = lazy(() => import('../components/WorkflowSteps'));
@@ -15,11 +15,9 @@ const Testimonials = lazy(() => import('../components/Testimonials'));
 const FAQ = lazy(() => import('../components/FAQ'));
 const Footer = lazy(() => import('../components/Footer'));
 
-// Fallback skeleton sederhana untuk komponen yang sedang di-lazy load
-const SectionLoader = () => (
-  <div className="w-full h-32 flex items-center justify-center opacity-50">
-    <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-  </div>
+// Fallback skeleton yang tidak mencolok (tanpa spinner putar) agar lebih natural saat scrolling cepat
+const SectionPlaceholder = () => (
+  <div className="w-full h-40 bg-slate-950/20 animate-pulse"></div>
 );
 
 export default function LandingPage() {
@@ -29,15 +27,32 @@ export default function LandingPage() {
       <main>
         <Hero />
         
-        {/* Suspense wrapper untuk semua komponen lazy */}
-        <Suspense fallback={<SectionLoader />}>
-          <ScrollReveal><IntegrityEngine /></ScrollReveal>
-          <ScrollReveal><InteractiveSandbox /></ScrollReveal>
+        {/* Komponen yang langsung terlihat / dekat atas di-load secara sinkron agar tidak ada jeda loading */}
+        <ScrollReveal><IntegrityEngine /></ScrollReveal>
+        <ScrollReveal><InteractiveSandbox /></ScrollReveal>
+        
+        {/* Komponen bawah di-lazy load dengan Suspense masing-masing agar tidak saling menunggu */}
+        <Suspense fallback={<SectionPlaceholder />}>
           <WorkflowSteps />
+        </Suspense>
+        
+        <Suspense fallback={<SectionPlaceholder />}>
           <ScrollReveal><MarketplacePresets /></ScrollReveal>
+        </Suspense>
+        
+        <Suspense fallback={<SectionPlaceholder />}>
           <ScrollReveal><CompetitiveComparison /></ScrollReveal>
+        </Suspense>
+        
+        <Suspense fallback={<SectionPlaceholder />}>
           <ScrollReveal><Testimonials /></ScrollReveal>
+        </Suspense>
+        
+        <Suspense fallback={<SectionPlaceholder />}>
           <ScrollReveal><PricingSection /></ScrollReveal>
+        </Suspense>
+        
+        <Suspense fallback={<SectionPlaceholder />}>
           <ScrollReveal><FAQ /></ScrollReveal>
         </Suspense>
       </main>

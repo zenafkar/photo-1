@@ -3,7 +3,8 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main # Workflow otomatis berjalan ketika Anda push ke branch 'main'
+      - main
+      - master # Workflow otomatis berjalan ketika Anda push ke branch 'main'
 
 jobs:
   build-and-deploy:

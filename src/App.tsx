@@ -1,14 +1,26 @@
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LandingPage from "./pages/LandingPage";
-import StudioDashboard from "./pages/StudioDashboard";
+
+// Lazy loading pages
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const StudioDashboard = lazy(() => import("./pages/StudioDashboard"));
+
+// Loading fallback yang ringan
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-slate-950">
+    <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/studio" element={<StudioDashboard />} />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/studio" element={<StudioDashboard />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

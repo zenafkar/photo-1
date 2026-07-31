@@ -1,9 +1,10 @@
 import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useAuth } from "@clerk/clerk-react";
 import { useState, useEffect, useCallback } from "react";
 import { useApiClient } from "../services/api";
-import { Loader2, Upload, Sparkles, Image as ImageIcon, History, Trash2, Download, Home, Zap, AlertTriangle, Banana, RefreshCw } from 'lucide-react';
+import { Loader2, Upload, Sparkles, Image as ImageIcon, History, Trash2, Download, Home, Zap, AlertTriangle, Banana, RefreshCw, Wand2 } from 'lucide-react';
 import ZoomableImage from '../components/ZoomableImage';
 import { ZenLogo } from '../components/ZenLogo';
+import { PromptGeneratorModal } from '../components/PromptGeneratorModal';
 
 const OpenAIIcon = ({ className }: { className?: string }) => (
   <svg 
@@ -21,6 +22,7 @@ export default function StudioDashboard() {
   const [credits, setCredits] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [provider, setProvider] = useState("nanobanana2");
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [resolution, setResolution] = useState("1k");
@@ -292,16 +294,68 @@ export default function StudioDashboard() {
 
                     {/* Prompt Input */}
                     <div className="space-y-3">
-                      <label className="flex items-center text-sm font-bold text-slate-800">
-                        Prompt <span className="text-red-500 ml-1">*</span>
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center text-sm font-bold text-slate-800">
+                          Prompt <span className="text-red-500 ml-1">*</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setIsPromptModalOpen(true)}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:from-indigo-700 hover:to-cyan-600 text-white rounded-lg font-bold text-xs shadow-sm hover:shadow transition-all group"
+                        >
+                          <Wand2 className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
+                          <span>Auto Generate Prompt</span>
+                        </button>
+                      </div>
                       <textarea 
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         rows={3}
                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none text-sm font-medium text-slate-700"
-                        placeholder="Premium studio lighting, professional product photography"
+                        placeholder="Contoh: Premium studio lighting, professional product photography on black marble..."
                       />
+
+                      {/* Quick Prompt Tags */}
+                      <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                        <span className="text-[11px] font-bold text-slate-400">Preset Cepat:</span>
+                        <button
+                          type="button"
+                          onClick={() => setPrompt("High-end luxury studio photograph resting on a polished dark black marble pedestal, fine gold dust particles floating, dramatic cinematic rim light, crisp reflections, 8k resolution")}
+                          className="text-[10px] bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold px-2 py-0.5 rounded-md border border-amber-200/60 transition-colors"
+                        >
+                          💎 Luxury Marble
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPrompt("Professional commercial product photograph on a smooth beige stone pedestal, surrounded by soft green eucalyptus leaves and water droplets, soft morning sunbeams, 8k resolution")}
+                          className="text-[10px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold px-2 py-0.5 rounded-md border border-emerald-200/60 transition-colors"
+                        >
+                          🧴 Organic Skincare
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPrompt("Professional studio product photo on a seamless clean white background, soft diffused 3-point softbox studio lighting, subtle soft contact shadow, sharp focus, high conversion marketplace ad look")}
+                          className="text-[10px] bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold px-2 py-0.5 rounded-md border border-indigo-200/60 transition-colors"
+                        >
+                          🛍️ Tokopedia White
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPrompt("Commercial food photography on a rustic dark oak wooden tabletop, warm ambient sunlight, shallow depth of field, cozy cafe background bokeh, 8k")}
+                          className="text-[10px] bg-orange-50 text-orange-700 hover:bg-orange-100 font-bold px-2 py-0.5 rounded-md border border-orange-200/60 transition-colors"
+                        >
+                          ☕ Cafe Bokeh
+                        </button>
+                        {prompt && (
+                          <button
+                            type="button"
+                            onClick={() => setPrompt("")}
+                            className="text-[10px] bg-slate-100 text-slate-500 hover:text-slate-700 font-bold px-2 py-0.5 rounded-md border border-slate-200 transition-colors"
+                          >
+                            Hapus
+                          </button>
+                        )}
+                      </div>
                     </div>
                     
                     {/* AI Engine Selection */}
@@ -578,6 +632,13 @@ export default function StudioDashboard() {
         {selectedImage && (
           <ZoomableImage src={selectedImage} onClose={() => setSelectedImage(null)} />
         )}
+
+        {/* AI Auto Prompt Generator Modal */}
+        <PromptGeneratorModal 
+          isOpen={isPromptModalOpen} 
+          onClose={() => setIsPromptModalOpen(false)} 
+          onApplyPrompt={(generatedPrompt) => setPrompt(generatedPrompt)} 
+        />
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />

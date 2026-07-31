@@ -24,6 +24,8 @@ jobs:
 
       # 3. Proses Build Frontend & Backend di Server GitHub
       - name: Install and Build
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_YmVjb21pbmcta2FuZ2Fyb28tMzcuY2xlcmsuYWNjb3VudHMuZGV2JA
         run: |
           npm install
           npm run build

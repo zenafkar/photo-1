@@ -21,17 +21,17 @@ const PricingSection = () => {
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Free Tier */}
           <div className="bg-slate-900/80 backdrop-blur-md rounded-[32px] p-8 lg:p-10 border border-slate-700/50 flex flex-col shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:border-slate-500/50 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all">
-            <h3 className="text-2xl font-extrabold text-slate-100 mb-2">Starter</h3>
+            <h3 className="text-2xl font-extrabold text-slate-100 mb-2">Gratis</h3>
             <p className="text-slate-400 mb-6 font-medium text-sm">Cocok untuk mencoba dan jualan santai.</p>
             <div className="mb-8">
-              <span className="text-4xl font-extrabold text-white">Gratis</span>
+              <span className="text-4xl font-extrabold text-white">Trial</span>
             </div>
             
             <ul className="space-y-4 mb-10 flex-grow text-sm">
-              <li className="flex gap-3 text-slate-300 font-medium"><ImageIcon className="w-5 h-5 text-cyan-500 shrink-0" /> 3 Kredit (Redesign) per bulan</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-500 shrink-0" /> Semi-Auto Mode (Pilih template)</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-500 shrink-0" /> Resolusi Standar (720p)</li>
-              <li className="flex gap-3 text-slate-600 font-medium"><XIcon className="w-5 h-5 shrink-0" /> Watermark Prodify</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><ImageIcon className="w-5 h-5 text-cyan-500 shrink-0" /> 3 Kredit Gratis di awal (untuk generate 3 foto)</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-500 shrink-0" /> Bebas Atur Tema & Suasana</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-500 shrink-0" /> Resolusi 1K / 2K</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Shield className="w-5 h-5 text-cyan-500 shrink-0" /> Tanpa Watermark</li>
             </ul>
             
             <SignedOut>
@@ -50,22 +50,22 @@ const PricingSection = () => {
 
           {/* Basic Tier */}
           <div className="bg-slate-900/80 backdrop-blur-md rounded-[32px] p-8 lg:p-10 border border-slate-700/50 flex flex-col shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:border-cyan-500/30 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all">
-            <h3 className="text-2xl font-extrabold text-slate-100 mb-2">Pemula</h3>
-            <p className="text-slate-400 mb-6 font-medium text-sm">Untuk bisnis kecil yang mulai berkembang.</p>
+            <h3 className="text-2xl font-extrabold text-slate-100 mb-2">Starter</h3>
+            <p className="text-slate-400 mb-6 font-medium text-sm">Untuk UMKM yang ingin hasil profesional.</p>
             <div className="mb-8 flex flex-col gap-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold text-white">Rp 49.000</span>
+                <span className="text-4xl font-extrabold text-white">Rp 75.000</span>
               </div>
               <span className="text-cyan-400 font-bold text-sm bg-cyan-950/50 border border-cyan-500/30 inline-flex px-3 py-1 rounded-full w-fit mt-2">
-                Dapat 50 Kredit (~Rp 980/foto)
+                Hingga 10x Generate Foto
               </span>
             </div>
             
             <ul className="space-y-4 mb-10 flex-grow text-sm">
-              <li className="flex gap-3 text-slate-200 font-medium"><Zap className="w-5 h-5 text-cyan-400 shrink-0" /> <strong className="text-cyan-300">50 Kredit</strong> Saldo</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Type className="w-5 h-5 text-cyan-500 shrink-0" /> Custom Prompt (Ketik suasana)</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-500 shrink-0" /> Batch Processing (Edit banyak)</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-500 shrink-0" /> Ekspor Resolusi Tinggi</li>
+              <li className="flex gap-3 text-slate-200 font-medium"><Zap className="w-5 h-5 text-cyan-400 shrink-0" /> Sistem <strong className="text-cyan-300">10 Kredit</strong></li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Type className="w-5 h-5 text-cyan-500 shrink-0" /> Bebas Atur Tema & Suasana</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-500 shrink-0" /> Ekspor Resolusi 1K & 2K</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-500 shrink-0" /> Dukungan Resolusi 4K (2 Kredit)</li>
               <li className="flex gap-3 text-slate-300 font-medium"><Shield className="w-5 h-5 text-cyan-500 shrink-0" /> Tanpa Watermark</li>
             </ul>
             
@@ -88,22 +88,22 @@ const PricingSection = () => {
             <div className="absolute top-0 right-8 transform -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-cyan-100" /> PALING POPULER
             </div>
-            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 mb-2">Profesional</h3>
-            <p className="text-slate-400 mb-6 font-medium text-sm">Untuk UMKM serius yang ingin mendominasi.</p>
+            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 mb-2">Pro</h3>
+            <p className="text-slate-400 mb-6 font-medium text-sm">Untuk online shop dengan posting rutin.</p>
             <div className="mb-8 flex flex-col gap-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold text-white">Rp 129.000</span>
+                <span className="text-4xl font-extrabold text-white">Rp 215.000</span>
               </div>
               <span className="text-emerald-400 font-bold text-sm bg-emerald-950/50 border border-emerald-500/30 inline-flex px-3 py-1 rounded-full w-fit mt-2">
-                Dapat 200 Kredit (~Rp 645/foto)
+                Hingga 30x Generate Foto
               </span>
             </div>
             
             <ul className="space-y-4 mb-10 flex-grow text-sm">
-              <li className="flex gap-3 text-slate-100 font-medium"><Zap className="w-5 h-5 text-cyan-400 shrink-0 drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]" /> <strong className="text-cyan-300">200 Kredit</strong> Saldo</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Type className="w-5 h-5 text-cyan-400 shrink-0" /> Custom Prompt (Ketik suasana)</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-400 shrink-0" /> Batch Processing (Edit banyak)</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-400 shrink-0" /> Ekspor Resolusi 4K</li>
+              <li className="flex gap-3 text-slate-100 font-medium"><Zap className="w-5 h-5 text-cyan-400 shrink-0 drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]" /> Sistem <strong className="text-cyan-300">30 Kredit</strong></li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Type className="w-5 h-5 text-cyan-400 shrink-0" /> Bebas Atur Tema & Suasana</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-400 shrink-0" /> Ekspor Resolusi 1K & 2K</li>
+              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-400 shrink-0" /> Dukungan Resolusi Ultra 4K</li>
               <li className="flex gap-3 text-slate-300 font-medium"><FastForward className="w-5 h-5 text-cyan-400 shrink-0" /> Priority Server (Lebih cepat)</li>
               <li className="flex gap-3 text-slate-300 font-medium"><Shield className="w-5 h-5 text-cyan-400 shrink-0" /> Tanpa Watermark</li>
             </ul>

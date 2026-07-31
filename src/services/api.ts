@@ -11,6 +11,7 @@ export const useApiClient = () => {
       
       const headers = {
         "Content-Type": "application/json",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       };
@@ -28,17 +29,30 @@ export const useApiClient = () => {
 
       return data;
     } catch (error) {
-      console.error(`[API Error] ${endpoint}:`, error);
+      if (import.meta.env.DEV) {
+        console.error(`[API Error] ${endpoint}:`, error);
+      }
       throw error;
     }
   };
 
   return {
     getProfile: () => request("/user/me"),
-    generateImage: (payload: { imageUrl: string; prompt: string; provider?: string }) => 
+    generateImage: (payload: { 
+      imageUrl: string; 
+      prompt: string; 
+      provider?: string;
+      aspectRatio?: string;
+      resolution?: string;
+      outputFormat?: string;
+    }) => 
       request("/generate", {
         method: "POST",
         body: JSON.stringify(payload),
+      }),
+    deleteGeneration: (id: string) => 
+      request(`/generate/${id}`, {
+        method: "DELETE",
       }),
   };
 };

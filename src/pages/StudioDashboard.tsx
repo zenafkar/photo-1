@@ -1,14 +1,33 @@
 import { SignedIn, SignedOut, RedirectToSignIn, UserButton } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
 import { useApiClient } from "../services/api";
-import { Upload, Image as ImageIcon, Zap, History, Loader2, Sparkles } from "lucide-react";
+import { Loader2, Upload, Sparkles, Sliders, Image as ImageIcon, CheckCircle2, History, Trash2, Download, Home, Zap, X, AlertTriangle, Banana } from 'lucide-react';
+import ZoomableImage from '../components/ZoomableImage';
+
+const OpenAIIcon = ({ className }: { className?: string }) => (
+  <svg 
+    role="img" 
+    viewBox="0 0 24 24" 
+    xmlns="http://www.w3.org/2000/svg" 
+    className={className}
+    fill="currentColor"
+  >
+    <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.073zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.103 8.3685v-2.333a.0804.0804 0 0 1 .0332-.0615l4.8729-2.815a4.4992 4.4992 0 0 1 6.1408 1.6464 4.4708 4.4708 0 0 1 .5346 3.0137l-.1419-.0852-4.783-2.7582a.7712.7712 0 0 0-.7806 0zM22.004 14.225a4.485 4.485 0 0 1-2.3655 1.9728V10.511a.7664.7664 0 0 0-.3879-.6765L13.4362 6.4802l2.0201-1.1685a.0757.0757 0 0 1 .071 0l4.8303 2.7866a4.504 4.504 0 0 1-2.3536 6.1268zM12 15.1585l-3.2372-1.8693v-3.7386L12 7.6813l3.2372 1.8693v3.7386z"/>
+  </svg>
+);
 
 export default function StudioDashboard() {
   const [credits, setCredits] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [prompt, setPrompt] = useState("Premium studio lighting, professional product photography");
+  const [prompt, setPrompt] = useState("");
+  const [provider, setProvider] = useState("nanobanana2");
+  const [aspectRatio, setAspectRatio] = useState("1:1");
+  const [resolution, setResolution] = useState("1k");
+  const [outputFormat, setOutputFormat] = useState("jpg");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationHistory, setGenerationHistory] = useState<any[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
 
   const api = useApiClient();
 
@@ -32,6 +51,15 @@ export default function StudioDashboard() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
+      // Validasi ukuran file (Max 5MB)
+      const MAX_FILE_SIZE = 5 * 1024 * 1024;
+      if (file.size > MAX_FILE_SIZE) {
+        alert("Ukuran file terlalu besar! Maksimal 5MB.");
+        e.target.value = ''; // Reset input
+        return;
+      }
+
       setPreviewUrl(URL.createObjectURL(file));
       
       const reader = new FileReader();
@@ -46,23 +74,57 @@ export default function StudioDashboard() {
     if (!previewUrl || credits === 0 || !imageBase64) return;
     setIsGenerating(true);
     try {
-      // Mengirimkan gambar asli (base64) ke backend, bukan mock URL
+      // Mengirimkan gambar asli (base64) ke backend
       const res = await api.generateImage({
         imageUrl: imageBase64,
         prompt: prompt,
-        provider: "huggingface" // we will use fallback in backend
+        provider: provider,
+        aspectRatio: aspectRatio,
+        resolution: resolution,
+        outputFormat: outputFormat
       });
       
       setCredits(res.data.remainingCredits);
-      const matchedGeneration = {
-        ...res.data.generation,
-        processedUrl: previewUrl || res.data.generation.processedUrl
-      };
-      setGenerationHistory(prev => [matchedGeneration, ...prev]);
+      
+      // Update generation history with the new generated image
+      setGenerationHistory(prev => [res.data.generation, ...prev]);
     } catch (error) {
       alert("Failed to generate image. " + (error as Error).message);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!imageToDelete) return;
+    try {
+      await api.deleteGeneration(imageToDelete);
+      setGenerationHistory(prev => prev.filter(item => item.id !== imageToDelete));
+    } catch (error) {
+      alert("Failed to delete image. " + (error as Error).message);
+    } finally {
+      setImageToDelete(null);
+    }
+  };
+
+  const handleDownload = async (url: string, filename: string = 'generated-image.jpg') => {
+    try {
+      // Create an object URL to bypass some CORS and force download
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      console.error("Download fetch failed, opening in new tab", error);
+      // Fallback if fetch fails (e.g. CORS block)
+      window.open(url, '_blank');
     }
   };
 
@@ -93,7 +155,17 @@ export default function StudioDashboard() {
                     Top Up
                   </div>
                 </div>
-                <UserButton afterSignOutUrl="/" />
+                <UserButton afterSignOutUrl="/">
+                  <UserButton.MenuItems>
+                    <UserButton.Link
+                      label="Home"
+                      labelIcon={<Home size={15} />}
+                      href="/"
+                    />
+                    <UserButton.Action label="manageAccount" />
+                    <UserButton.Action label="signOut" />
+                  </UserButton.MenuItems>
+                </UserButton>
               </div>
             </div>
           </header>
@@ -101,69 +173,209 @@ export default function StudioDashboard() {
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid lg:grid-cols-12 gap-8">
               
-              {/* Left Column: Uploader & Settings */}
-              <div className="lg:col-span-5 space-y-6">
-                
-                {/* Upload Zone */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Upload className="w-5 h-5 text-indigo-500" />
-                    Upload Foto Produk
-                  </h2>
-                  <div className="relative group">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleFileChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-                    <div className={`border-2 border-dashed rounded-xl overflow-hidden transition-colors ${previewUrl ? 'border-indigo-300' : 'border-slate-300 group-hover:border-indigo-400 bg-slate-50'}`}>
-                      {previewUrl ? (
-                        <div className="relative aspect-square">
-                          <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="text-white font-medium bg-black/50 px-4 py-2 rounded-lg backdrop-blur-sm">Ganti Foto</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="aspect-square flex flex-col items-center justify-center p-8 text-center">
-                          <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4">
-                            <ImageIcon className="w-8 h-8 text-indigo-400" />
-                          </div>
-                          <p className="font-medium text-slate-700 mb-1">Tarik & Lepas foto ke sini</p>
-                          <p className="text-sm text-slate-500 mb-4">atau klik untuk browse (Max 5MB)</p>
-                        </div>
-                      )}
-                    </div>
+              {/* Left Column: Form Inputs (Replicate Style) */}
+              <div className="lg:col-span-5">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full min-h-[600px]">
+                  
+                  {/* Header Form */}
+                  <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h2 className="font-bold text-slate-800 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-indigo-500" />
+                      Parameter Model
+                    </h2>
                   </div>
-                </div>
 
-                {/* AI Prompt Settings */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-indigo-500" />
-                    Instruksi AI (Prompt)
-                  </h2>
-                  <textarea 
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    rows={3}
-                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none text-sm font-medium text-slate-700"
-                    placeholder="Contoh: Di atas meja marmer putih dengan pencahayaan studio yang dramatis..."
-                  />
-                  <button 
-                    onClick={handleGenerate}
-                    disabled={!previewUrl || isGenerating || credits === 0}
-                    className="mt-4 w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
-                  >
-                    {isGenerating ? (
-                      <><Loader2 className="w-5 h-5 animate-spin" /> Sedang Memproses...</>
-                    ) : credits === 0 ? (
-                      "Kredit Habis - Upgrade"
-                    ) : (
-                      <><Sparkles className="w-5 h-5" /> Generate Foto (-1 Kredit)</>
-                    )}
-                  </button>
+                  {/* Input Fields */}
+                  <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+                    
+                    {/* Image Input */}
+                    <div className="space-y-3">
+                      <label className="flex items-center text-sm font-bold text-slate-800">
+                        Image <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <div className="relative group">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleFileChange}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        />
+                        <div className={`border-2 border-dashed rounded-xl overflow-hidden transition-colors ${previewUrl ? 'border-indigo-300' : 'border-slate-300 group-hover:border-indigo-400 bg-slate-50'}`}>
+                          {previewUrl ? (
+                            <div className="relative aspect-square">
+                              <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span className="text-white font-medium bg-black/50 px-4 py-2 rounded-lg backdrop-blur-sm">Ganti Foto</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="aspect-square flex flex-col items-center justify-center p-8 text-center">
+                              <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-4">
+                                <Upload className="w-5 h-5 text-indigo-400" />
+                              </div>
+                              <p className="font-medium text-slate-700 mb-1">Upload a file</p>
+                              <p className="text-xs text-slate-500 mb-4">or drag and drop here (Max 5MB)</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Prompt Input */}
+                    <div className="space-y-3">
+                      <label className="flex items-center text-sm font-bold text-slate-800">
+                        Prompt <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <textarea 
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        rows={3}
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none text-sm font-medium text-slate-700"
+                        placeholder="Premium studio lighting, professional product photography"
+                      />
+                    </div>
+                    
+                    {/* AI Engine Selection */}
+                    <div className="space-y-3">
+                      <label className="flex items-center text-sm font-bold text-slate-800">
+                        AI Engine
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {/* Nano Banana Pro */}
+                        <button
+                          type="button"
+                          onClick={() => setProvider("nanobanana")}
+                          className={`relative flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${provider === "nanobanana" ? "bg-amber-50 border-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.15)]" : "bg-slate-50 border-slate-200 hover:border-slate-300"}`}
+                        >
+                          <div className="absolute top-2 right-2">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                          </div>
+                          <div className={`p-2 rounded-lg ${provider === "nanobanana" ? "bg-amber-100 text-amber-500" : "bg-slate-200 text-slate-500"}`}>
+                            <Banana className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className={`font-bold text-sm ${provider === "nanobanana" ? "text-amber-700" : "text-slate-700"}`}>Nano Banana Pro</div>
+                            <div className="text-[10px] text-slate-500">Premium 4K</div>
+                          </div>
+                        </button>
+                        
+                        {/* Nano Banana 2 */}
+                        <button
+                          type="button"
+                          onClick={() => setProvider("nanobanana2")}
+                          className={`relative flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${provider === "nanobanana2" ? "bg-cyan-50 border-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)]" : "bg-slate-50 border-slate-200 hover:border-slate-300"}`}
+                        >
+                          <div className="absolute top-2 right-2">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                          </div>
+                          <div className={`p-2 rounded-lg ${provider === "nanobanana2" ? "bg-cyan-100 text-cyan-500" : "bg-slate-200 text-slate-500"}`}>
+                            <Banana className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className={`font-bold text-sm ${provider === "nanobanana2" ? "text-cyan-700" : "text-slate-700"}`}>Nano Banana 2</div>
+                            <div className="text-[10px] text-slate-500">Fast & Standard</div>
+                          </div>
+                        </button>
+
+                        {/* OpenAI GPT-Image */}
+                        <button
+                          type="button"
+                          onClick={() => setProvider("gptimage")}
+                          className={`relative flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${provider === "gptimage" ? "bg-emerald-50 border-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "bg-slate-50 border-slate-200 hover:border-slate-300"}`}
+                        >
+                          <div className="absolute top-2 right-2">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                          </div>
+                          <div className={`p-2 rounded-lg ${provider === "gptimage" ? "bg-emerald-100 text-emerald-600" : "bg-slate-200 text-slate-500"}`}>
+                            <OpenAIIcon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className={`font-bold text-sm ${provider === "gptimage" ? "text-emerald-700" : "text-slate-700"}`}>OpenAI</div>
+                            <div className="text-[10px] text-slate-500">GPT-Image 1.5</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Advanced Settings */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Aspect Ratio */}
+                      <div className="space-y-3">
+                        <label className="flex items-center text-sm font-bold text-slate-800">
+                          Aspect Ratio
+                        </label>
+                        <select 
+                          value={aspectRatio} 
+                          onChange={(e) => setAspectRatio(e.target.value)}
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium text-slate-700"
+                        >
+                          <option value="1:1">1:1 (Square - Tokopedia, Shopee, IG Feed)</option>
+                          <option value="9:16">9:16 (Vertical - TikTok, IG Reels, Shorts)</option>
+                          <option value="4:5">4:5 (Portrait - Instagram Feed)</option>
+                          <option value="16:9">16:9 (Landscape - YouTube, Web Banner)</option>
+                          <option value="2:3">2:3 (Pin - Pinterest)</option>
+                        </select>
+                      </div>
+
+                      {/* Resolution */}
+                      <div className="space-y-3">
+                        <label className="flex items-center text-sm font-bold text-slate-800">
+                          Resolution
+                        </label>
+                        <select 
+                          value={resolution} 
+                          onChange={(e) => setResolution(e.target.value)}
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium text-slate-700"
+                        >
+                          <option value="1k">1K (Standard - 1024px)</option>
+                          <option value="2k">2K (High - 2048px)</option>
+                          <option value="4k">4K (Ultra - 4096px)</option>
+                        </select>
+                      </div>
+
+                      {/* Output Format */}
+                      <div className="space-y-3 col-span-2">
+                        <label className="flex items-center text-sm font-bold text-slate-800">
+                          Output Format
+                        </label>
+                        <select 
+                          value={outputFormat} 
+                          onChange={(e) => setOutputFormat(e.target.value)}
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium text-slate-700"
+                        >
+                          <option value="jpg">JPG (Disarankan)</option>
+                          <option value="png">PNG</option>
+                        </select>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Sticky Footer / Run Button */}
+                  <div className="p-4 border-t border-slate-200 bg-white">
+                    <button 
+                      onClick={handleGenerate}
+                      disabled={!previewUrl || isGenerating || credits === 0}
+                      className="w-full py-3.5 bg-black hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
+                    >
+                      {isGenerating ? (
+                        <><Loader2 className="w-5 h-5 animate-spin" /> Sedang Memproses...</>
+                      ) : credits === 0 ? (
+                        "Kredit Habis - Upgrade"
+                      ) : (
+                        <>Transform <span className="text-slate-300 font-medium text-sm ml-1 px-2 py-0.5 bg-white/20 rounded-md">-{resolution === '4k' ? 2 : 1} Kredit</span></>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -184,12 +396,13 @@ export default function StudioDashboard() {
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {generationHistory.map((item, idx) => (
-                        <div key={idx} className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                        <div key={item.id || idx} className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                           {item.processedUrl ? (
                             <img 
                               src={item.processedUrl} 
                               alt="Generated Studio Result" 
-                              className="w-full h-full object-cover" 
+                              className="w-full h-full object-cover cursor-pointer transition-transform hover:scale-105" 
+                              onClick={() => setSelectedImage(item.processedUrl)}
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=1000&q=80";
                               }}
@@ -201,8 +414,26 @@ export default function StudioDashboard() {
                             </div>
                           )}
                           <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                            <p className="text-white text-xs font-medium truncate">{item.preset}</p>
+                            <p className="text-white text-xs font-medium truncate pr-8">{item.preset}</p>
                           </div>
+                          {item.id && (
+                            <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                              <button 
+                                onClick={() => handleDownload(item.processedUrl, `prodify-${item.id}.jpg`)}
+                                className="p-1.5 bg-black/40 text-white rounded-lg hover:bg-indigo-500 backdrop-blur-sm transition-colors"
+                                title="Download Image"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => setImageToDelete(item.id)}
+                                className="p-1.5 bg-black/40 text-white rounded-lg hover:bg-red-500 backdrop-blur-sm transition-colors"
+                                title="Delete Image"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -213,6 +444,40 @@ export default function StudioDashboard() {
             </div>
           </main>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {imageToDelete && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+            <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-5 border-4 border-red-100">
+                <AlertTriangle className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-800 mb-2">Hapus Gambar?</h3>
+              <p className="text-slate-500 text-sm mb-8 font-medium">
+                Gambar ini akan dihapus secara permanen dan tidak dapat dikembalikan.
+              </p>
+              <div className="flex gap-3 w-full">
+                <button 
+                  onClick={() => setImageToDelete(null)} 
+                  className="flex-1 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={confirmDelete} 
+                  className="flex-1 py-3 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30 hover:shadow-red-500/50 hover:-translate-y-0.5 transition-all"
+                >
+                  Ya, Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Image Modal / Lightbox */}
+        {selectedImage && (
+          <ZoomableImage src={selectedImage} onClose={() => setSelectedImage(null)} />
+        )}
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />

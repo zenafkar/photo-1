@@ -8,22 +8,45 @@ router.get("/me", async (req: Request, res: Response) => {
   try {
     const { userId: clerkId } = getAuth(req);
     
+    console.log("[DEBUG] /user/me called with clerkId:", clerkId);
+
     if (!clerkId) {
+      console.log("[DEBUG] /user/me Unauthorized - no clerkId");
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     // Try to find the user in our DB
     let user = await prisma.user.findUnique({
       where: { clerkId },
-      include: { credits: true },
+      include: { 
+        credits: {
+          select: {
+            remainingCredits: true,
+            planType: true
+          }
+        },
+        generations: {
+          take: 15, // Membatasi jumlah data history agar lebih cepat
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            processedUrl: true,
+            preset: true,
+            status: true,
+            createdAt: true
+          }
+        }
+      },
     });
+
+    console.log("[DEBUG] /user/me findUnique result:", user ? `Found user with ${user.credits?.remainingCredits} credits and ${user.generations?.length} generations` : "Not found");
 
     // If user doesn't exist yet, we create them (Lazy initialization)
     if (!user) {
       user = await prisma.user.create({
         data: {
           clerkId,
-          email: "synced_from_clerk_webhook@placeholder.com", // Usually synced via Clerk Webhooks
+          email: `${clerkId}@placeholder.com`, // Usually synced via Clerk Webhooks
           credits: {
             create: {
               remainingCredits: 3,
@@ -31,7 +54,25 @@ router.get("/me", async (req: Request, res: Response) => {
             }
           }
         },
-        include: { credits: true },
+        include: { 
+          credits: {
+            select: {
+              remainingCredits: true,
+              planType: true
+            }
+          }, 
+          generations: {
+            take: 15,
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              processedUrl: true,
+              preset: true,
+              status: true,
+              createdAt: true
+            }
+          } 
+        },
       });
     }
 

@@ -23,27 +23,26 @@ jobs:
           cache: 'npm'
 
       # 3. Proses Build Frontend & Backend di Server GitHub
-      # (Sehingga VPS Anda tidak perlu kerja keras)
       - name: Install and Build
         run: |
           npm install
           npm run build
-          # Jika folder 'server' punya package.json sendiri:
           cd server
           npm install
+          npx prisma generate
           npm run build
 
       # 4. Mengirim hasil Build dari GitHub ke VPS Anda
-      # Anda wajib mengisi Secrets (VPS_IP, VPS_USERNAME, VPS_SSH_KEY) di Settings GitHub
       - name: Copy files to VPS via SCP
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist,server/dist,server/package.json,package.json" # File yang akan dikirim
-          target: "/var/www/zen-dev" # Alamat folder aplikasi Anda di VPS
-          rm: true # Menghapus file lama sebelum upload file baru
+          source: "dist,server/dist,server/package.json,server/prisma,package.json"
+          target: "/var/www/zen-dev"
+          rm: true
 
       # 5. Menjalankan perintah di dalam VPS setelah file terkirim
       - name: Execute SSH Commands on VPS
@@ -51,11 +50,11 @@ jobs:
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/zen-dev/server
-            # Install module khusus backend (karena di tahap atas tidak ikut terkirim)
             npm install --omit=dev
-            
-            # Restart aplikasi (disarankan menggunakan PM2 agar berjalan di background)
-            # pm2 restart backend-api || pm2 start dist/index.js --name "backend-api"
+            npx prisma generate
+            npx prisma db push --accept-data-loss || true
+            pm2 restart backend-api || pm2 start dist/index.js --name "backend-api"

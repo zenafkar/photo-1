@@ -1,6 +1,20 @@
 import { useAuth } from "@clerk/clerk-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:5000/api/v1";
+    }
+    return `${window.location.protocol}//${host}:5000/api/v1`;
+  }
+  return "http://localhost:5000/api/v1";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const useApiClient = () => {
   const { getToken } = useAuth();

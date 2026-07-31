@@ -61,25 +61,69 @@ export default function StudioDashboard() {
 
   const [imageBase64, setImageBase64] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File, maxWidth = 1920, maxHeight = 1920, quality = 0.85): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.src = objectUrl;
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Gagal memproses gambar pada canvas"));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => {
+        URL.revokeObjectURL(objectUrl);
+        reject(err);
+      };
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
 
-      // Validasi ukuran file (Max 5MB)
-      const MAX_FILE_SIZE = 5 * 1024 * 1024;
+      // Validasi ukuran file (Max 10MB)
+      const MAX_FILE_SIZE = 10 * 1024 * 1024;
       if (file.size > MAX_FILE_SIZE) {
-        alert("Ukuran file terlalu besar! Maksimal 5MB.");
+        alert("Ukuran file terlalu besar! Maksimal 10MB.");
         e.target.value = ''; // Reset input
         return;
       }
 
       setPreviewUrl(URL.createObjectURL(file));
       
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageBase64(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedBase64 = await compressImage(file);
+        setImageBase64(compressedBase64);
+      } catch {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImageBase64(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -101,8 +145,8 @@ export default function StudioDashboard() {
       
       // Update generation history with the new generated image
       setGenerationHistory(prev => [res.data.generation, ...prev]);
-    } catch (error) {
-      alert("Failed to generate image. " + (error as Error).message);
+    } catch (error: any) {
+      alert("Gagal memproses gambar. " + (error?.message || error));
     } finally {
       setIsGenerating(false);
     }

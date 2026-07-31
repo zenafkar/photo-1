@@ -18,22 +18,30 @@ const getApiBaseUrl = () => {
 const API_BASE_URL = getApiBaseUrl();
 
 export const useApiClient = () => {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
 
   const request = async (endpoint: string, options: RequestInit = {}) => {
     try {
+      if (!isSignedIn) {
+        throw new Error("Sesi Anda telah berakhir atau belum login. Silakan refresh halaman dan login kembali.");
+      }
+
       let token = await getToken();
       
-      // If token is null/undefined initially (e.g. Clerk still hydrating), retry once after a short delay
+      // If token is null/undefined initially (e.g. Clerk still hydrating), retry once with skipCache
       if (!token) {
         await new Promise((resolve) => setTimeout(resolve, 400));
-        token = await getToken();
+        token = await getToken({ skipCache: true }).catch(() => null);
       }
-      
+
+      if (!token) {
+        throw new Error("Sesi Anda telah berakhir atau belum login. Silakan refresh halaman dan login kembali.");
+      }
+
       const headers = {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache, no-store, must-revalidate",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Authorization: `Bearer ${token}`,
         ...options.headers,
       };
 
@@ -43,20 +51,38 @@ export const useApiClient = () => {
       });
 
       const contentType = response.headers.get("content-type") || "";
-      if (response.redirected || !contentType.includes("application/json")) {
-        const text = await response.text();
-        if (response.redirected || text.trim().startsWith("<") || contentType.includes("text/html")) {
-          throw new Error("Sesi Anda telah berakhir atau belum login. Silakan refresh halaman dan login kembali.");
+      const isJson = contentType.includes("application/json");
+
+      if (!response.ok) {
+        if (isJson) {
+          const errorData = await response.json().catch(() => ({}));
+          if (response.status === 401) {
+            throw new Error("Sesi Anda telah berakhir atau belum login. Silakan refresh halaman dan login kembali.");
+          }
+          throw new Error(errorData.message || `Terjadi kesalahan pada server (${response.status})`);
+        } else {
+          if (response.status === 401) {
+            throw new Error("Sesi Anda telah berakhir atau belum login. Silakan refresh halaman dan login kembali.");
+          } else if (response.status === 413) {
+            throw new Error("Ukuran data gambar terlalu besar. Silakan gunakan gambar dengan ukuran lebih kecil.");
+          } else if (response.status === 404) {
+            throw new Error("Layanan backend tidak ditemukan (404). Silakan pastikan server backend berjalan.");
+          } else if (response.status >= 500) {
+            throw new Error(`Server backend mengalami kendala (${response.status}). Silakan coba beberapa saat lagi.`);
+          }
+          throw new Error(`Respon server tidak valid (${response.status})`);
         }
-        throw new Error(`Respon server tidak valid (${response.status}): ${text.slice(0, 100)}`);
+      }
+
+      if (!isJson) {
+        const text = await response.text().catch(() => "");
+        if (response.redirected || text.trim().startsWith("<") || contentType.includes("text/html")) {
+          throw new Error("Respon server tidak valid (bukan JSON). Pastikan server backend berjalan dengan benar.");
+        }
+        throw new Error(`Respon server tidak valid (${response.status})`);
       }
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Terjadi kesalahan pada server");
-      }
-
       return data;
     } catch (error) {
       if (import.meta.env.DEV) {

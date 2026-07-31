@@ -1,7 +1,7 @@
 import { SignedIn, SignedOut, RedirectToSignIn, UserButton } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
 import { useApiClient } from "../services/api";
-import { Loader2, Upload, Sparkles, Sliders, Image as ImageIcon, CheckCircle2, History, Trash2, Download, Home, Zap, X, AlertTriangle, Banana } from 'lucide-react';
+import { Loader2, Upload, Sparkles, Image as ImageIcon, History, Trash2, Download, Home, Zap, AlertTriangle, Banana } from 'lucide-react';
 import ZoomableImage from '../components/ZoomableImage';
 
 const OpenAIIcon = ({ className }: { className?: string }) => (

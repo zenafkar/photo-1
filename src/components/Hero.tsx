@@ -6,7 +6,8 @@ import {
   Sparkles, 
   Cpu, 
   TrendingUp, 
-  Check
+  Check,
+  Wand2
 } from 'lucide-react';
 import { StaggerContainer, StaggerItem } from './ScrollReveal';
 import { SignInButton, SignedOut, SignedIn } from '@clerk/clerk-react';
@@ -37,10 +38,10 @@ const Hero = () => {
       color: "from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-400"
     },
     {
-      icon: TrendingUp,
-      title: "High-Conversion Ready",
-      desc: "Dioptimalkan khusus algoritma e-commerce",
-      badge: "BOOST SALES",
+      icon: Wand2,
+      title: "Smart Prompt Helper",
+      desc: "AI pintar merakit teks prompt studio untuk Anda",
+      badge: "ANTI BINGUNG",
       color: "from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-400"
     }
   ];

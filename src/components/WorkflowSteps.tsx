@@ -1,11 +1,11 @@
-import { UploadCloud, Sparkles, Download, Workflow, Cpu } from 'lucide-react';
+import { UploadCloud, Sparkles, Download, Workflow, Cpu, Wand2 } from 'lucide-react';
 import { motion, Variants, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 
 const steps = [
   { title: 'Upload Foto HP', desc: 'Foto produk Anda dengan pencahayaan seadanya. Tidak perlu background polos.', icon: UploadCloud },
   { title: 'AI Neural Engine', desc: 'Product Integrity Engine langsung mengenali dan mengunci produk Anda agar tidak berubah.', icon: Cpu },
-  { title: 'Render 4K', desc: 'Tentukan kategori dan vibe background yang sesuai dengan brand Anda.', icon: Sparkles },
+  { title: 'AI Auto-Prompt', desc: 'Bingung membuat prompt? Gunakan 1-Klik AI Prompt Helper untuk meracik setingan studio profesional secara otomatis tanpa repot.', icon: Wand2 },
   { title: 'Marketplace Ready', desc: 'Dapatkan 4 variasi foto profesional dalam hitungan detik. Siap upload.', icon: Download }
 ];
 

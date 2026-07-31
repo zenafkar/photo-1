@@ -10,6 +10,7 @@ import GoToTop from '../components/GoToTop';
 const MarketplacePresets = lazy(() => import('../components/MarketplacePresets'));
 const CompetitiveComparison = lazy(() => import('../components/CompetitiveComparison'));
 const WorkflowSteps = lazy(() => import('../components/WorkflowSteps'));
+const PromptFeatureHighlight = lazy(() => import('../components/PromptFeatureHighlight'));
 const PricingSection = lazy(() => import('../components/PricingSection'));
 const Testimonials = lazy(() => import('../components/Testimonials'));
 const FAQ = lazy(() => import('../components/FAQ'));
@@ -34,6 +35,10 @@ export default function LandingPage() {
         {/* Komponen bawah di-lazy load dengan Suspense masing-masing agar tidak saling menunggu */}
         <Suspense fallback={<SectionPlaceholder />}>
           <WorkflowSteps />
+        </Suspense>
+        
+        <Suspense fallback={<SectionPlaceholder />}>
+          <PromptFeatureHighlight />
         </Suspense>
         
         <Suspense fallback={<SectionPlaceholder />}>

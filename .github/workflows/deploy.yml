@@ -72,10 +72,12 @@ jobs:
               echo "PORT=5000" > .env
             fi
             
-            # Helper to set or update env vars in server/.env
+            # Helper to set or update env vars in server/.env (automatically strips accidental quotes)
             set_env() {
               key=$1
               val=$2
+              # Strip outer double/single quotes if present
+              val=$(echo "$val" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
               if [ -n "$val" ]; then
                 if grep -q "^${key}=" .env; then
                   sed -i "s|^${key}=.*|${key}=\"${val}\"|" .env

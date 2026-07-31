@@ -129,8 +129,8 @@ const InteractiveSandbox = () => {
   return (
     <section className="bg-slate-950 py-16 md:py-24 border-t border-slate-800/80 relative overflow-hidden text-white" id="fitur">
       {/* Glow Backdrops */}
-      <div className="absolute top-1/2 left-0 w-96 h-96 bg-cyan-600/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/2 left-0 w-96 h-96 bg-[radial-gradient(circle,rgba(8,145,178,0.15)_0%,transparent_70%)] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[radial-gradient(circle,rgba(79,70,229,0.15)_0%,transparent_70%)] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
@@ -238,7 +238,7 @@ const InteractiveSandbox = () => {
           {/* Right Side Card (Interactive Before/After AI Sandbox) */}
           <div className="lg:col-span-7 bg-slate-900/90 rounded-3xl p-5 md:p-6 shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-cyan-500/20 backdrop-blur-xl relative group">
             {/* Cyber Corner Glow */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-all pointer-events-none" />
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[radial-gradient(circle,rgba(6,182,212,0.15)_0%,transparent_70%)] group-hover:bg-[radial-gradient(circle,rgba(6,182,212,0.25)_0%,transparent_70%)] rounded-full transition-all pointer-events-none" />
 
             {/* Prompt Console Bar */}
             <div className="flex items-center justify-between mb-3 text-xs font-mono text-slate-400">

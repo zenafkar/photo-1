@@ -163,7 +163,7 @@ const IntegrityEngine = () => {
             transition={{ duration: 0.5 }}
             className="relative group bg-slate-900/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.15)] hover:shadow-[0_0_40px_rgba(6,182,212,0.25)] transition-all duration-300 overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-all" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle,rgba(6,182,212,0.15)_0%,transparent_70%)] group-hover:bg-[radial-gradient(circle,rgba(6,182,212,0.25)_0%,transparent_70%)] rounded-full transition-all pointer-events-none" />
             <div className="absolute -top-10 -right-10 w-24 h-24 border border-cyan-500/20 rounded-full" />
 
             {/* Header Title */}
@@ -224,7 +224,7 @@ const IntegrityEngine = () => {
             transition={{ duration: 0.5 }}
             className="relative group bg-slate-900/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-rose-500/30 shadow-[0_0_30px_rgba(244,63,94,0.15)] hover:shadow-[0_0_40px_rgba(244,63,94,0.25)] transition-all duration-300 overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-3xl group-hover:bg-rose-500/20 transition-all" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle,rgba(244,63,94,0.15)_0%,transparent_70%)] group-hover:bg-[radial-gradient(circle,rgba(244,63,94,0.25)_0%,transparent_70%)] rounded-full transition-all pointer-events-none" />
             <div className="absolute -top-10 -right-10 w-24 h-24 border border-rose-500/20 rounded-full" />
 
             {/* Header Title */}

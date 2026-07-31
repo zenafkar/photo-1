@@ -53,14 +53,14 @@ const Hero = () => {
         <img 
           src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=60&w=1080" 
           alt="Abstract Cyber Background" 
-          className="w-full h-full object-cover opacity-15 scale-105 filter blur-md"
+          className="w-full h-full object-cover opacity-15 scale-105"
           fetchPriority="high"
           loading="eager"
         />
-        {/* Glowing Orbs */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[160px]" />
-        <div className="absolute top-1/3 left-1/4 w-[350px] h-[350px] bg-cyan-500/5 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 right-1/4 w-[350px] h-[350px] bg-purple-600/5 rounded-full blur-[120px]" />
+        {/* Glowing Orbs - Menggunakan radial-gradient untuk performa Safari iOS (anti-lag) */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(79,70,229,0.15)_0%,transparent_60%)] rounded-full pointer-events-none" />
+        <div className="absolute top-1/3 left-1/4 w-[350px] h-[350px] bg-[radial-gradient(circle,rgba(6,182,212,0.1)_0%,transparent_60%)] rounded-full pointer-events-none" />
+        <div className="absolute top-1/2 right-1/4 w-[350px] h-[350px] bg-[radial-gradient(circle,rgba(147,51,234,0.1)_0%,transparent_60%)] rounded-full pointer-events-none" />
         
         {/* Cyber Grid Lines */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)] opacity-30" />

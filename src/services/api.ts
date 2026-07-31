@@ -43,10 +43,10 @@ export const useApiClient = () => {
       });
 
       const contentType = response.headers.get("content-type") || "";
-      if (!contentType.includes("application/json")) {
+      if (response.redirected || !contentType.includes("application/json")) {
         const text = await response.text();
-        if (text.trim().startsWith("<") || contentType.includes("text/html")) {
-          throw new Error(`Gagal terhubung ke backend API (${response.status}). Pastikan Nginx proxy untuk /api terkonfigurasi ke port 5000.`);
+        if (response.redirected || text.trim().startsWith("<") || contentType.includes("text/html")) {
+          throw new Error("Sesi Anda telah berakhir atau belum login. Silakan refresh halaman dan login kembali.");
         }
         throw new Error(`Respon server tidak valid (${response.status}): ${text.slice(0, 100)}`);
       }

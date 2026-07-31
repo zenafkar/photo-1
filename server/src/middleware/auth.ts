@@ -1,11 +1,17 @@
 import { Request, Response, NextFunction } from "express";
-import { requireAuth as clerkRequireAuth } from "@clerk/express";
+import { getAuth } from "@clerk/express";
 
-// This middleware automatically checks for the Authorization header
-// with a valid Clerk JWT. If invalid, it returns a 401 response.
-export const requireAuth = clerkRequireAuth({
-  signInUrl: undefined,
-});
+// Ensure API requests return 401 JSON instead of 302 redirect when unauthenticated
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  const auth = getAuth(req);
+  if (!auth || !auth.userId) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: Silakan login terlebih dahulu.",
+    });
+  }
+  next();
+};
 
 // Helper type to extend Request with Clerk Auth
 export interface AuthenticatedRequest extends Request {

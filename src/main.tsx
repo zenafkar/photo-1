@@ -17,7 +17,7 @@ if (!PUBLISHABLE_KEY) {
     <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'sans-serif' }}>
       <h1>Configuration Error</h1>
       <p>Missing <code>VITE_CLERK_PUBLISHABLE_KEY</code>.</p>
-      <p>If you are deploying on Netlify, please add this key in your Netlify Environment Variables settings.</p>
+      <p>Please add this key to your Environment Variables settings.</p>
     </div>
   );
 } else {

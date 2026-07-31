@@ -41,10 +41,19 @@ export const useApiClient = () => {
         headers,
       });
 
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        const text = await response.text();
+        if (text.trim().startsWith("<") || contentType.includes("text/html")) {
+          throw new Error(`Gagal terhubung ke backend API (${response.status}). Pastikan Nginx proxy untuk /api terkonfigurasi ke port 5000.`);
+        }
+        throw new Error(`Respon server tidak valid (${response.status}): ${text.slice(0, 100)}`);
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "An error occurred");
+        throw new Error(data.message || "Terjadi kesalahan pada server");
       }
 
       return data;

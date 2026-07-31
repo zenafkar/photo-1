@@ -9,9 +9,10 @@ const getApiBaseUrl = () => {
     if (host === "localhost" || host === "127.0.0.1") {
       return "http://localhost:5000/api/v1";
     }
-    return `${window.location.protocol}//${host}:5000/api/v1`;
+    // In production, Nginx proxies /api/v1 on the same origin (no :5000 port)
+    return "/api/v1";
   }
-  return "http://localhost:5000/api/v1";
+  return "/api/v1";
 };
 
 const API_BASE_URL = getApiBaseUrl();

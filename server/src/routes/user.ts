@@ -74,6 +74,20 @@ router.get("/me", async (req: Request, res: Response) => {
           } 
         },
       });
+    } else if (!user.credits) {
+      // User exists but credits record is missing, create default credits
+      const newCredits = await prisma.userCredit.create({
+        data: {
+          userId: user.id,
+          remainingCredits: 3,
+          planType: "free"
+        },
+        select: {
+          remainingCredits: true,
+          planType: true
+        }
+      });
+      user.credits = newCredits;
     }
 
     res.status(200).json({

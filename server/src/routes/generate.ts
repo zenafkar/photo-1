@@ -30,10 +30,21 @@ router.post("/", async (req: Request, res: Response) => {
     const { imageUrl, prompt, provider, aspectRatio, resolution, outputFormat } = parsed.data;
 
     // Fetch user and check credits
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { clerkId },
       include: { credits: true },
     });
+
+    if (user && !user.credits) {
+      const newCredits = await prisma.userCredit.create({
+        data: {
+          userId: user.id,
+          remainingCredits: 3,
+          planType: "free"
+        }
+      });
+      user.credits = newCredits;
+    }
 
     const resString = (resolution || "").toLowerCase();
     const creditsToDeduct = resString === "4k" ? 2 : 1;

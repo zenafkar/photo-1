@@ -7,7 +7,13 @@ export const useApiClient = () => {
 
   const request = async (endpoint: string, options: RequestInit = {}) => {
     try {
-      const token = await getToken();
+      let token = await getToken();
+      
+      // If token is null/undefined initially (e.g. Clerk still hydrating), retry once after a short delay
+      if (!token) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        token = await getToken();
+      }
       
       const headers = {
         "Content-Type": "application/json",

@@ -1,7 +1,7 @@
-import { SignedIn, SignedOut, RedirectToSignIn, UserButton } from "@clerk/clerk-react";
-import { useState, useEffect } from "react";
+import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useAuth } from "@clerk/clerk-react";
+import { useState, useEffect, useCallback } from "react";
 import { useApiClient } from "../services/api";
-import { Loader2, Upload, Sparkles, Image as ImageIcon, History, Trash2, Download, Home, Zap, AlertTriangle, Banana } from 'lucide-react';
+import { Loader2, Upload, Sparkles, Image as ImageIcon, History, Trash2, Download, Home, Zap, AlertTriangle, Banana, RefreshCw } from 'lucide-react';
 import ZoomableImage from '../components/ZoomableImage';
 import { ZenLogo } from '../components/ZenLogo';
 
@@ -29,23 +29,35 @@ export default function StudioDashboard() {
   const [generationHistory, setGenerationHistory] = useState<any[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
+  const { isLoaded, isSignedIn } = useAuth();
   const api = useApiClient();
 
+  const loadProfile = useCallback(async () => {
+    if (!isLoaded || !isSignedIn) return;
+    setIsLoadingProfile(true);
+    setProfileError(null);
+    try {
+      const res: any = await api.getProfile();
+      if (res && res.data) {
+        setCredits(res.data.credits?.remainingCredits ?? 0);
+        setGenerationHistory(res.data.generations || []);
+      }
+    } catch (err: any) {
+      console.error("Failed to load profile:", err);
+      setProfileError(err.message || "Gagal memuat profil & riwayat gambar.");
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  }, [isLoaded, isSignedIn]);
+
   useEffect(() => {
-    // Fetch profile and credits on mount
-    let isMounted = true;
-    api.getProfile()
-      .then((res: any) => {
-        if (isMounted) {
-          setCredits(res.data.credits?.remainingCredits ?? 0);
-          setGenerationHistory(res.data.generations || []);
-        }
-      })
-      .catch((err: any) => console.error("Failed to load profile:", err));
-      
-    return () => { isMounted = false };
-  }, []); // Remove api from deps to prevent infinite loops
+    if (isLoaded && isSignedIn) {
+      loadProfile();
+    }
+  }, [isLoaded, isSignedIn, loadProfile]);
 
   const [imageBase64, setImageBase64] = useState<string | null>(null);
 
@@ -148,7 +160,19 @@ export default function StudioDashboard() {
                       <Zap className="w-4 h-4 text-amber-500 fill-amber-500 relative z-10" />
                     </div>
                     <span className="text-sm font-extrabold text-slate-700 flex items-center gap-1.5">
-                      {credits !== null ? credits : <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />} 
+                      {credits !== null ? (
+                        credits
+                      ) : isLoadingProfile ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
+                      ) : (
+                        <button 
+                          onClick={loadProfile} 
+                          title="Klik untuk memuat ulang"
+                          className="text-xs text-red-500 hover:text-red-600 font-semibold underline flex items-center gap-1"
+                        >
+                          Retry <RefreshCw className="w-3 h-3" />
+                        </button>
+                      )} 
                       <span className="text-slate-400 font-semibold hidden sm:inline">Kredit</span>
                     </span>
                   </div>
@@ -382,14 +406,45 @@ export default function StudioDashboard() {
 
               {/* Right Column: Gallery */}
               <div className="lg:col-span-7">
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full min-h-[600px]">
-                  <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                    <History className="w-5 h-5 text-indigo-500" />
-                    Galeri & Hasil
-                  </h2>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full min-h-[600px] flex flex-col">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-lg font-bold flex items-center gap-2">
+                      <History className="w-5 h-5 text-indigo-500" />
+                      Galeri & Hasil
+                    </h2>
+                    <button
+                      onClick={loadProfile}
+                      disabled={isLoadingProfile}
+                      className="text-xs font-semibold text-slate-500 hover:text-indigo-600 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors"
+                      title="Muat Ulang Galeri"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isLoadingProfile ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </button>
+                  </div>
+
+                  {profileError && (
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                        <span>{profileError}</span>
+                      </div>
+                      <button
+                        onClick={loadProfile}
+                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-colors flex-shrink-0"
+                      >
+                        Coba Lagi
+                      </button>
+                    </div>
+                  )}
                   
-                  {generationHistory.length === 0 ? (
+                  {isLoadingProfile && generationHistory.length === 0 ? (
                     <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl">
+                      <Loader2 className="w-10 h-10 mb-4 animate-spin text-indigo-400" />
+                      <p className="font-medium text-slate-600">Memuat data galeri & kredit...</p>
+                    </div>
+                  ) : generationHistory.length === 0 ? (
+                    <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl flex-1">
                       <ImageIcon className="w-12 h-12 mb-4 opacity-50" />
                       <p className="font-medium">Belum ada hasil generate.</p>
                       <p className="text-sm">Upload foto dan klik Generate untuk mulai!</p>

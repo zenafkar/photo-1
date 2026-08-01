@@ -17,6 +17,8 @@ import webhookRoutes from "./routes/webhooks";
 import telemetryRoutes from "./routes/telemetry";
 import { telemetryMiddleware, telemetryErrorHandler } from "./middleware/telemetry";
 
+import { startScheduler } from "./agent/scheduler";
+import "./agent/agent"; // Initialize agent to listen to telemetry events
 import path from "path";
 
 dotenv.config();
@@ -50,5 +52,10 @@ app.use(telemetryErrorHandler); // Added telemetry error catcher
 app.use(errorHandler);
 
 app.listen(PORT, () => {
+  console.log(`[server]: Server is running at http://localhost:${PORT}`);
+  
+  // Start AI Agent Scheduler
+  startScheduler();
+});
   console.log(`[server]: Server is running at http://localhost:${PORT}`);
 });

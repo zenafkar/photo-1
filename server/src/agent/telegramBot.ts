@@ -120,6 +120,56 @@ if (token) {
       
       bot?.answerCallbackQuery(callbackQuery.id, { text: 'Done' });
     });
+
+    // Free-form AI Chat Handler: Answer questions about frontend, backend, VPS in real-time
+    bot.on('message', async (msg) => {
+      // Ignore command messages starting with '/'
+      if (!msg.text || msg.text.startsWith('/')) return;
+
+      const userChatId = msg.chat.id;
+      bot?.sendChatAction(userChatId, 'typing');
+
+      try {
+        const os = await import('os');
+        const totalMem = os.totalmem();
+        const freeMem = os.freemem();
+        const ramUsage = (((totalMem - freeMem) / totalMem) * 100).toFixed(2);
+        
+        const systemContext = `
+Current Real-Time System Context:
+- Platform: ${os.platform()} (${os.arch()})
+- RAM Usage: ${ramUsage}% (${((totalMem - freeMem) / (1024*1024*1024)).toFixed(2)} GB used out of ${(totalMem / (1024*1024*1024)).toFixed(2)} GB)
+- CPU Cores: ${os.cpus().length}
+- Server Uptime: ${(os.uptime() / 3600).toFixed(1)} Hours
+- Stack: React + Vite (Frontend), Node.js + Express + Prisma ORM (Backend), VPS Deployment with PM2
+- Agent Features: Telemetry Monitoring, Error Boundary Ingestion, Telegram Approval, Auto Git Push, Auto GitHub Issue.
+        `;
+
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const prompt = `
+You are the AI SRE Assistant & System Operator for this web application (React + Node.js Express + VPS).
+Answer the operator's question accurately, concisely, and professionally in Indonesian.
+Use HTML tags for formatting if needed (e.g. <b>bold</b>, <code>code</code>).
+
+System Context:
+${systemContext}
+
+Operator's Question:
+"${msg.text}"
+        `;
+
+        const result = await model.generateContent(prompt);
+        const replyText = result.response.text();
+
+        bot?.sendMessage(userChatId, replyText, { parse_mode: 'HTML' });
+      } catch (err) {
+        console.error("Failed to process free-form AI chat:", err);
+        bot?.sendMessage(userChatId, "⚠️ <i>Maaf, terjadi kendala saat memproses pertanyaan Anda dengan AI Agent.</i>", { parse_mode: 'HTML' });
+      }
+    });
     
   } catch (error) {
     console.error("Failed to initialize Telegram Bot", error);

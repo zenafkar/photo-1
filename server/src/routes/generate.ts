@@ -55,7 +55,7 @@ router.post("/", async (req: Request, res: Response) => {
     }
 
     // Call modular AI Provider (Secure, server-side only)
-    const resultUrl = await AIService.generate({ 
+    const { url: resultUrl, predictionId } = await AIService.generate({ 
       imageUrl, 
       prompt, 
       provider, 
@@ -79,6 +79,7 @@ router.post("/", async (req: Request, res: Response) => {
       prisma.generation.create({
         data: {
           userId: user.id,
+          replicateId: predictionId || null,
           originalUrl: localOriginalUrl,
           processedUrl: localProcessedUrl,
           preset: prompt,
@@ -153,7 +154,12 @@ router.post("/sync", async (req: Request, res: Response) => {
 
     const user = await prisma.user.findUnique({
       where: { clerkId },
-      include: { generations: true, credits: true },
+      include: { 
+        generations: {
+          orderBy: { createdAt: "desc" }
+        }, 
+        credits: true 
+      },
     });
 
     if (!user) {
@@ -169,6 +175,12 @@ router.post("/sync", async (req: Request, res: Response) => {
         remainingCredits: user.credits?.remainingCredits ?? 0,
       });
     }
+
+    // Fast-Exit Memory Check
+    const userReplicateIds = new Set(
+      user.generations.map((g) => g.replicateId).filter(Boolean) as string[]
+    );
+    const userPresets = new Set(user.generations.map((g) => g.preset));
 
     // Fetch recent predictions from Replicate API
     const response = await fetch("https://api.replicate.com/v1/predictions", {
@@ -198,6 +210,22 @@ router.post("/sync", async (req: Request, res: Response) => {
     let newlySyncedCount = 0;
 
     for (const pred of succeeded) {
+      // 1. Skip if prediction already belongs to this user
+      if (userReplicateIds.has(pred.id)) {
+        continue;
+      }
+
+      // 2. Strict User Isolation: Check if prediction belongs to ANY OTHER user
+      const ownedByOther = await prisma.generation.findUnique({
+        where: { replicateId: pred.id },
+        select: { userId: true },
+      });
+
+      if (ownedByOther && ownedByOther.userId !== user.id) {
+        // BELONGS TO ANOTHER USER -> SKIP (STRICT ISOLATION)
+        continue;
+      }
+
       let outputUrl: string | null = null;
       if (typeof pred.output === "string") {
         outputUrl = pred.output;
@@ -209,44 +237,41 @@ router.post("/sync", async (req: Request, res: Response) => {
 
       const promptText = pred.input?.prompt || "Replicate Generated Image";
 
-      // Check deduplication
-      const isAlreadySaved = user.generations.some(
-        (g) => g.preset === promptText || (g.processedUrl && g.processedUrl.includes(pred.id))
-      );
-
-      if (!isAlreadySaved) {
-        try {
-          const localProcessedUrl = await saveRemoteImageLocally(outputUrl, req);
-          const inputImg = Array.isArray(pred.input?.image_input) ? pred.input.image_input[0] : (pred.input?.input_images?.[0] || localProcessedUrl);
-          let localOriginalUrl = localProcessedUrl;
-          if (typeof inputImg === "string" && inputImg.startsWith("data:image")) {
-            localOriginalUrl = await saveBase64Locally(inputImg, req);
-          } else if (typeof inputImg === "string" && inputImg.startsWith("http")) {
-            localOriginalUrl = await saveRemoteImageLocally(inputImg, req).catch(() => localProcessedUrl);
-          }
-
-          await prisma.generation.create({
-            data: {
-              userId: user.id,
-              originalUrl: localOriginalUrl,
-              processedUrl: localProcessedUrl,
-              preset: promptText,
-              status: "completed",
-              createdAt: pred.created_at ? new Date(pred.created_at) : new Date(),
-            },
-          });
-          newlySyncedCount++;
-        } catch (saveErr) {
-          console.error(`[Sync Error] Failed to save prediction ${pred.id}:`, saveErr);
+      // If not owned by other and not saved by current user
+      try {
+        const localProcessedUrl = await saveRemoteImageLocally(outputUrl, req);
+        const inputImg = Array.isArray(pred.input?.image_input) ? pred.input.image_input[0] : (pred.input?.input_images?.[0] || localProcessedUrl);
+        let localOriginalUrl = localProcessedUrl;
+        if (typeof inputImg === "string" && inputImg.startsWith("data:image")) {
+          localOriginalUrl = await saveBase64Locally(inputImg, req);
+        } else if (typeof inputImg === "string" && inputImg.startsWith("http")) {
+          localOriginalUrl = await saveRemoteImageLocally(inputImg, req).catch(() => localProcessedUrl);
         }
+
+        await prisma.generation.create({
+          data: {
+            userId: user.id,
+            replicateId: pred.id,
+            originalUrl: localOriginalUrl,
+            processedUrl: localProcessedUrl,
+            preset: promptText,
+            status: "completed",
+            createdAt: pred.created_at ? new Date(pred.created_at) : new Date(),
+          },
+        });
+        userReplicateIds.add(pred.id);
+        newlySyncedCount++;
+      } catch (saveErr) {
+        console.error(`[Sync Error] Failed to save prediction ${pred.id}:`, saveErr);
       }
     }
 
-    // Refetch updated user generations sorted descending
-    const updatedGenerations = await prisma.generation.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-    });
+    const updatedGenerations = newlySyncedCount > 0 
+      ? await prisma.generation.findMany({
+          where: { userId: user.id },
+          orderBy: { createdAt: "desc" },
+        })
+      : user.generations;
 
     res.status(200).json({
       success: true,

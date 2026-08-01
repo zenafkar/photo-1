@@ -7,8 +7,13 @@ export interface AIGenerationOptions {
   outputFormat?: string;
 }
 
+export interface AIGenerationResult {
+  url: string;
+  predictionId?: string;
+}
+
 export class AIService {
-  static async generate(options: AIGenerationOptions): Promise<string> {
+  static async generate(options: AIGenerationOptions): Promise<AIGenerationResult> {
     const provider = options.provider || "replicate";
 
     switch (provider) {
@@ -92,7 +97,7 @@ export class AIService {
     throw new Error("Proses generasi gambar melebihi batas waktu (timeout 3 menit). Silakan coba lagi.");
   }
 
-  private static async callReplicate(options: AIGenerationOptions): Promise<string> {
+  private static async callReplicate(options: AIGenerationOptions): Promise<AIGenerationResult> {
     const { imageUrl, prompt, aspectRatio, resolution, outputFormat } = options;
     const token = process.env.REPLICATE_API_TOKEN;
     console.log(`[AI] Calling Replicate (Nano Banana Pro) with prompt: ${prompt}`);
@@ -122,22 +127,21 @@ export class AIService {
       }
 
       const data = await response.json();
+      const predId = data.id;
       
       if (data.status === "failed") {
         throw new Error(data.error || "Replicate prediction failed");
       }
       
       if (data && data.output) {
-        if (typeof data.output === "string") {
-          return data.output;
-        } else if (Array.isArray(data.output) && data.output.length > 0) {
-          return data.output[0];
-        }
+        const url = typeof data.output === "string" ? data.output : data.output[0];
+        if (url) return { url, predictionId: predId };
       }
 
-      const pollUrl = data.urls?.get || (data.id ? `https://api.replicate.com/v1/predictions/${data.id}` : null);
+      const pollUrl = data.urls?.get || (predId ? `https://api.replicate.com/v1/predictions/${predId}` : null);
       if (pollUrl) {
-        return await this.pollPrediction(pollUrl, token);
+        const url = await this.pollPrediction(pollUrl, token);
+        return { url, predictionId: predId };
       }
       
       throw new Error("Replicate API timeout or invalid format. Please try again.");
@@ -151,7 +155,7 @@ export class AIService {
     }
   }
 
-  private static async callReplicateNanoBanana2(options: AIGenerationOptions): Promise<string> {
+  private static async callReplicateNanoBanana2(options: AIGenerationOptions): Promise<AIGenerationResult> {
     const { imageUrl, prompt, aspectRatio, resolution, outputFormat } = options;
     const token = process.env.REPLICATE_API_TOKEN;
     console.log(`[AI] Calling Replicate (Nano Banana 2) with prompt: ${prompt}`);
@@ -181,22 +185,21 @@ export class AIService {
       }
 
       const data = await response.json();
+      const predId = data.id;
       
       if (data.status === "failed") {
         throw new Error(data.error || "Replicate prediction failed");
       }
       
       if (data && data.output) {
-        if (typeof data.output === "string") {
-          return data.output;
-        } else if (Array.isArray(data.output) && data.output.length > 0) {
-          return data.output[0];
-        }
+        const url = typeof data.output === "string" ? data.output : data.output[0];
+        if (url) return { url, predictionId: predId };
       }
 
-      const pollUrl = data.urls?.get || (data.id ? `https://api.replicate.com/v1/predictions/${data.id}` : null);
+      const pollUrl = data.urls?.get || (predId ? `https://api.replicate.com/v1/predictions/${predId}` : null);
       if (pollUrl) {
-        return await this.pollPrediction(pollUrl, token);
+        const url = await this.pollPrediction(pollUrl, token);
+        return { url, predictionId: predId };
       }
       
       throw new Error("Replicate API timeout or invalid format. Please try again.");
@@ -210,7 +213,7 @@ export class AIService {
     }
   }
 
-  private static async callReplicateGPTImage(options: AIGenerationOptions): Promise<string> {
+  private static async callReplicateGPTImage(options: AIGenerationOptions): Promise<AIGenerationResult> {
     const { imageUrl, prompt, aspectRatio, resolution, outputFormat } = options;
     const token = process.env.REPLICATE_API_TOKEN;
     console.log(`[AI] Calling Replicate (OpenAI GPT-Image 1.5) with prompt: ${prompt}`);
@@ -257,22 +260,21 @@ export class AIService {
       }
 
       const data = await response.json();
+      const predId = data.id;
       
       if (data.status === "failed") {
         throw new Error(data.error || "Replicate prediction failed");
       }
       
       if (data && data.output) {
-        if (typeof data.output === "string") {
-          return data.output;
-        } else if (Array.isArray(data.output) && data.output.length > 0) {
-          return data.output[0];
-        }
+        const url = typeof data.output === "string" ? data.output : data.output[0];
+        if (url) return { url, predictionId: predId };
       }
 
-      const pollUrl = data.urls?.get || (data.id ? `https://api.replicate.com/v1/predictions/${data.id}` : null);
+      const pollUrl = data.urls?.get || (predId ? `https://api.replicate.com/v1/predictions/${predId}` : null);
       if (pollUrl) {
-        return await this.pollPrediction(pollUrl, token);
+        const url = await this.pollPrediction(pollUrl, token);
+        return { url, predictionId: predId };
       }
       
       throw new Error("Replicate API timeout or invalid format. Please try again.");

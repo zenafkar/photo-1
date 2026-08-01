@@ -1,4 +1,4 @@
-import { UploadCloud, Sparkles, Download, Workflow, Cpu, Wand2 } from 'lucide-react';
+import { UploadCloud, Download, Workflow, Cpu, Wand2 } from 'lucide-react';
 import { motion, Variants, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 

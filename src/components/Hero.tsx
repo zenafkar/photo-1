@@ -5,7 +5,6 @@ import {
   ShieldCheck, 
   Sparkles, 
   Cpu, 
-  TrendingUp, 
   Check,
   Wand2
 } from 'lucide-react';

@@ -9,7 +9,7 @@ export default function PromptFeatureHighlight() {
   const [isGenerating, setIsGenerating] = useState(false);
   
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
     if (isGenerating) {
       let i = 0;
       setDisplayedText("");

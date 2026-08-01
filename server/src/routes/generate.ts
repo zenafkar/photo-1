@@ -54,12 +54,17 @@ router.post("/", async (req: Request, res: Response) => {
       return res.status(403).json({ success: false, message: `Kredit tidak cukup. Dibutuhkan ${creditsToDeduct} kredit untuk resolusi ini.` });
     }
 
-    // Save original image base64 locally first to get a valid HTTP URI for Replicate API
+    // Save original image base64 locally first for database history
     const localOriginalUrl = await saveBase64Locally(imageUrl, req);
 
-    // Call modular AI Provider (Secure, server-side only) with valid HTTP URL
+    // Replicate tidak bisa mengakses http://localhost, gunakan base64 Data URI jika local URL mengandung localhost
+    const validAiImageUrl = (localOriginalUrl.includes("localhost") || localOriginalUrl.includes("127.0.0.1")) 
+      ? imageUrl 
+      : localOriginalUrl;
+
+    // Call modular AI Provider (Secure, server-side only)
     const { url: resultUrl, predictionId } = await AIService.generate({ 
-      imageUrl: localOriginalUrl, 
+      imageUrl: validAiImageUrl, 
       prompt, 
       provider, 
       aspectRatio,
@@ -73,6 +78,26 @@ router.post("/", async (req: Request, res: Response) => {
     // Deduct calculated credits & Save History transactionally
     let updatedCredits, generationRecord;
     try {
+      if (predictionId) {
+        const existing = await prisma.generation.findUnique({
+          where: { replicateId: predictionId }
+        });
+        if (existing) {
+          updatedCredits = await prisma.userCredit.update({
+            where: { userId: user.id },
+            data: { remainingCredits: { decrement: creditsToDeduct } },
+          });
+          generationRecord = existing;
+          return res.status(200).json({
+            success: true,
+            data: {
+              generation: generationRecord,
+              remainingCredits: updatedCredits.remainingCredits,
+            },
+          });
+        }
+      }
+
       [updatedCredits, generationRecord] = await prisma.$transaction([
         prisma.userCredit.update({
           where: { userId: user.id },

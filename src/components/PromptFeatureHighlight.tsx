@@ -50,9 +50,13 @@ export default function PromptFeatureHighlight() {
               </div>
               <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-6 leading-tight">
                 Bebas Pusing Mikir <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
+                <motion.span 
+                  animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                  transition={{ duration: 4, ease: "easeInOut", repeat: Infinity }}
+                  className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-cyan-500 via-purple-600 to-indigo-600 bg-[length:200%_auto] inline-block"
+                >
                   Prompt Foto.
-                </span>
+                </motion.span>
               </h2>
               <p className="text-lg text-slate-600 font-medium mb-8 leading-relaxed">
                 Tidak punya ide desain atau bingung menyusun kata-kata prompt? Jangan khawatir. Biarkan AI kami yang meracik setingan pencahayaan studio profesional secara otomatis untuk Anda.

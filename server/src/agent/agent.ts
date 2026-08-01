@@ -8,7 +8,8 @@ import { guardrails } from './guardrails.js';
 dotenv.config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const model = genAI.getGenerativeModel({ model: modelName });
 
 // SRE Agent Prompt
 const SRE_PROMPT = `

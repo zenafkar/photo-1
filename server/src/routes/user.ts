@@ -1,8 +1,52 @@
 import { Router, Request, Response } from "express";
-import { getAuth } from "@clerk/express";
+import { getAuth, clerkClient } from "@clerk/express";
 import { prisma } from "../config/prisma";
 
 const router = Router();
+
+// ... existing code ...
+
+router.delete("/account", async (req: Request, res: Response) => {
+  try {
+    const { userId: clerkId } = getAuth(req);
+
+    if (!clerkId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    console.log("[DEBUG] Deleting account for clerkId:", clerkId);
+
+    // 1. Delete from Prisma DB
+    const existingUser = await prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (existingUser) {
+      await prisma.user.delete({
+        where: { clerkId },
+      });
+      console.log("[DEBUG] Successfully deleted user from Prisma DB:", clerkId);
+    } else {
+      console.log("[DEBUG] User not found in DB during deletion:", clerkId);
+    }
+
+    // 2. Delete from Clerk Authentication system to keep DBs in sync
+    try {
+      await clerkClient.users.deleteUser(clerkId);
+      console.log("[DEBUG] Successfully deleted user from Clerk Auth:", clerkId);
+    } catch (clerkErr: any) {
+      console.warn("[DEBUG] Notice deleting user from Clerk Auth:", clerkErr?.message || clerkErr);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Akun dan seluruh data pengguna berhasil dihapus secara permanen.",
+    });
+  } catch (error) {
+    console.error("Error deleting user account:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
 
 router.get("/me", async (req: Request, res: Response) => {
   try {
@@ -126,39 +170,6 @@ router.get("/me", async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Error fetching user /user/me:", error?.message || error);
     res.status(500).json({ success: false, message: error?.message || "Internal server error" });
-  }
-});
-
-router.delete("/account", async (req: Request, res: Response) => {
-  try {
-    const { userId: clerkId } = getAuth(req);
-
-    if (!clerkId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-
-    console.log("[DEBUG] Deleting account for clerkId:", clerkId);
-
-    const existingUser = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
-    if (existingUser) {
-      await prisma.user.delete({
-        where: { clerkId },
-      });
-      console.log("[DEBUG] Successfully deleted user from Prisma DB:", clerkId);
-    } else {
-      console.log("[DEBUG] User not found in DB during deletion (already deleted or lazy init not called):", clerkId);
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Akun dan seluruh data pengguna berhasil dihapus dari database.",
-    });
-  } catch (error) {
-    console.error("Error deleting user account:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 

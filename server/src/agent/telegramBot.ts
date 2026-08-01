@@ -17,15 +17,15 @@ if (token) {
     bot.onText(/\/help|\/start/, (msg) => {
       const chatId = msg.chat.id;
       const helpText = `
-🛠️ *AI SRE AGENT COMMAND MENU*
+🛠️ <b>AI SRE AGENT COMMAND MENU</b>
 
-* /help - Menampilkan daftar seluruh perintah bantuan ini.
-* /check, /status, /health - Menjalankan instant health check (API, Database, RAM/CPU VPS).
-* /test, /deepcheck, /synthetic - Memicu pengujian fungsional sintetis mendalam dari hulu ke hilir.
-* /metrics, /vps, /ram - Menampilkan statistik performa & penggunaan resource VPS real-time.
-* /restart - Meminta restart PM2 process server (membutuhkan konfirmasi approval).
+• <b>/help</b> - Menampilkan daftar seluruh perintah bantuan ini.
+• <b>/check</b>, <b>/status</b>, <b>/health</b> - Menjalankan instant health check (API, Database, RAM/CPU VPS).
+• <b>/test</b>, <b>/deepcheck</b>, <b>/synthetic</b> - Memicu pengujian fungsional sintetis mendalam dari hulu ke hilir.
+• <b>/metrics</b>, <b>/vps</b>, <b>/ram</b> - Menampilkan statistik performa & penggunaan resource VPS real-time.
+• <b>/restart</b> - Meminta restart PM2 process server (membutuhkan konfirmasi approval).
       `;
-      bot?.sendMessage(chatId, helpText, { parse_mode: 'Markdown' });
+      bot?.sendMessage(chatId, helpText, { parse_mode: 'HTML' });
     });
 
     // We can add other command handlers here or in agent.ts later
@@ -57,41 +57,41 @@ export const telegramBot = {
     }
     
     const message = `
-🛠️ *[AGENT ACTION REPORT]*
+🛠️ <b>[AGENT ACTION REPORT]</b>
     
-* 🕒 Waktu: ${reportDetails.time}
-* 📌 Komponen: ${reportDetails.component}
-* 🔍 Akar Masalah: ${reportDetails.rootCause}
-* ⚙️ Tindakan: ${reportDetails.action}
-* 📊 Status Akhir: ${reportDetails.status}
+• 🕒 <b>Waktu:</b> ${reportDetails.time}
+• 📌 <b>Komponen:</b> ${reportDetails.component}
+• 🔍 <b>Akar Masalah:</b> ${reportDetails.rootCause}
+• ⚙️ <b>Tindakan:</b> ${reportDetails.action}
+• 📊 <b>Status Akhir:</b> ${reportDetails.status}
     `;
     
-    await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+    await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
   },
 
   async sendDailyHealthSummary(metrics: any) {
     if (!bot || !chatId) return;
     const message = `
-🟢 *DAILY WEBSITE HEALTH SUMMARY*
+🟢 <b>DAILY WEBSITE HEALTH SUMMARY</b>
     
-* Uptime: ${metrics.uptime}%
-* Status: All Systems Operational
-* RAM VPS: ${metrics.ram}%
+• <b>Uptime:</b> ${metrics.uptime}%
+• <b>Status:</b> All Systems Operational
+• <b>RAM VPS:</b> ${metrics.ram}%
     `;
-    await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+    await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
   },
 
   async sendApprovalRequest(actionId: string, description: string, riskLevel: string) {
     if (!bot || !chatId) return;
     
     const message = `
-⚠️ *ACTION APPROVAL REQUIRED*
-* Risk Level: ${riskLevel}
-* Action: ${description}
+⚠️ <b>ACTION APPROVAL REQUIRED</b>
+• <b>Risk Level:</b> ${riskLevel}
+• <b>Action:</b> ${description}
     `;
     
     const opts = {
-      parse_mode: 'Markdown' as const,
+      parse_mode: 'HTML' as const,
       reply_markup: {
         inline_keyboard: [
           [

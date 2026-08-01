@@ -164,10 +164,17 @@ Operator's Question:
         const result = await model.generateContent(prompt);
         const replyText = result.response.text();
 
-        bot?.sendMessage(userChatId, replyText, { parse_mode: 'HTML' });
+        // Try sending with HTML formatting first
+        try {
+          await bot?.sendMessage(userChatId, replyText, { parse_mode: 'HTML' });
+        } catch (telegramErr) {
+          // If HTML parsing fails, fallback to plain text so it never errors out!
+          console.warn("Telegram HTML parse failed, falling back to plain text:", telegramErr);
+          await bot?.sendMessage(userChatId, replyText);
+        }
       } catch (err) {
         console.error("Failed to process free-form AI chat:", err);
-        bot?.sendMessage(userChatId, "⚠️ <i>Maaf, terjadi kendala saat memproses pertanyaan Anda dengan AI Agent.</i>", { parse_mode: 'HTML' });
+        bot?.sendMessage(userChatId, `⚠️ <i>Maaf, terjadi kendala: ${err instanceof Error ? err.message : String(err)}</i>`, { parse_mode: 'HTML' });
       }
     });
     

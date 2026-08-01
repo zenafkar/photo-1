@@ -246,7 +246,7 @@ export class AIService {
       quality: mappedQuality
     };
 
-    if (imageUrl && (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))) {
+    if (imageUrl && (imageUrl.startsWith("data:image/") || imageUrl.startsWith("https://") || imageUrl.startsWith("http://"))) {
       inputPayload.input_images = [imageUrl];
     }
 

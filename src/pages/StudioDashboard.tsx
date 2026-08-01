@@ -619,13 +619,13 @@ export default function StudioDashboard() {
                   )}
                   
                   {generationHistory.length === 0 && !isGenerating ? (
-                    <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl flex-1">
+                    <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl flex-1 transition-all">
                       <ImageIcon className="w-12 h-12 mb-4 opacity-50" />
                       <p className="font-medium text-slate-600">Belum ada hasil generate.</p>
                       <p className="text-sm text-slate-400">Upload foto dan klik Generate untuk mulai!</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-[400px] content-start">
                       {isGenerating && (
                         <div className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                           <div className="w-full h-full flex flex-col items-center justify-center bg-indigo-50">

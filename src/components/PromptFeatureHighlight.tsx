@@ -14,8 +14,8 @@ export default function PromptFeatureHighlight() {
       let i = 0;
       setDisplayedText("");
       const typeWriter = setInterval(() => {
-        if (i < fullPrompt.length - 1) {
-          setDisplayedText(prev => prev + fullPrompt.charAt(i));
+        if (i < fullPrompt.length) {
+          setDisplayedText(fullPrompt.slice(0, i + 1));
           i++;
         } else {
           clearInterval(typeWriter);

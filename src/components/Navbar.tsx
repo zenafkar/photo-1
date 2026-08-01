@@ -8,6 +8,16 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { isLoaded, isSignedIn } = useAuth();
+  const [isAuthTimeout, setIsAuthTimeout] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsAuthTimeout(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const ready = isLoaded || isAuthTimeout;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,7 +65,7 @@ const Navbar = () => {
           
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            {!isLoaded ? (
+            {!ready ? (
               <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
             ) : isSignedIn ? (
               <>
@@ -126,7 +136,7 @@ const Navbar = () => {
               FAQ
             </a>
             
-            {!isLoaded ? (
+            {!ready ? (
               <div className="pt-4 flex justify-center items-center py-4 border-t border-slate-800/80">
                 <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
               </div>

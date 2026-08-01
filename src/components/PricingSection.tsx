@@ -5,7 +5,15 @@ import { Link } from 'react-router-dom';
 const PricingSection = () => {
   const { openSignIn } = useClerk();
   const handleOpenAuth = () => {
-    openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
+    try {
+      if (typeof openSignIn === 'function') {
+        openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
+      } else {
+        window.location.href = "https://clerk.zenstudio.my.id/sign-in?redirect_url=https://zenstudio.my.id/studio";
+      }
+    } catch (e) {
+      window.location.href = "https://clerk.zenstudio.my.id/sign-in?redirect_url=https://zenstudio.my.id/studio";
+    }
   };
 
   return (

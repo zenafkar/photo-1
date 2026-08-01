@@ -21,7 +21,16 @@ const Navbar = () => {
   const ready = isLoaded || isAuthTimeout;
 
   const handleOpenAuth = () => {
-    openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
+    try {
+      if (isLoaded && typeof openSignIn === 'function') {
+        openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
+      } else {
+        // MITIGASI BACKUP: Jika script Clerk diblokir AdBlocker/CSP, langsung redirect ke portal
+        window.location.href = "https://clerk.zenstudio.my.id/sign-in?redirect_url=https://zenstudio.my.id/studio";
+      }
+    } catch (error) {
+      window.location.href = "https://clerk.zenstudio.my.id/sign-in?redirect_url=https://zenstudio.my.id/studio";
+    }
   };
 
   useEffect(() => {

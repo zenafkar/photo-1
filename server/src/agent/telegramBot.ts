@@ -147,9 +147,15 @@ Current Real-Time System Context:
 
         const { GoogleGenerativeAI } = await import('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-        const prompt = `
+        const primaryModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+        
+        let replyText = "";
+        const candidateModels = [primaryModel, "gemini-2.0-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"];
+        
+        for (const mName of candidateModels) {
+          try {
+            const model = genAI.getGenerativeModel({ model: mName });
+            const prompt = `
 You are the AI SRE Assistant & System Operator for this web application (React + Node.js Express + VPS).
 Answer the operator's question accurately, concisely, and professionally in Indonesian.
 Use HTML tags for formatting if needed (e.g. <b>bold</b>, <code>code</code>).
@@ -159,10 +165,18 @@ ${systemContext}
 
 Operator's Question:
 "${msg.text}"
-        `;
+            `;
+            const result = await model.generateContent(prompt);
+            replyText = result.response.text();
+            if (replyText) break;
+          } catch (modelErr) {
+            console.warn(`Model ${mName} failed, trying next fallback model...`, modelErr);
+          }
+        }
 
-        const result = await model.generateContent(prompt);
-        const replyText = result.response.text();
+        if (!replyText) {
+          throw new Error("All Gemini models failed to generate content. Please check API key permissions.");
+        }
 
         // Try sending with HTML formatting first
         try {

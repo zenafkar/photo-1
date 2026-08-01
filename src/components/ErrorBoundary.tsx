@@ -29,7 +29,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private async logErrorToTelemetry(error: Error, errorInfo: ErrorInfo) {
     try {
-      await fetch('/api/telemetry', {
+      await fetch('/api/v1/telemetry', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

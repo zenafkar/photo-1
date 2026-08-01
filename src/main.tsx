@@ -4,6 +4,8 @@ import App from './App.tsx';
 import './index.css';
 import { ClerkProvider } from '@clerk/clerk-react';
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
@@ -23,13 +25,15 @@ if (!PUBLISHABLE_KEY) {
 } else {
   root.render(
     <React.StrictMode>
-      <ClerkProvider 
-        publishableKey={PUBLISHABLE_KEY}
-        signInFallbackRedirectUrl="/studio"
-        signUpFallbackRedirectUrl="/studio"
-      >
-        <App />
-      </ClerkProvider>
+      <ErrorBoundary>
+        <ClerkProvider 
+          publishableKey={PUBLISHABLE_KEY}
+          signInFallbackRedirectUrl="/studio"
+          signUpFallbackRedirectUrl="/studio"
+        >
+          <App />
+        </ClerkProvider>
+      </ErrorBoundary>
     </React.StrictMode>,
   );
 }

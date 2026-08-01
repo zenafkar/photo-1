@@ -239,13 +239,19 @@ export class AIService {
       else if (resLower === "1k") mappedQuality = "low";
     }
 
+    const inputPayload: any = {
+      prompt: prompt,
+      aspect_ratio: mappedRatio,
+      output_format: mappedFormat,
+      quality: mappedQuality
+    };
+
+    if (imageUrl && (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))) {
+      inputPayload.input_images = [imageUrl];
+    }
+
     const { options: fetchOpts, clearTimeout: clear } = this.getFetchOptions({
-      input: {
-        prompt: prompt,
-        aspect_ratio: mappedRatio,
-        output_format: mappedFormat,
-        quality: mappedQuality
-      }
+      input: inputPayload
     }, token);
 
     try {

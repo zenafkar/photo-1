@@ -54,9 +54,12 @@ router.post("/", async (req: Request, res: Response) => {
       return res.status(403).json({ success: false, message: `Kredit tidak cukup. Dibutuhkan ${creditsToDeduct} kredit untuk resolusi ini.` });
     }
 
-    // Call modular AI Provider (Secure, server-side only)
+    // Save original image base64 locally first to get a valid HTTP URI for Replicate API
+    const localOriginalUrl = await saveBase64Locally(imageUrl, req);
+
+    // Call modular AI Provider (Secure, server-side only) with valid HTTP URL
     const { url: resultUrl, predictionId } = await AIService.generate({ 
-      imageUrl, 
+      imageUrl: localOriginalUrl, 
       prompt, 
       provider, 
       aspectRatio,
@@ -64,11 +67,8 @@ router.post("/", async (req: Request, res: Response) => {
       outputFormat 
     });
 
-    // Simpan gambar secara permanen ke disk VPS lokal (agar tidak expired dari Replicate CDN)
-    const [localProcessedUrl, localOriginalUrl] = await Promise.all([
-      saveRemoteImageLocally(resultUrl, req),
-      saveBase64Locally(imageUrl, req)
-    ]);
+    // Simpan gambar hasil secara permanen ke disk VPS lokal
+    const localProcessedUrl = await saveRemoteImageLocally(resultUrl, req);
 
     // Deduct calculated credits & Save History transactionally
     let updatedCredits, generationRecord;

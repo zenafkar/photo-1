@@ -71,22 +71,28 @@ router.post("/", async (req: Request, res: Response) => {
     ]);
 
     // Deduct calculated credits & Save History transactionally
-    const [updatedCredits, generationRecord] = await prisma.$transaction([
-      prisma.userCredit.update({
-        where: { userId: user.id },
-        data: { remainingCredits: { decrement: creditsToDeduct } },
-      }),
-      prisma.generation.create({
-        data: {
-          userId: user.id,
-          replicateId: predictionId || null,
-          originalUrl: localOriginalUrl,
-          processedUrl: localProcessedUrl,
-          preset: prompt,
-          status: "completed",
-        },
-      }),
-    ]);
+    let updatedCredits, generationRecord;
+    try {
+      [updatedCredits, generationRecord] = await prisma.$transaction([
+        prisma.userCredit.update({
+          where: { userId: user.id },
+          data: { remainingCredits: { decrement: creditsToDeduct } },
+        }),
+        prisma.generation.create({
+          data: {
+            userId: user.id,
+            replicateId: predictionId || null,
+            originalUrl: localOriginalUrl,
+            processedUrl: localProcessedUrl,
+            preset: prompt,
+            status: "completed",
+          },
+        }),
+      ]);
+    } catch (dbError: any) {
+      console.error("Database error during transaction:", dbError);
+      return res.status(500).json({ success: false, message: "Gagal menyimpan hasil generasi ke database (DB Error). Mohon coba lagi." });
+    }
 
     res.status(200).json({
       success: true,

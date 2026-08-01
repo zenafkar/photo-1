@@ -603,16 +603,6 @@ export default function StudioDashboard() {
                     </div>
                   )}
 
-                  {isGenerating && (
-                    <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-xl text-sm text-indigo-800 flex items-center gap-3">
-                      <Loader2 className="w-5 h-5 text-indigo-600 animate-spin flex-shrink-0" />
-                      <div>
-                        <p className="font-bold">Proses Generasi Berjalan</p>
-                        <p className="text-xs text-indigo-600 mt-0.5">{generationStatus || "Sedang memproses..."}</p>
-                      </div>
-                    </div>
-                  )}
-
                   {generateError && (
                     <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-900 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
@@ -628,7 +618,7 @@ export default function StudioDashboard() {
                     </div>
                   )}
                   
-                  {generationHistory.length === 0 ? (
+                  {generationHistory.length === 0 && !isGenerating ? (
                     <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl flex-1">
                       <ImageIcon className="w-12 h-12 mb-4 opacity-50" />
                       <p className="font-medium text-slate-600">Belum ada hasil generate.</p>
@@ -636,6 +626,15 @@ export default function StudioDashboard() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {isGenerating && (
+                        <div className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-indigo-50">
+                             <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-3" />
+                             <span className="text-sm font-bold text-indigo-700">Proses Generasi...</span>
+                             <span className="text-xs font-medium text-indigo-500 text-center px-4 mt-1">{generationStatus || "Sedang memproses gambar"}</span>
+                          </div>
+                        </div>
+                      )}
                       {generationHistory.map((item, idx) => (
                         <div key={item.id || idx} className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                           {item.processedUrl ? (

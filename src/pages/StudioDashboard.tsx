@@ -37,13 +37,7 @@ export default function StudioDashboard() {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
-  // Advanced Options State
-  const [aspectRatio, setAspectRatio] = useState("1:1");
-  const [resolution, setResolution] = useState("1k");
-  const [outputFormat, setOutputFormat] = useState("jpg");
-  
   // UI State
-  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
 

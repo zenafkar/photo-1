@@ -18,24 +18,39 @@ const getApiBaseUrl = () => {
 const API_BASE_URL = getApiBaseUrl();
 
 export const useApiClient = () => {
-  const { getToken, isSignedIn } = useAuth();
+  const { getToken, isSignedIn, isLoaded } = useAuth();
 
   const request = async (endpoint: string, options: RequestInit = {}) => {
     try {
-      if (!isSignedIn) {
-        throw new Error("Sesi Anda telah berakhir atau belum login. Silakan refresh halaman dan login kembali.");
+      // Jika Clerk belum selesai hydrating, tunggu sebentar (maksimal 2 detik)
+      if (!isLoaded) {
+        let attempts = 0;
+        while (!isLoaded && attempts < 10) {
+          await new Promise((res) => setTimeout(res, 200));
+          attempts++;
+        }
       }
 
-      let token = await getToken();
-      
-      // If token is null/undefined initially (e.g. Clerk still hydrating), retry once with skipCache
-      if (!token) {
-        await new Promise((resolve) => setTimeout(resolve, 400));
-        token = await getToken({ skipCache: true }).catch(() => null);
+      if (isLoaded && !isSignedIn) {
+        throw new Error("Sesi Anda belum aktif atau telah keluar. Silakan login kembali.");
+      }
+
+      let token: string | null = null;
+      let retries = 3;
+      while (retries > 0 && !token) {
+        try {
+          token = await getToken({ skipCache: retries < 3 });
+        } catch {
+          token = null;
+        }
+        if (!token) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          retries--;
+        }
       }
 
       if (!token) {
-        throw new Error("Sesi Anda telah berakhir atau belum login. Silakan refresh halaman dan login kembali.");
+        throw new Error("Gagal mengautentikasi sesi Clerk. Silakan coba lagi atau refresh halaman.");
       }
 
       const headers = {

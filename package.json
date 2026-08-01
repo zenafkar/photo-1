@@ -28,6 +28,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
     "autoprefixer": "^10.5.4",
+    "chokidar": "^5.0.0",
     "concurrently": "^10.0.4",
     "postcss": "^8.5.25",
     "puppeteer": "^25.4.0",

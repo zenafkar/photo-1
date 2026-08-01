@@ -43,37 +43,66 @@ router.get("/me", async (req: Request, res: Response) => {
 
     // If user doesn't exist yet, we create them (Lazy initialization)
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          clerkId,
-          email: `${clerkId}@placeholder.com`, // Usually synced via Clerk Webhooks
-          credits: {
-            create: {
-              remainingCredits: 3,
-              planType: "free"
+      try {
+        user = await prisma.user.create({
+          data: {
+            clerkId,
+            email: `${clerkId}@placeholder.com`, // Usually synced via Clerk Webhooks
+            credits: {
+              create: {
+                remainingCredits: 3,
+                planType: "free"
+              }
             }
-          }
-        },
-        include: { 
-          credits: {
-            select: {
-              remainingCredits: true,
-              planType: true
+          },
+          include: { 
+            credits: {
+              select: {
+                remainingCredits: true,
+                planType: true
+              }
+            }, 
+            generations: {
+              take: 15,
+              orderBy: { createdAt: 'desc' },
+              select: {
+                id: true,
+                processedUrl: true,
+                preset: true,
+                status: true,
+                createdAt: true
+              }
+            } 
+          },
+        });
+      } catch (createError) {
+        console.warn("[DEBUG] Concurrent creation detected for clerkId:", clerkId, "retrying findUnique...");
+        user = await prisma.user.findUnique({
+          where: { clerkId },
+          include: { 
+            credits: {
+              select: {
+                remainingCredits: true,
+                planType: true
+              }
+            },
+            generations: {
+              take: 15,
+              orderBy: { createdAt: 'desc' },
+              select: {
+                id: true,
+                processedUrl: true,
+                preset: true,
+                status: true,
+                createdAt: true
+              }
             }
-          }, 
-          generations: {
-            take: 15,
-            orderBy: { createdAt: 'desc' },
-            select: {
-              id: true,
-              processedUrl: true,
-              preset: true,
-              status: true,
-              createdAt: true
-            }
-          } 
-        },
-      });
+          },
+        });
+        if (!user) {
+          throw createError;
+        }
+      }
     } else if (!user.credits) {
       // User exists but credits record is missing, create default credits
       const newCredits = await prisma.userCredit.create({
@@ -84,7 +113,7 @@ router.get("/me", async (req: Request, res: Response) => {
         },
         select: {
           remainingCredits: true,
-          planType: true
+          planType: "free" as any
         }
       });
       user.credits = newCredits;
@@ -94,9 +123,9 @@ router.get("/me", async (req: Request, res: Response) => {
       success: true,
       data: user,
     });
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+  } catch (error: any) {
+    console.error("Error fetching user /user/me:", error?.message || error);
+    res.status(500).json({ success: false, message: error?.message || "Internal server error" });
   }
 });
 

@@ -242,7 +242,6 @@ export class AIService {
     const { options: fetchOpts, clearTimeout: clear } = this.getFetchOptions({
       input: {
         prompt: prompt,
-        input_images: [imageUrl],
         aspect_ratio: mappedRatio,
         output_format: mappedFormat,
         quality: mappedQuality

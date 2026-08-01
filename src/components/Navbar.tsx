@@ -13,7 +13,7 @@ const Navbar = () => {
 
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
-  const { openSignIn, signOut } = useClerk();
+  const { openSignIn, openSignUp, signOut } = useClerk();
   const api = useApiClient();
 
   const handleDeleteAccount = async () => {
@@ -47,13 +47,25 @@ const Navbar = () => {
 
   const ready = isLoaded || isAuthTimeout;
 
-  const handleOpenAuth = () => {
+  const handleOpenSignIn = () => {
     try {
       if (typeof openSignIn === 'function') {
         openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
       }
     } catch (error) {
       console.error("Error opening sign-in modal:", error);
+    }
+  };
+
+  const handleOpenSignUp = () => {
+    try {
+      if (typeof openSignUp === 'function') {
+        openSignUp({ fallbackRedirectUrl: '/studio', signInFallbackRedirectUrl: '/studio' });
+      } else if (typeof openSignIn === 'function') {
+        openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
+      }
+    } catch (error) {
+      console.error("Error opening sign-up modal:", error);
     }
   };
 
@@ -130,13 +142,13 @@ const Navbar = () => {
             ) : (
               <>
                 <button 
-                  onClick={handleOpenAuth}
+                  onClick={handleOpenSignIn}
                   className="text-slate-300 hover:text-cyan-300 font-semibold text-sm transition-colors px-3 py-1.5"
                 >
                   Masuk
                 </button>
                 <button 
-                  onClick={handleOpenAuth}
+                  onClick={handleOpenSignUp}
                   className="bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] hover:scale-105 active:scale-95 flex items-center gap-2 border border-cyan-400/30"
                 >
                   <Sparkles className="w-4 h-4 text-cyan-200 fill-cyan-200" />
@@ -233,7 +245,7 @@ const Navbar = () => {
                 <button 
                   onClick={() => {
                     setIsOpen(false);
-                    handleOpenAuth();
+                    handleOpenSignIn();
                   }} 
                   className="w-full text-left block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
                 >
@@ -242,7 +254,7 @@ const Navbar = () => {
                 <button 
                   onClick={() => {
                     setIsOpen(false);
-                    handleOpenAuth();
+                    handleOpenSignUp();
                   }} 
                   className="w-full bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 text-white px-4 py-3 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-lg shadow-cyan-500/20"
                 >

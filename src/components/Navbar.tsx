@@ -159,7 +159,7 @@ const Navbar = () => {
               <div className="pt-3 border-t border-slate-800/80 space-y-2">
                 <SignInButton mode="modal" fallbackRedirectUrl="/studio" signUpFallbackRedirectUrl="/studio">
                   <button 
-                    onClick={() => setIsOpen(false)} 
+                    onClick={() => setTimeout(() => setIsOpen(false), 100)} 
                     className="w-full text-left block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
                   >
                     Masuk
@@ -167,7 +167,7 @@ const Navbar = () => {
                 </SignInButton>
                 <SignInButton mode="modal" fallbackRedirectUrl="/studio" signUpFallbackRedirectUrl="/studio">
                   <button 
-                    onClick={() => setIsOpen(false)} 
+                    onClick={() => setTimeout(() => setIsOpen(false), 100)} 
                     className="w-full bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 text-white px-4 py-3 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-lg shadow-cyan-500/20"
                   >
                     <Sparkles className="w-4 h-4" />

@@ -1,8 +1,13 @@
 import { Sparkles, Zap, Image as ImageIcon, Layers, Aperture, Shield, Type, FastForward } from 'lucide-react';
-import { SignInButton, SignedOut, SignedIn } from '@clerk/clerk-react';
+import { SignedOut, SignedIn, useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 
 const PricingSection = () => {
+  const { openSignIn } = useClerk();
+  const handleOpenAuth = () => {
+    openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
+  };
+
   return (
     <section id="harga" className="py-16 md:py-24 bg-slate-950 border-t border-slate-800/80 relative overflow-hidden text-slate-200">
       {/* Glow Effects */}
@@ -35,11 +40,12 @@ const PricingSection = () => {
             </ul>
             
             <SignedOut>
-              <SignInButton mode="modal" fallbackRedirectUrl="/studio" signUpFallbackRedirectUrl="/studio">
-                <button className="w-full py-3.5 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 font-bold hover:bg-slate-800 transition-colors">
-                  Mulai Gratis
-                </button>
-              </SignInButton>
+              <button 
+                onClick={handleOpenAuth}
+                className="w-full py-3.5 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 font-bold hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Mulai Gratis
+              </button>
             </SignedOut>
             <SignedIn>
               <Link to="/studio" className="w-full py-3.5 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 font-bold flex justify-center hover:bg-slate-800 transition-colors">
@@ -70,11 +76,12 @@ const PricingSection = () => {
             </ul>
             
             <SignedOut>
-              <SignInButton mode="modal" fallbackRedirectUrl="/studio" signUpFallbackRedirectUrl="/studio">
-                <button className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold transition-all shadow-md">
-                  Beli Paket
-                </button>
-              </SignInButton>
+              <button 
+                onClick={handleOpenAuth}
+                className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold transition-all shadow-md cursor-pointer"
+              >
+                Beli Paket
+              </button>
             </SignedOut>
             <SignedIn>
               <Link to="/studio" className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold flex justify-center transition-all shadow-md">
@@ -109,11 +116,12 @@ const PricingSection = () => {
             </ul>
             
             <SignedOut>
-              <SignInButton mode="modal" fallbackRedirectUrl="/studio" signUpFallbackRedirectUrl="/studio">
-                <button className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:-translate-y-0.5 border border-cyan-400/50">
-                  Beli Paket
-                </button>
-              </SignInButton>
+              <button 
+                onClick={handleOpenAuth}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:-translate-y-0.5 border border-cyan-400/50 cursor-pointer"
+              >
+                Beli Paket
+              </button>
             </SignedOut>
             <SignedIn>
               <Link to="/studio" className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold flex justify-center transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:-translate-y-0.5 border border-cyan-400/50">

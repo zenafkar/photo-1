@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import os from 'os';
-import { telegramBot } from './telegramBot';
+import { telegramBot } from './telegramBot.js';
 // import { prisma } from '../config/prisma'; // Optional, assume we just want basic system metrics for now
 
 // Tier 2: 5-minute and 15-minute Heartbeat
@@ -21,7 +21,7 @@ export function startScheduler() {
     
     // If RAM > 90%, trigger incident
     if (memUsage > 90) {
-      import('./agent').then(({ handleAnomaly }) => {
+      import('./agent.js').then(({ handleAnomaly }) => {
         handleAnomaly({
           type: 'HIGH_MEMORY_USAGE',
           message: `Memory usage is critically high: ${memUsage.toFixed(2)}%`,

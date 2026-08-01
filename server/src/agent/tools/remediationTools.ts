@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { guardrails } from '../guardrails';
-import { telegramBot } from '../telegramBot';
+import { guardrails } from '../guardrails.js';
+import { telegramBot } from '../telegramBot.js';
 
 const execAsync = promisify(exec);
 

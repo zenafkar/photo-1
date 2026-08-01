@@ -216,7 +216,7 @@ const InteractiveSandbox = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <SignedOut>
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" fallbackRedirectUrl="/studio" signUpFallbackRedirectUrl="/studio">
                   <button className="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2.5 shadow-[0_0_25px_rgba(6,182,212,0.3)] hover:scale-105 active:scale-95 cursor-pointer">
                     <Sparkles className="w-4 h-4 text-cyan-200 fill-cyan-200" />
                     Coba Sekarang

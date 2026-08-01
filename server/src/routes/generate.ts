@@ -3,6 +3,7 @@ import { getAuth } from "@clerk/express";
 import { prisma } from "../config/prisma";
 import { z } from "zod";
 import { AIService } from "../services/aiProvider";
+import { saveRemoteImageLocally, saveBase64Locally, deleteLocalImage } from "../services/storage";
 
 const router = Router();
 
@@ -63,6 +64,12 @@ router.post("/", async (req: Request, res: Response) => {
       outputFormat 
     });
 
+    // Simpan gambar secara permanen ke disk VPS lokal (agar tidak expired dari Replicate CDN)
+    const [localProcessedUrl, localOriginalUrl] = await Promise.all([
+      saveRemoteImageLocally(resultUrl, req),
+      saveBase64Locally(imageUrl, req)
+    ]);
+
     // Deduct calculated credits & Save History transactionally
     const [updatedCredits, generationRecord] = await prisma.$transaction([
       prisma.userCredit.update({
@@ -72,8 +79,8 @@ router.post("/", async (req: Request, res: Response) => {
       prisma.generation.create({
         data: {
           userId: user.id,
-          originalUrl: imageUrl,
-          processedUrl: resultUrl,
+          originalUrl: localOriginalUrl,
+          processedUrl: localProcessedUrl,
           preset: prompt,
           status: "completed",
         },
@@ -116,6 +123,14 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     if (!generation || generation.userId !== user.id) {
       return res.status(404).json({ success: false, message: "Generation not found or unauthorized" });
+    }
+
+    // Hapus file dari VPS jika tersimpan lokal
+    if (generation.processedUrl) {
+      await deleteLocalImage(generation.processedUrl);
+    }
+    if (generation.originalUrl) {
+      await deleteLocalImage(generation.originalUrl);
     }
 
     await prisma.generation.delete({

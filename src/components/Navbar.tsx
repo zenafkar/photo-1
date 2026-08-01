@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, Sparkles } from 'lucide-react';
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
+import { SignInButton, UserButton, useAuth } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 import { ZenLogo } from './ZenLogo';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -54,25 +55,30 @@ const Navbar = () => {
           
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button className="text-slate-300 hover:text-cyan-300 font-semibold text-sm transition-colors px-3 py-1.5">
-                  Masuk
-                </button>
-              </SignInButton>
-              <SignInButton mode="modal">
-                <button className="bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] hover:scale-105 active:scale-95 flex items-center gap-2 border border-cyan-400/30">
-                  <Sparkles className="w-4 h-4 text-cyan-200 fill-cyan-200" />
-                  Coba Gratis
-                </button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
-              <Link to="/studio" className="text-slate-300 hover:text-cyan-300 font-semibold text-sm transition-colors">
-                Studio
-              </Link>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
+            {!isLoaded ? (
+              <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+            ) : isSignedIn ? (
+              <>
+                <Link to="/studio" className="text-slate-300 hover:text-cyan-300 font-semibold text-sm transition-colors">
+                  Studio
+                </Link>
+                <UserButton afterSignOutUrl="/" />
+              </>
+            ) : (
+              <>
+                <SignInButton mode="modal" fallbackRedirectUrl="/studio" signUpFallbackRedirectUrl="/studio">
+                  <button className="text-slate-300 hover:text-cyan-300 font-semibold text-sm transition-colors px-3 py-1.5">
+                    Masuk
+                  </button>
+                </SignInButton>
+                <SignInButton mode="modal" fallbackRedirectUrl="/studio" signUpFallbackRedirectUrl="/studio">
+                  <button className="bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] hover:scale-105 active:scale-95 flex items-center gap-2 border border-cyan-400/30">
+                    <Sparkles className="w-4 h-4 text-cyan-200 fill-cyan-200" />
+                    Coba Gratis
+                  </button>
+                </SignInButton>
+              </>
+            )}
           </div>
           
           {/* Mobile Toggle Button */}
@@ -119,34 +125,47 @@ const Navbar = () => {
             >
               FAQ
             </a>
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button 
+            
+            {!isLoaded ? (
+              <div className="pt-4 flex justify-center items-center py-4 border-t border-slate-800/80">
+                <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : isSignedIn ? (
+              <div className="pt-3 border-t border-slate-800/80 space-y-3">
+                <Link 
+                  to="/studio" 
                   onClick={() => setIsOpen(false)} 
-                  className="w-full text-left block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+                  className="w-full bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 text-white px-4 py-3 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-lg shadow-cyan-500/20"
                 >
-                  Masuk
-                </button>
-              </SignInButton>
-              <SignInButton mode="modal">
-                <button 
-                  onClick={() => setIsOpen(false)} 
-                  className="w-full mt-4 bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 text-white px-4 py-3 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-lg shadow-cyan-500/20"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Coba Gratis
-                </button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
-              <Link 
-                to="/studio" 
-                onClick={() => setIsOpen(false)} 
-                className="w-full mt-4 bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 text-white px-4 py-3 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-lg shadow-cyan-500/20"
-              >
-                Masuk Studio
-              </Link>
-            </SignedIn>
+                  <Sparkles className="w-4 h-4 text-cyan-200" />
+                  Masuk Studio
+                </Link>
+                <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900/80 rounded-xl border border-slate-800">
+                  <span className="text-sm font-medium text-slate-300">Profil & Akun</span>
+                  <UserButton afterSignOutUrl="/" />
+                </div>
+              </div>
+            ) : (
+              <div className="pt-3 border-t border-slate-800/80 space-y-2">
+                <SignInButton mode="modal" fallbackRedirectUrl="/studio" signUpFallbackRedirectUrl="/studio">
+                  <button 
+                    onClick={() => setIsOpen(false)} 
+                    className="w-full text-left block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+                  >
+                    Masuk
+                  </button>
+                </SignInButton>
+                <SignInButton mode="modal" fallbackRedirectUrl="/studio" signUpFallbackRedirectUrl="/studio">
+                  <button 
+                    onClick={() => setIsOpen(false)} 
+                    className="w-full bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 text-white px-4 py-3 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-lg shadow-cyan-500/20"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Coba Gratis
+                  </button>
+                </SignInButton>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -104,13 +104,8 @@ export default function StudioDashboard() {
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       loadProfile();
-      // Setup 5-second parallel background sync polling
-      const syncInterval = setInterval(() => {
-        handleSyncReplicate(true);
-      }, 5000);
-      return () => clearInterval(syncInterval);
     }
-  }, [isLoaded, isSignedIn, loadProfile, handleSyncReplicate]);
+  }, [isLoaded, isSignedIn, loadProfile]);
 
   const [imageBase64, setImageBase64] = useState<string | null>(null);
 

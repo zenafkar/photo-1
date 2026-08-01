@@ -34,7 +34,7 @@ export async function saveRemoteImageLocally(remoteUrl: string, req?: any): Prom
 
     await fs.promises.writeFile(filePath, buffer);
 
-    const relativePath = `/uploads/generations/${filename}`;
+    const relativePath = `/api/v1/uploads/generations/${filename}`;
     const baseUrl = process.env.BACKEND_URL || (req ? `${req.protocol}://${req.get("host")}` : "");
 
     return baseUrl ? `${baseUrl.replace(/\/$/, "")}${relativePath}` : relativePath;
@@ -67,7 +67,7 @@ export async function saveBase64Locally(base64Data: string, req?: any): Promise<
 
     await fs.promises.writeFile(filePath, buffer);
 
-    const relativePath = `/uploads/generations/${filename}`;
+    const relativePath = `/api/v1/uploads/generations/${filename}`;
     const baseUrl = process.env.BACKEND_URL || (req ? `${req.protocol}://${req.get("host")}` : "");
 
     return baseUrl ? `${baseUrl.replace(/\/$/, "")}${relativePath}` : relativePath;
@@ -82,7 +82,7 @@ export async function saveBase64Locally(base64Data: string, req?: any): Promise<
  */
 export async function deleteLocalImage(fileUrl: string): Promise<void> {
   try {
-    if (!fileUrl || !fileUrl.includes("/uploads/generations/")) return;
+    if (!fileUrl || !fileUrl.includes("/api/v1/uploads/generations/")) return;
 
     const filename = path.basename(fileUrl);
     const filePath = path.join(UPLOADS_DIR, filename);

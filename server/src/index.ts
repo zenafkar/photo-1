@@ -29,8 +29,8 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(clerkMiddleware()); // Required by @clerk/express before requireAuth
 
-// Serve static uploaded files
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+// Serve static uploaded files (under /api/v1 so Nginx proxies it properly in production)
+app.use("/api/v1/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Public Routes
 app.use("/api/v1/health", healthRoutes);

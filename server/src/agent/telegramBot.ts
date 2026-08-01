@@ -21,6 +21,7 @@ if (token) {
 
 • <b>/help</b> - Menampilkan daftar seluruh perintah bantuan ini.
 • <b>/check</b>, <b>/status</b>, <b>/health</b> - Menjalankan instant health check (API, Database, RAM/CPU VPS).
+• <b>/test</b>, <b>/deepcheck</b>, <b>/synthetic</b> - Memicu pengujian fungsional sintetis mendalam dari hulu ke hilir.
 • <b>/metrics</b>, <b>/vps</b>, <b>/ram</b> - Menampilkan statistik performa & penggunaan resource VPS real-time.
 • <b>/restart</b> - Meminta restart PM2 process server (membutuhkan konfirmasi approval).
       `;

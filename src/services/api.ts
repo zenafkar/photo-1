@@ -114,6 +114,10 @@ export const useApiClient = () => {
       request("/user/account", {
         method: "DELETE",
       }),
+    syncReplicate: () =>
+      request("/generate/sync", {
+        method: "POST",
+      }),
   };
 };
 

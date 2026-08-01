@@ -63,6 +63,30 @@ export default function StudioDashboard() {
   };
 
 
+  const [isSyncingReplicate, setIsSyncingReplicate] = useState(false);
+
+  const handleSyncReplicate = useCallback(async (isSilent = true) => {
+    if (!isLoaded || !isSignedIn) return;
+    if (!isSilent) setIsSyncingReplicate(true);
+    try {
+      const res: any = await api.syncReplicate();
+      if (res && res.success) {
+        if (res.generations) {
+          setGenerationHistory(res.generations);
+        }
+        if (typeof res.remainingCredits === "number") {
+          setCredits(res.remainingCredits);
+        }
+      }
+    } catch (err: any) {
+      if (!isSilent) {
+        console.warn("Replicate background sync error:", err);
+      }
+    } finally {
+      if (!isSilent) setIsSyncingReplicate(false);
+    }
+  }, [isLoaded, isSignedIn, api]);
+
   const loadProfile = useCallback(async () => {
     if (!isLoaded || !isSignedIn) return;
     setIsLoadingProfile(true);
@@ -73,19 +97,25 @@ export default function StudioDashboard() {
         setCredits(res.data.credits?.remainingCredits ?? 0);
         setGenerationHistory(res.data.generations || []);
       }
+      handleSyncReplicate(true);
     } catch (err: any) {
       console.error("Failed to load profile:", err);
       setProfileError(err.message || "Gagal memuat profil & riwayat gambar.");
     } finally {
       setIsLoadingProfile(false);
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, api, handleSyncReplicate]);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       loadProfile();
+      // Setup 5-second parallel background sync polling
+      const syncInterval = setInterval(() => {
+        handleSyncReplicate(true);
+      }, 5000);
+      return () => clearInterval(syncInterval);
     }
-  }, [isLoaded, isSignedIn, loadProfile]);
+  }, [isLoaded, isSignedIn, loadProfile, handleSyncReplicate]);
 
   const [imageBase64, setImageBase64] = useState<string | null>(null);
 
@@ -558,15 +588,26 @@ export default function StudioDashboard() {
                       <History className="w-5 h-5 text-indigo-500" />
                       Galeri & Hasil
                     </h2>
-                    <button
-                      onClick={loadProfile}
-                      disabled={isLoadingProfile}
-                      className="text-xs font-semibold text-slate-500 hover:text-indigo-600 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors"
-                      title="Muat Ulang Galeri"
-                    >
-                      <RefreshCw className={`w-3.5 h-3.5 ${isLoadingProfile ? 'animate-spin' : ''}`} />
-                      Refresh
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSyncReplicate(false)}
+                        disabled={isSyncingReplicate}
+                        className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors border border-indigo-200"
+                        title="Sinkronkan gambar dari Replicate"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isSyncingReplicate ? 'animate-spin' : ''}`} />
+                        Sync Replicate
+                      </button>
+                      <button
+                        onClick={loadProfile}
+                        disabled={isLoadingProfile}
+                        className="text-xs font-semibold text-slate-500 hover:text-indigo-600 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors"
+                        title="Muat Ulang Galeri"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isLoadingProfile ? 'animate-spin' : ''}`} />
+                        Refresh
+                      </button>
+                    </div>
                   </div>
 
                   {profileError && (

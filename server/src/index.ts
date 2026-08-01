@@ -13,6 +13,7 @@ import { errorHandler } from "./middleware/error";
 import healthRoutes from "./routes/health";
 import userRoutes from "./routes/user";
 import generateRoutes from "./routes/generate";
+import webhookRoutes from "./routes/webhooks";
 
 import path from "path";
 
@@ -34,6 +35,7 @@ app.use("/api/v1/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Public Routes
 app.use("/api/v1/health", healthRoutes);
+app.use("/api/v1/webhooks", webhookRoutes);
 
 // Protected Routes (Require Clerk Auth)
 app.use("/api/v1/user", requireAuth, userRoutes);

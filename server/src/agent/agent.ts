@@ -1,4 +1,3 @@
-import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { telemetryEmitter } from '../middleware/telemetry.js';
 import { remediationTools } from './tools/remediationTools.js';
@@ -7,7 +6,15 @@ import { guardrails } from './guardrails.js';
 
 dotenv.config();
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+let ai: any = null;
+async function getAI() {
+  if (!ai) {
+    const { GoogleGenAI } = await import('@google/genai');
+    ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+  }
+  return ai;
+}
+
 const modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
 // SRE Agent Prompt
@@ -35,7 +42,8 @@ export async function handleAnomaly(payload: any) {
   try {
     const sanitizedPayload = guardrails.sanitizeData(payload);
     
-    const result = await ai.models.generateContent({
+    const aiInstance = await getAI();
+    const result = await aiInstance.models.generateContent({
       model: modelName,
       contents: [
         SRE_PROMPT,

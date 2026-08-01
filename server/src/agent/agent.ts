@@ -1,9 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
-import { telemetryEmitter } from '../middleware/telemetry';
-import { remediationTools } from './tools/remediationTools';
-import { telegramBot } from './telegramBot';
-import { guardrails } from './guardrails';
+import { telemetryEmitter } from '../middleware/telemetry.js';
+import { remediationTools } from './tools/remediationTools.js';
+import { telegramBot } from './telegramBot.js';
+import { guardrails } from './guardrails.js';
 
 dotenv.config();
 

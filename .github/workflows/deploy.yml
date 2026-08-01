@@ -26,7 +26,7 @@ jobs:
       # 3. Proses Build Frontend & Backend di Server GitHub
       - name: Install and Build
         env:
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY || 'pk_live_Y2xlcmsuemVuc3R1ZGlvLm15LmlkJA' }}
           VITE_API_URL: ${{ secrets.VITE_API_URL || '/api/v1' }}
         run: |
           npm install
@@ -88,7 +88,7 @@ jobs:
             }
 
             set_env "DATABASE_URL" "$DATABASE_URL"
-            set_env "CLERK_PUBLISHABLE_KEY" "${CLERK_PUBLISHABLE_KEY}"
+            set_env "CLERK_PUBLISHABLE_KEY" "${CLERK_PUBLISHABLE_KEY:-pk_live_Y2xlcmsuemVuc3R1ZGlvLm15LmlkJA}"
             set_env "CLERK_SECRET_KEY" "${CLERK_SECRET_KEY}"
             set_env "REPLICATE_API_TOKEN" "$REPLICATE_API_TOKEN"
 

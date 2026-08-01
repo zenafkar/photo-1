@@ -1,7 +1,7 @@
 import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useAuth, useUser, useClerk } from "@clerk/clerk-react";
 import { useState, useEffect, useCallback } from "react";
 import { useApiClient } from "../services/api";
-import { Loader2, Upload, Sparkles, Image as ImageIcon, History, Trash2, Download, Home, Zap, AlertTriangle, Banana, RefreshCw, Wand2 } from 'lucide-react';
+import { Loader2, Upload, Sparkles, Image as ImageIcon, Trash2, Download, Home, Zap, AlertTriangle, Banana, RefreshCw, Wand2 } from 'lucide-react';
 import ZoomableImage from '../components/ZoomableImage';
 import { ZenLogo } from '../components/ZenLogo';
 import { PromptGeneratorModal } from '../components/PromptGeneratorModal';
@@ -63,11 +63,8 @@ export default function StudioDashboard() {
   };
 
 
-  const [isSyncingReplicate, setIsSyncingReplicate] = useState(false);
-
   const handleSyncReplicate = useCallback(async (isSilent = true) => {
     if (!isLoaded || !isSignedIn) return;
-    if (!isSilent) setIsSyncingReplicate(true);
     try {
       const res: any = await api.syncReplicate();
       if (res && res.success) {
@@ -80,10 +77,8 @@ export default function StudioDashboard() {
       }
     } catch (err: any) {
       if (!isSilent) {
-        console.warn("Replicate background sync error:", err);
+        console.warn("Background sync error:", err);
       }
-    } finally {
-      if (!isSilent) setIsSyncingReplicate(false);
     }
   }, [isLoaded, isSignedIn, api]);
 
@@ -192,11 +187,11 @@ export default function StudioDashboard() {
     setGenerationStatus("Mengirimkan permintaan ke server AI...");
 
     const timer1 = setTimeout(() => {
-      setGenerationStatus("Sedang merakit gambar di Replicate AI...");
+      setGenerationStatus("Sedang merakit gambar dengan AI...");
     }, 10000);
 
     const timer2 = setTimeout(() => {
-      setGenerationStatus("Membutuhkan waktu ekstra untuk resolusi tinggi (Sedang polling Replicate API)... Harap tunggu sebentar.");
+      setGenerationStatus("Membutuhkan waktu ekstra untuk resolusi tinggi... Harap tunggu sebentar.");
     }, 35000);
 
     try {
@@ -584,29 +579,12 @@ export default function StudioDashboard() {
               <div className="lg:col-span-7">
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full min-h-[600px] flex flex-col">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-bold flex items-center gap-2">
-                      <History className="w-5 h-5 text-indigo-500" />
+                    <h2 className="text-lg font-bold text-slate-900">
                       Galeri & Hasil
                     </h2>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleSyncReplicate(false)}
-                        disabled={isSyncingReplicate}
-                        className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors border border-indigo-200"
-                        title="Sinkronkan gambar dari Replicate"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isSyncingReplicate ? 'animate-spin' : ''}`} />
-                        Sync Replicate
-                      </button>
-                      <button
-                        onClick={loadProfile}
-                        disabled={isLoadingProfile}
-                        className="text-xs font-semibold text-slate-500 hover:text-indigo-600 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors"
-                        title="Muat Ulang Galeri"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isLoadingProfile ? 'animate-spin' : ''}`} />
-                        Refresh
-                      </button>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200" title="Sistem tersinkronisasi otomatis">
+                      <RefreshCw className="w-3 h-3 text-indigo-500 animate-spin flex-shrink-0" />
+                      <span>Live Sync</span>
                     </div>
                   </div>
 
@@ -650,16 +628,11 @@ export default function StudioDashboard() {
                     </div>
                   )}
                   
-                  {isLoadingProfile && generationHistory.length === 0 ? (
-                    <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl">
-                      <Loader2 className="w-10 h-10 mb-4 animate-spin text-indigo-400" />
-                      <p className="font-medium text-slate-600">Memuat data galeri & kredit...</p>
-                    </div>
-                  ) : generationHistory.length === 0 ? (
+                  {generationHistory.length === 0 ? (
                     <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl flex-1">
                       <ImageIcon className="w-12 h-12 mb-4 opacity-50" />
-                      <p className="font-medium">Belum ada hasil generate.</p>
-                      <p className="text-sm">Upload foto dan klik Generate untuk mulai!</p>
+                      <p className="font-medium text-slate-600">Belum ada hasil generate.</p>
+                      <p className="text-sm text-slate-400">Upload foto dan klik Generate untuk mulai!</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

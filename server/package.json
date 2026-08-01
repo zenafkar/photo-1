@@ -15,12 +15,15 @@
   "type": "commonjs",
   "dependencies": {
     "@clerk/express": "^2.1.48",
+    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.22.0",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "helmet": "^8.3.0",
+    "node-cron": "^4.6.0",
+    "node-telegram-bot-api": "^1.2.0",
     "prisma": "^5.22.0",
     "zod": "^4.4.3"
   },

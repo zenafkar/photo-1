@@ -15,7 +15,6 @@
   "type": "commonjs",
   "dependencies": {
     "@clerk/express": "^2.1.48",
-    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.22.0",
     "compression": "^1.8.1",
     "cors": "^2.8.6",

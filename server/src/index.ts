@@ -13,12 +13,12 @@ import { errorHandler } from "./middleware/error";
 import healthRoutes from "./routes/health";
 import userRoutes from "./routes/user";
 import generateRoutes from "./routes/generate";
-import webhookRoutes from "./routes/webhooks";
-import telemetryRoutes from "./routes/telemetry";
-import { telemetryMiddleware, telemetryErrorHandler } from "./middleware/telemetry";
+import webhookRoutes from "./routes/webhooks.js";
+import telemetryRoutes from "./routes/telemetry.js";
+import { telemetryMiddleware, telemetryErrorHandler } from "./middleware/telemetry.js";
 
-import { startScheduler } from "./agent/scheduler";
-import "./agent/agent"; // Initialize agent to listen to telemetry events
+import { startScheduler } from "./agent/scheduler.js";
+import "./agent/agent.js"; // Initialize agent to listen to telemetry events
 import path from "path";
 
 dotenv.config();

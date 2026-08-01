@@ -145,8 +145,8 @@ Current Real-Time System Context:
 - Agent Features: Telemetry Monitoring, Error Boundary Ingestion, Telegram Approval, Auto Git Push, Auto GitHub Issue.
         `;
 
-        const { GoogleGenerativeAI } = await import('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+        const { GoogleGenAI } = await import('@google/genai');
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
         const primaryModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
         
         let replyText = "";
@@ -154,7 +154,6 @@ Current Real-Time System Context:
         
         for (const mName of candidateModels) {
           try {
-            const model = genAI.getGenerativeModel({ model: mName });
             const prompt = `
 You are the AI SRE Assistant & System Operator for this web application (React + Node.js Express + VPS).
 Answer the operator's question accurately, concisely, and professionally in Indonesian.
@@ -166,8 +165,11 @@ ${systemContext}
 Operator's Question:
 "${msg.text}"
             `;
-            const result = await model.generateContent(prompt);
-            replyText = result.response.text();
+            const result = await ai.models.generateContent({
+              model: mName,
+              contents: prompt
+            });
+            replyText = result.text || '';
             if (replyText) break;
           } catch (modelErr) {
             console.warn(`Model ${mName} failed, trying next fallback model...`, modelErr);

@@ -5,6 +5,7 @@ import { getAuth } from "@clerk/express";
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   const auth = getAuth(req);
   if (!auth || !auth.userId) {
+    console.error("[Auth Debug] requireAuth failed. auth object:", auth, "headers:", req.headers.authorization ? "Present" : "Missing");
     return res.status(401).json({
       success: false,
       message: "Unauthorized: Silakan login terlebih dahulu.",

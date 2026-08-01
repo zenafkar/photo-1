@@ -30,13 +30,22 @@ export default function StudioDashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStatus, setGenerationStatus] = useState<string | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
-  const [generationHistory, setGenerationHistory] = useState<any[]>([]);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
-  const [profileError, setProfileError] = useState<string | null>(null);
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  const [generationHistory, setGenerationHistory] = useState<any[]>([]);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  // Advanced Options State
+  const [aspectRatio, setAspectRatio] = useState("1:1");
+  const [resolution, setResolution] = useState("1k");
+  const [outputFormat, setOutputFormat] = useState("jpg");
+  
+  // UI State
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
 
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
@@ -96,6 +105,7 @@ export default function StudioDashboard() {
     } catch (err: any) {
       console.error("Failed to load profile:", err);
       setProfileError(err.message || "Gagal memuat profil & riwayat gambar.");
+      setCredits(0); // Set ke 0 agar tombol terkunci saat error
     } finally {
       setIsLoadingProfile(false);
     }

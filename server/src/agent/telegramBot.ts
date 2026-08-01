@@ -98,16 +98,27 @@ if (token) {
     });
     
     // Callback query handler for Interactive Approval
-    bot.on('callback_query', (callbackQuery) => {
+    bot.on('callback_query', async (callbackQuery) => {
       const message = callbackQuery.message;
       if (!message) return;
       
-      const data = callbackQuery.data; // e.g. "APPROVE_RESTART_PM2", "REJECT_RESTART_PM2"
+      const data = callbackQuery.data; // e.g. "APPROVE_PM2_MANUAL_RESTART", "REJECT_..."
       
-      // We would verify the action request here and execute it via Agent/remediationTools
-      // For now, we acknowledge it:
-      bot?.sendMessage(message.chat.id, `Action received: ${data}`);
-      bot?.answerCallbackQuery(callbackQuery.id, { text: 'Processing action...' });
+      if (data?.startsWith('APPROVE_')) {
+        const action = data.replace('APPROVE_', '');
+        if (action.includes('RESTART') || action.includes('PM2')) {
+          bot?.sendMessage(message.chat.id, "⚡ <b>Action Executing:</b> Restarting PM2 process...", { parse_mode: 'HTML' });
+          const { remediationTools } = await import('./tools/remediationTools.js');
+          const res = await remediationTools.restartPM2Process('backend-api');
+          bot?.sendMessage(message.chat.id, `✅ <b>Action Completed:</b> ${res.message}`, { parse_mode: 'HTML' });
+        } else {
+          bot?.sendMessage(message.chat.id, `✅ <b>Action Approved:</b> ${action}`, { parse_mode: 'HTML' });
+        }
+      } else if (data?.startsWith('REJECT_')) {
+        bot?.sendMessage(message.chat.id, "❌ <b>Action Rejected:</b> Operator menolak eksekusi ini.", { parse_mode: 'HTML' });
+      }
+      
+      bot?.answerCallbackQuery(callbackQuery.id, { text: 'Done' });
     });
     
   } catch (error) {

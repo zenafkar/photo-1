@@ -100,4 +100,38 @@ router.get("/me", async (req: Request, res: Response) => {
   }
 });
 
+router.delete("/account", async (req: Request, res: Response) => {
+  try {
+    const { userId: clerkId } = getAuth(req);
+
+    if (!clerkId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    console.log("[DEBUG] Deleting account for clerkId:", clerkId);
+
+    const existingUser = await prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (existingUser) {
+      await prisma.user.delete({
+        where: { clerkId },
+      });
+      console.log("[DEBUG] Successfully deleted user from Prisma DB:", clerkId);
+    } else {
+      console.log("[DEBUG] User not found in DB during deletion (already deleted or lazy init not called):", clerkId);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Akun dan seluruh data pengguna berhasil dihapus dari database.",
+    });
+  } catch (error) {
+    console.error("Error deleting user account:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
 export default router;
+

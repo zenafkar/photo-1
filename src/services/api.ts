@@ -110,5 +110,10 @@ export const useApiClient = () => {
       request(`/generate/${id}`, {
         method: "DELETE",
       }),
+    deleteAccount: () =>
+      request("/user/account", {
+        method: "DELETE",
+      }),
   };
 };
+

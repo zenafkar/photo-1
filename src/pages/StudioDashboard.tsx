@@ -1,4 +1,4 @@
-import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useAuth } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useAuth, useUser, useClerk } from "@clerk/clerk-react";
 import { useState, useEffect, useCallback } from "react";
 import { useApiClient } from "../services/api";
 import { Loader2, Upload, Sparkles, Image as ImageIcon, History, Trash2, Download, Home, Zap, AlertTriangle, Banana, RefreshCw, Wand2 } from 'lucide-react';
@@ -33,9 +33,33 @@ export default function StudioDashboard() {
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const api = useApiClient();
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      await api.deleteAccount();
+      if (user) {
+        await user.delete().catch((err) => {
+          console.warn("Clerk user.delete() failed or restricted:", err);
+        });
+      }
+      await signOut({ redirectUrl: "/" });
+    } catch (error: any) {
+      console.error("Failed to delete account:", error);
+      alert("Gagal menghapus akun: " + (error?.message || error));
+    } finally {
+      setIsDeletingAccount(false);
+      setIsDeleteAccountModalOpen(false);
+    }
+  };
+
 
   const loadProfile = useCallback(async () => {
     if (!isLoaded || !isSignedIn) return;
@@ -234,9 +258,15 @@ export default function StudioDashboard() {
                       href="/"
                     />
                     <UserButton.Action label="manageAccount" />
+                    <UserButton.Action
+                      label="Hapus Akun / Profile"
+                      labelIcon={<Trash2 size={15} className="text-red-500" />}
+                      onClick={() => setIsDeleteAccountModalOpen(true)}
+                    />
                     <UserButton.Action label="signOut" />
                   </UserButton.MenuItems>
                 </UserButton>
+
               </div>
             </div>
           </header>
@@ -639,6 +669,45 @@ export default function StudioDashboard() {
           onClose={() => setIsPromptModalOpen(false)} 
           onApplyPrompt={(generatedPrompt) => setPrompt(generatedPrompt)} 
         />
+
+        {/* Delete Account Confirmation Modal */}
+        {isDeleteAccountModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-5 border-4 border-red-200">
+                <AlertTriangle className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-extrabold text-slate-900 mb-2">Hapus Akun & Data Saya?</h3>
+              <p className="text-slate-600 text-sm mb-6 leading-relaxed font-medium">
+                Tindakan ini <span className="font-bold text-red-600">tidak dapat dibatalkan</span>. Seluruh data riwayat generasi gambar, sisa kredit, serta profil akun Anda di database dan autentikasi akan dihapus secara permanen.
+              </p>
+              <div className="flex gap-3 w-full">
+                <button 
+                  onClick={() => setIsDeleteAccountModalOpen(false)} 
+                  disabled={isDeletingAccount}
+                  className="flex-1 py-3 rounded-xl font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={handleDeleteAccount} 
+                  disabled={isDeletingAccount}
+                  className="flex-1 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/30 hover:shadow-red-600/50 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isDeletingAccount ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Menghapus...
+                    </>
+                  ) : (
+                    "Ya, Hapus Akun"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />

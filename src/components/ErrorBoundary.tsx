@@ -22,6 +22,32 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
+    
+    // Send error to our backend telemetry endpoint
+    this.logErrorToTelemetry(error, errorInfo);
+  }
+
+  private async logErrorToTelemetry(error: Error, errorInfo: ErrorInfo) {
+    try {
+      await fetch('/api/telemetry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'CLIENT_UI_ERROR',
+          errorName: error.name,
+          errorMessage: error.message,
+          stackTrace: error.stack,
+          componentStack: errorInfo.componentStack,
+          url: window.location.href,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent
+        }),
+      });
+    } catch (e) {
+      console.error('Failed to send telemetry:', e);
+    }
   }
 
   public render() {

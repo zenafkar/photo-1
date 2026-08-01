@@ -28,6 +28,8 @@ export default function StudioDashboard() {
   const [resolution, setResolution] = useState("1k");
   const [outputFormat, setOutputFormat] = useState("jpg");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
   const [generationHistory, setGenerationHistory] = useState<any[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
@@ -156,6 +158,17 @@ export default function StudioDashboard() {
   const handleGenerate = async () => {
     if (!previewUrl || credits === 0 || !imageBase64) return;
     setIsGenerating(true);
+    setGenerateError(null);
+    setGenerationStatus("Mengirimkan permintaan ke server AI...");
+
+    const timer1 = setTimeout(() => {
+      setGenerationStatus("Sedang merakit gambar di Replicate AI...");
+    }, 10000);
+
+    const timer2 = setTimeout(() => {
+      setGenerationStatus("Membutuhkan waktu ekstra untuk resolusi tinggi (Sedang polling Replicate API)... Harap tunggu sebentar.");
+    }, 35000);
+
     try {
       // Mengirimkan gambar asli (base64) ke backend
       const res = await api.generateImage({
@@ -172,8 +185,13 @@ export default function StudioDashboard() {
       // Update generation history with the new generated image
       setGenerationHistory(prev => [res.data.generation, ...prev]);
     } catch (error: any) {
-      alert("Gagal memproses gambar. " + (error?.message || error));
+      console.error("Error during generation:", error);
+      const errMsg = error?.message || "Gagal memproses gambar.";
+      setGenerateError(errMsg);
     } finally {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      setGenerationStatus(null);
       setIsGenerating(false);
     }
   };
@@ -562,6 +580,31 @@ export default function StudioDashboard() {
                         className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-colors flex-shrink-0"
                       >
                         Coba Lagi
+                      </button>
+                    </div>
+                  )}
+
+                  {isGenerating && (
+                    <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-xl text-sm text-indigo-800 flex items-center gap-3">
+                      <Loader2 className="w-5 h-5 text-indigo-600 animate-spin flex-shrink-0" />
+                      <div>
+                        <p className="font-bold">Proses Generasi Berjalan</p>
+                        <p className="text-xs text-indigo-600 mt-0.5">{generationStatus || "Sedang memproses..."}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {generateError && (
+                    <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-900 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                        <span>{generateError}</span>
+                      </div>
+                      <button
+                        onClick={() => setGenerateError(null)}
+                        className="text-xs font-semibold text-amber-700 hover:text-amber-900 px-2 py-1 bg-amber-100 hover:bg-amber-200 rounded transition-colors flex-shrink-0"
+                      >
+                        Tutup
                       </button>
                     </div>
                   )}

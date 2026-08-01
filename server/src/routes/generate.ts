@@ -94,9 +94,9 @@ router.post("/", async (req: Request, res: Response) => {
         remainingCredits: updatedCredits.remainingCredits,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error during generation:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: error?.message || "Internal server error" });
   }
 });
 

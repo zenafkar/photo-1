@@ -25,7 +25,7 @@ export class AIService {
 
   private static getFetchOptions(body: any, token: string) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
+    const timeout = setTimeout(() => controller.abort(), 180000); // 180 seconds (3 minutes) timeout
 
     return {
       options: {
@@ -40,6 +40,56 @@ export class AIService {
       },
       clearTimeout: () => clearTimeout(timeout)
     };
+  }
+
+  private static async pollPrediction(pollUrl: string, token: string, maxWaitMs: number = 180000): Promise<string> {
+    const startTime = Date.now();
+    const intervalMs = 3000;
+    console.log(`[AI Polling] Starting polling for prediction at: ${pollUrl}`);
+
+    while (Date.now() - startTime < maxWaitMs) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+
+      try {
+        const response = await fetch(pollUrl, {
+          headers: {
+            "Authorization": `Token ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error("[Replicate Poll Error]", errText);
+          throw new Error(`Replicate Poll API Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log(`[AI Polling] Prediction status: ${data.status}`);
+
+        if (data.status === "succeeded") {
+          if (data && data.output) {
+            if (typeof data.output === "string") {
+              return data.output;
+            } else if (Array.isArray(data.output) && data.output.length > 0) {
+              return data.output[0];
+            }
+          }
+          throw new Error("Replicate prediction succeeded but output is empty.");
+        }
+
+        if (data.status === "failed" || data.status === "canceled") {
+          throw new Error(data.error || `Replicate prediction ${data.status}`);
+        }
+      } catch (pollErr: any) {
+        if (pollErr.message && !pollErr.message.includes("Replicate Poll API Error")) {
+          throw pollErr;
+        }
+        console.warn("[AI Polling Notice]", pollErr.message);
+      }
+    }
+
+    throw new Error("Proses generasi gambar melebihi batas waktu (timeout 3 menit). Silakan coba lagi.");
   }
 
   private static async callReplicate(options: AIGenerationOptions): Promise<string> {
@@ -84,13 +134,18 @@ export class AIService {
           return data.output[0];
         }
       }
+
+      const pollUrl = data.urls?.get || (data.id ? `https://api.replicate.com/v1/predictions/${data.id}` : null);
+      if (pollUrl) {
+        return await this.pollPrediction(pollUrl, token);
+      }
       
       throw new Error("Replicate API timeout or invalid format. Please try again.");
     } catch (error: any) {
       clear();
       console.error("[AIService Error]", error);
       if (error.name === 'AbortError') {
-        throw new Error("Request to AI provider timed out after 60 seconds.");
+        throw new Error("Request to AI provider timed out after 3 minutes.");
       }
       throw error;
     }
@@ -138,13 +193,18 @@ export class AIService {
           return data.output[0];
         }
       }
+
+      const pollUrl = data.urls?.get || (data.id ? `https://api.replicate.com/v1/predictions/${data.id}` : null);
+      if (pollUrl) {
+        return await this.pollPrediction(pollUrl, token);
+      }
       
       throw new Error("Replicate API timeout or invalid format. Please try again.");
     } catch (error: any) {
       clear();
       console.error("[AIService Error]", error);
       if (error.name === 'AbortError') {
-        throw new Error("Request to AI provider timed out after 60 seconds.");
+        throw new Error("Request to AI provider timed out after 3 minutes.");
       }
       throw error;
     }
@@ -209,13 +269,18 @@ export class AIService {
           return data.output[0];
         }
       }
+
+      const pollUrl = data.urls?.get || (data.id ? `https://api.replicate.com/v1/predictions/${data.id}` : null);
+      if (pollUrl) {
+        return await this.pollPrediction(pollUrl, token);
+      }
       
       throw new Error("Replicate API timeout or invalid format. Please try again.");
     } catch (error: any) {
       clear();
       console.error("[AIService Error]", error);
       if (error.name === 'AbortError') {
-        throw new Error("Request to AI provider timed out after 60 seconds.");
+        throw new Error("Request to AI provider timed out after 3 minutes.");
       }
       throw error;
     }

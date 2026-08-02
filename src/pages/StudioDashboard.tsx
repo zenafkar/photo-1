@@ -123,7 +123,8 @@ export default function StudioDashboard() {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
       };
     }
-  }, [isLoaded, isSignedIn, loadProfile, handleSyncReplicate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, isSignedIn]);
 
   const [imageBase64, setImageBase64] = useState<string | null>(null);
 

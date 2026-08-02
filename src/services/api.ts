@@ -1,4 +1,5 @@
 import { useAuth } from "@clerk/clerk-react";
+import { useCallback, useMemo } from "react";
 
 const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) {
@@ -20,32 +21,29 @@ const API_BASE_URL = getApiBaseUrl();
 export const useApiClient = () => {
   const { getToken } = useAuth();
 
-  const fetchValidToken = async (): Promise<string | null> => {
-    // Attempt 1: Standard cached token fetch
+  const request = useCallback(async (endpoint: string, options: RequestInit = {}, isRetry = false): Promise<any> => {
     try {
-      const token = await getToken();
-      if (token) return token;
-    } catch {
-      // Fallback to bypass cache
-    }
-
-    // Attempt 2: Retry with skipCache and exponential backoff
-    const delays = [200, 500, 1000];
-    for (const delay of delays) {
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      // Fetch a valid token with retry logic
+      let token: string | null = null;
       try {
-        const token = await getToken({ skipCache: true });
-        if (token) return token;
+        token = await getToken();
       } catch {
-        // Continue retrying
+        // Fallback to bypass cache
       }
-    }
-    return null;
-  };
 
-  const request = async (endpoint: string, options: RequestInit = {}, isRetry = false): Promise<any> => {
-    try {
-      let token = await fetchValidToken();
+      if (!token) {
+        // Retry with skipCache and exponential backoff
+        const delays = [200, 500, 1000];
+        for (const delay of delays) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          try {
+            token = await getToken({ skipCache: true });
+            if (token) break;
+          } catch {
+            // Continue retrying
+          }
+        }
+      }
 
       if (!token) {
         throw new Error("Sesi login belum siap atau belum aktif. Silakan refresh halaman dan login kembali.");
@@ -123,9 +121,9 @@ export const useApiClient = () => {
 
       throw error;
     }
-  };
+  }, [getToken]);
 
-  return {
+  return useMemo(() => ({
     getProfile: () => request("/user/me"),
     generateImage: (payload: { 
       imageUrl: string; 
@@ -151,6 +149,5 @@ export const useApiClient = () => {
       request("/generate/sync", {
         method: "POST",
       }),
-  };
+  }), [request]);
 };
-

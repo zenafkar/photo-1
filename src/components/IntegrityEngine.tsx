@@ -7,12 +7,29 @@ import {
   Zap,
   MousePointer2
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
 
 const IntegrityEngine = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const [activeFeature, setActiveFeature] = useState<string | null>(null);
+  const [activeFeature, setActiveFeature] = useState<string | null>('bg');
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      setActiveFeature(prev => {
+        if (prev === null) return 'bg';
+        const featureIds = ['bg', 'logo', 'shape', 'color'];
+        const currentIndex = featureIds.indexOf(prev);
+        const nextIndex = (currentIndex + 1) % featureIds.length;
+        return featureIds[nextIndex];
+      });
+    }, 3500); // 3.5s per feature
+    
+    return () => clearInterval(interval);
+  }, [isAutoPlaying]);
   
   // Scroll progress for the entire section (for background parallax)
   const { scrollYProgress: sectionScrollY } = useScroll({
@@ -31,6 +48,14 @@ const IntegrityEngine = () => {
   });
 
   const features = [
+    {
+      id: 'bg',
+      title: 'Latar Bebas Diubah',
+      desc: 'Area di luar produk bebas Anda kreasikan. Ganti dari meja kafe ke atas awan dalam 5 detik tanpa merusak produk.',
+      icon: ImageIcon,
+      color: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-400',
+      activeColor: 'border-emerald-400 bg-emerald-950/40 shadow-[0_0_30px_rgba(16,185,129,0.2)] scale-[1.02]'
+    },
     {
       id: 'logo',
       title: 'Keutuhan Logo',
@@ -54,14 +79,6 @@ const IntegrityEngine = () => {
       icon: Droplet,
       color: 'from-rose-500/20 to-pink-500/20 border-rose-500/30 text-rose-400',
       activeColor: 'border-rose-400 bg-rose-950/40 shadow-[0_0_30px_rgba(244,63,94,0.2)] scale-[1.02]'
-    },
-    {
-      id: 'bg',
-      title: 'Latar Bebas Diubah',
-      desc: 'Area di luar produk bebas Anda kreasikan. Ganti dari meja kafe ke atas awan dalam 5 detik tanpa merusak produk.',
-      icon: ImageIcon,
-      color: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-400',
-      activeColor: 'border-emerald-400 bg-emerald-950/40 shadow-[0_0_30px_rgba(16,185,129,0.2)] scale-[1.02]'
     }
   ];
 
@@ -110,7 +127,7 @@ const IntegrityEngine = () => {
           <div className="flex-1 w-full space-y-4">
             <div className="mb-6 lg:mb-8 text-center lg:text-left">
               <span className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/80 border border-slate-600 rounded-full text-xs font-mono text-slate-300 mb-4 shadow-inner">
-                <MousePointer2 className="w-3.5 h-3.5" /> Arahkan Kursor (Hover) di Sini
+                <MousePointer2 className="w-3.5 h-3.5" /> Auto-Pilot Aktif (Sentuh/Hover untuk Jeda)
               </span>
               <h3 className="text-2xl font-bold text-white mb-2">Anatomi Proteksi AI</h3>
             </div>
@@ -122,8 +139,10 @@ const IntegrityEngine = () => {
                 return (
                   <div 
                     key={f.id}
-                    onMouseEnter={() => setActiveFeature(f.id)}
-                    onMouseLeave={() => setActiveFeature(null)}
+                    onMouseEnter={() => { setActiveFeature(f.id); setIsAutoPlaying(false); }}
+                    onMouseLeave={() => setIsAutoPlaying(true)}
+                    onTouchStart={() => { setActiveFeature(f.id); setIsAutoPlaying(false); }}
+                    onTouchEnd={() => setIsAutoPlaying(true)}
                     className={`p-5 rounded-2xl border transition-all duration-300 cursor-crosshair flex items-start gap-4 
                       ${isActive ? f.activeColor : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/80'}`}
                   >

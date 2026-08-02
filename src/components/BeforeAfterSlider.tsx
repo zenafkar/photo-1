@@ -75,9 +75,8 @@ const BeforeAfterSlider = ({ beforeImage, afterImage }: BeforeAfterSliderProps) 
   return (
     <div 
       ref={containerRef}
-      className="relative w-full aspect-[4/5] md:aspect-square max-w-2xl mx-auto rounded-[2rem] overflow-hidden cursor-ew-resize select-none shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-gray-900/5 group"
+      className="relative w-full aspect-[4/5] md:aspect-square max-w-2xl mx-auto rounded-[2rem] overflow-hidden cursor-ew-resize select-none shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-gray-900/5 group touch-pan-y"
       onPointerDown={onPointerDown}
-      style={{ touchAction: 'none' }} // Extremely important: prevents scroll interference on touch devices
     >
       <div className="absolute inset-0 bg-slate-100 animate-pulse" />
       

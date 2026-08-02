@@ -23,7 +23,7 @@ const SectionPlaceholder = () => (
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background selection:bg-secondary/20 selection:text-primary text-text font-sans antialiased overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-background selection:bg-secondary/20 selection:text-primary text-text font-sans antialiased overflow-x-hidden">
       <Navbar />
       <main>
         <Hero />

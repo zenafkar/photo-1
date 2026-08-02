@@ -290,7 +290,7 @@ export default function StudioDashboard() {
   return (
     <>
       <SignedIn>
-        <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900">
+        <div className="min-h-[100dvh] bg-[#F8FAFC] font-sans text-slate-900">
           {/* Header */}
           <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -412,7 +412,7 @@ export default function StudioDashboard() {
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         rows={3}
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none text-sm font-medium text-slate-700"
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none text-base md:text-sm font-medium text-slate-700"
                         placeholder="Contoh: Premium studio lighting, professional product photography on black marble..."
                       />
 

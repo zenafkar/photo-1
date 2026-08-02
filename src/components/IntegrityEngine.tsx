@@ -185,24 +185,40 @@ const IntegrityEngine = () => {
                 />
 
                 {/* Overlays for Highlights */}
-                {/* 1. Shape/Geometry Highlight (Bounding box around the tube) */}
-                <div className={`absolute inset-x-[15%] inset-y-[10%] rounded-xl border-2 transition-all duration-500 z-30 pointer-events-none flex items-center justify-center ${
-                  activeFeature === 'shape' ? 'border-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.5)] bg-cyan-400/10 scale-100' : 'border-transparent scale-95'
-                }`}>
+                {/* 1. Shape/Geometry Highlight — tight bounding box around the tube only */}
+                <div 
+                  className={`absolute rounded-[1.2rem] border-2 transition-all duration-500 z-30 pointer-events-none ${
+                    activeFeature === 'shape' ? 'border-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.5)] bg-cyan-400/10' : 'border-transparent'
+                  }`}
+                  style={{ top: '5%', bottom: '28%', left: '25%', right: '25%' }}
+                >
                   {activeFeature === 'shape' && (
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
+                    <>
+                      {/* Corner indicators */}
+                      <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-cyan-400 rounded-tl-md" />
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-cyan-400 rounded-tr-md" />
+                      <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-cyan-400 rounded-bl-md" />
+                      <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-cyan-400 rounded-br-md" />
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
+                    </>
                   )}
                 </div>
 
-                {/* 2. Color Match Highlight (Tint the tube area to show color lock) */}
-                <div className={`absolute inset-x-[20%] top-[30%] bottom-[20%] rounded-lg transition-all duration-500 z-30 pointer-events-none ${
-                  activeFeature === 'color' ? 'bg-rose-500/30 mix-blend-overlay border border-rose-400 shadow-[0_0_30px_rgba(244,63,94,0.6)]' : 'border-transparent'
-                }`} />
+                {/* 2. Color Match Highlight — only the red body of the tube */}
+                <div 
+                  className={`absolute rounded-lg transition-all duration-500 z-30 pointer-events-none ${
+                    activeFeature === 'color' ? 'bg-rose-500/25 mix-blend-overlay border border-rose-400 shadow-[0_0_25px_rgba(244,63,94,0.5)]' : 'border-transparent'
+                  }`}
+                  style={{ top: '18%', bottom: '38%', left: '30%', right: '30%' }}
+                />
 
-                {/* 3. Logo/OCR Highlight (Box around the text area) */}
-                <div className={`absolute left-1/2 -translate-x-1/2 top-[40%] w-[60%] h-[20%] rounded-lg border-2 border-dashed transition-all duration-500 z-30 pointer-events-none flex flex-col items-center justify-center ${
-                  activeFeature === 'logo' ? 'border-amber-400 bg-amber-500/20 backdrop-blur-[2px]' : 'border-transparent'
-                }`}>
+                {/* 3. Logo/OCR Highlight — vertical strip over the brand text "HOT in CREAM" */}
+                <div 
+                  className={`absolute rounded-lg border-2 border-dashed transition-all duration-500 z-30 pointer-events-none flex items-center justify-center ${
+                    activeFeature === 'logo' ? 'border-amber-400 bg-amber-500/15 backdrop-blur-[1px]' : 'border-transparent'
+                  }`}
+                  style={{ top: '22%', bottom: '40%', left: '35%', right: '38%' }}
+                >
                   {activeFeature === 'logo' && (
                     <span className="bg-amber-400 text-amber-950 text-[8px] font-black px-2 py-0.5 rounded-full absolute -top-3">OCR LOCKED</span>
                   )}

@@ -24,6 +24,12 @@ vi.mock("../../config/prisma.js", () => ({
   },
 }));
 
+// Mock Clerk — prevents "Publishable key not valid" crash on CI
+vi.mock("@clerk/express", () => ({
+  getAuth: vi.fn(),
+  clerkMiddleware: () => (_req: any, _res: any, next: any) => next(),
+}));
+
 import { createApp } from "../../app.js";
 
 const app = createApp();

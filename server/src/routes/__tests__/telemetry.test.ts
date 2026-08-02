@@ -1,9 +1,15 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
+
+// Mock Clerk — prevents "Publishable key not valid" crash on CI
+vi.mock("@clerk/express", () => ({
+  getAuth: vi.fn(),
+  clerkMiddleware: () => (_req: any, _res: any, next: any) => next(),
+}));
+
 import { createApp } from "../../app.js";
 
 const app = createApp();
-// The telemetry route requires this shared secret
 const TELEMETRY_SECRET = process.env.TELEMETRY_INGEST_SECRET || "dev-secret-change-in-production";
 
 describe("Telemetry Routes", () => {

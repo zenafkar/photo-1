@@ -151,53 +151,47 @@ const IntegrityEngine = () => {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.1)_0%,transparent_70%)]" />
               <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-30" />
               
-              {/* Central Abstract Product Representation */}
-              <div className="relative w-full max-w-[240px] aspect-[1/2] sm:aspect-[3/4] mx-auto z-10 transition-all duration-500 flex items-center justify-center">
-                
-                {/* Dynamic Background Area */}
-                <div className={`absolute -inset-10 sm:-inset-16 rounded-[3rem] transition-all duration-1000 ${
-                  activeFeature === 'bg' 
-                    ? 'bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.3)_0%,transparent_70%)] blur-md scale-110' 
-                    : 'bg-slate-800/20 blur-sm scale-100'
-                }`} />
-                
-                {/* The Product Silhouette */}
-                <div className={`relative w-full h-[80%] bg-slate-800 rounded-3xl border-2 overflow-hidden transition-all duration-500 shadow-2xl ${
-                  activeFeature === 'shape' 
-                    ? 'border-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.5)] scale-105' 
-                    : 'border-slate-600'
+              {/* Real Product Image Visualizer */}
+              <div className="relative w-full max-w-[280px] aspect-[3/4] mx-auto z-10 transition-all duration-500 rounded-3xl overflow-hidden shadow-2xl border border-slate-700/50">
+                {/* Images */}
+                <img 
+                  src="/hotin-after.jpg" 
+                  alt="Product After" 
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 z-10 hover:scale-105" 
+                />
+                <img 
+                  src="/hotin-before.jpg" 
+                  alt="Product Before" 
+                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 z-20 ${activeFeature === 'bg' ? 'opacity-100' : 'opacity-0'}`} 
+                />
+
+                {/* Overlays for Highlights */}
+                {/* 1. Shape/Geometry Highlight (Bounding box around the tube) */}
+                <div className={`absolute inset-x-[15%] inset-y-[10%] rounded-xl border-2 transition-all duration-500 z-30 pointer-events-none flex items-center justify-center ${
+                  activeFeature === 'shape' ? 'border-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.5)] bg-cyan-400/10 scale-100' : 'border-transparent scale-95'
                 }`}>
-                  {/* Color Overlay */}
-                  <div className={`absolute inset-0 transition-all duration-700 ${
-                    activeFeature === 'color' 
-                      ? 'bg-gradient-to-br from-rose-400/40 via-rose-600/60 to-rose-900/80 mix-blend-overlay' 
-                      : 'bg-gradient-to-br from-slate-700 to-slate-900'
-                  }`} />
-                  
-                  {/* Product Details (Cap & Label) */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-start pt-6 sm:pt-10 gap-6 sm:gap-10">
-                    <div className={`w-16 sm:w-20 h-6 sm:h-8 rounded-full transition-all duration-500 ${
-                      activeFeature === 'color' ? 'bg-rose-300 shadow-[0_0_20px_rgba(251,113,133,0.6)]' : 'bg-slate-700'
-                    }`} />
-                    
-                    {/* Logo/OCR Protected Area */}
-                    <div className={`w-full py-8 sm:py-12 px-4 flex items-center justify-center border-y-2 border-dashed transition-all duration-300 ${
-                      activeFeature === 'logo' 
-                        ? 'border-amber-400 bg-amber-500/20 backdrop-blur-md' 
-                        : 'border-slate-600/50'
-                    }`}>
-                      <span className={`font-black tracking-[0.2em] text-lg sm:text-2xl transition-all duration-300 ${
-                        activeFeature === 'logo' 
-                          ? 'text-amber-300 drop-shadow-[0_0_15px_rgba(251,191,36,1)] scale-110' 
-                          : 'text-slate-500'
-                      }`}>MYSTIQ</span>
-                    </div>
-                  </div>
+                  {activeFeature === 'shape' && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
+                  )}
                 </div>
 
-                {/* Scanning Laser Line (Ambient) */}
+                {/* 2. Color Match Highlight (Tint the tube area to show color lock) */}
+                <div className={`absolute inset-x-[20%] top-[30%] bottom-[20%] rounded-lg transition-all duration-500 z-30 pointer-events-none ${
+                  activeFeature === 'color' ? 'bg-rose-500/30 mix-blend-overlay border border-rose-400 shadow-[0_0_30px_rgba(244,63,94,0.6)]' : 'border-transparent'
+                }`} />
+
+                {/* 3. Logo/OCR Highlight (Box around the text area) */}
+                <div className={`absolute left-1/2 -translate-x-1/2 top-[40%] w-[60%] h-[20%] rounded-lg border-2 border-dashed transition-all duration-500 z-30 pointer-events-none flex flex-col items-center justify-center ${
+                  activeFeature === 'logo' ? 'border-amber-400 bg-amber-500/20 backdrop-blur-[2px]' : 'border-transparent'
+                }`}>
+                  {activeFeature === 'logo' && (
+                    <span className="bg-amber-400 text-amber-950 text-[8px] font-black px-2 py-0.5 rounded-full absolute -top-3">OCR LOCKED</span>
+                  )}
+                </div>
+
+                {/* Ambient Scanning Line */}
                 <motion.div 
-                  className="absolute left-[-20%] right-[-20%] h-[3px] bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,1)] z-20 pointer-events-none rounded-full"
+                  className="absolute left-[-10%] right-[-10%] h-[2px] bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,1)] z-40 pointer-events-none"
                   animate={{ top: ['0%', '100%', '0%'] }}
                   transition={{ duration: 3, ease: "linear", repeat: Infinity }}
                   style={{ opacity: activeFeature === null ? 0.7 : 0 }}

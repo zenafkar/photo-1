@@ -622,7 +622,7 @@ export default function StudioDashboard() {
                       ) : credits === 0 ? (
                         "Kredit Habis - Upgrade"
                       ) : (
-                        <>Transform <span className="text-slate-300 font-medium text-sm ml-1 px-2 py-0.5 bg-white/20 rounded-md">-{resolution === '4k' ? 2 : 1} Kredit</span></>
+                        <>Transform <span className="text-slate-300 font-medium text-sm ml-1 px-2 py-0.5 bg-white/20 rounded-md">-{(provider === 'nanobanana' || provider === 'nanobanana2') ? 2 : (resolution === '4k' ? 2 : 1)} Kredit</span></>
                       )}
                     </button>
                   </div>

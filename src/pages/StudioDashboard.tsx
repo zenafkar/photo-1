@@ -770,6 +770,7 @@ export default function StudioDashboard() {
           isOpen={isPromptModalOpen} 
           onClose={() => setIsPromptModalOpen(false)} 
           onApplyPrompt={(generatedPrompt) => setPrompt(generatedPrompt)} 
+          currentResolution={resolution}
         />
 
         {/* Delete Account Confirmation Modal */}

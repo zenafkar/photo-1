@@ -5,6 +5,7 @@ interface PromptGeneratorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onApplyPrompt: (prompt: string) => void;
+  currentResolution?: string;
 }
 
 interface PresetItem {
@@ -141,6 +142,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   isOpen,
   onClose,
   onApplyPrompt,
+  currentResolution,
 }) => {
   const [activeTab, setActiveTab] = useState<'presets' | 'custom'>('presets');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -166,7 +168,13 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   const buildCustomPromptText = () => {
     const prodName = customProduct.trim() || 'product';
     const effectsText = selectedEffects.length > 0 ? `, with ${selectedEffects.join(', ')}` : '';
-    return `Professional commercial product photography of ${prodName}, placed on ${customPedestal}, lit with ${customLighting}${effectsText}, 8k resolution, ultra sharp detail, high conversion e-commerce ad photo`;
+    const resText = currentResolution ? `${currentResolution.toLowerCase()} resolution` : '8k resolution';
+    return `Professional commercial product photography of ${prodName}, placed on ${customPedestal}, lit with ${customLighting}${effectsText}, ${resText}, ultra sharp detail, high conversion e-commerce ad photo`;
+  };
+
+  const getPresetPrompt = (prompt: string) => {
+    if (!currentResolution) return prompt;
+    return prompt.replace(/8k resolution/gi, `${currentResolution.toLowerCase()} resolution`).replace(/8k/gi, currentResolution.toLowerCase());
   };
 
   const handleCopy = (id: string, text: string) => {
@@ -315,7 +323,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
 
                       {/* Prompt Display */}
                       <div className="bg-slate-900 text-slate-200 p-2.5 sm:p-3 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-mono line-clamp-3 sm:line-clamp-4 mb-2.5 border border-slate-800 leading-relaxed relative">
-                        {preset.prompt}
+                        {getPresetPrompt(preset.prompt)}
                       </div>
 
                       {/* Tag Chips */}
@@ -330,7 +338,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
 
                     <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
                       <button
-                        onClick={() => handleCopy(preset.id, preset.prompt)}
+                        onClick={() => handleCopy(preset.id, getPresetPrompt(preset.prompt))}
                         className="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors flex items-center justify-center text-xs font-bold gap-1 flex-shrink-0"
                         title="Salin Prompt"
                       >
@@ -343,10 +351,10 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
 
                       <button
                         onClick={() => {
-                          onApplyPrompt(preset.prompt);
+                          onApplyPrompt(getPresetPrompt(preset.prompt));
                           onClose();
                         }}
-                        className="flex-1 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-sm hover:shadow-indigo-500/25 transition-all flex items-center justify-center gap-2 group/apply"
                       >
                         <span>Gunakan Prompt Ini</span>
                         <ArrowRight className="w-3.5 h-3.5" />

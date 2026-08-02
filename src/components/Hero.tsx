@@ -270,7 +270,7 @@ const Hero = () => {
                     <ArrowRight className="w-5 h-5" />
                   </Link>
                 </SignedIn>
-                <span className="text-slate-400 font-mono text-xs sm:text-sm mt-1 sm:mt-0 block text-center">⚡ 3 Kredit/Bulan</span>
+                <span className="text-slate-400 font-mono text-xs sm:text-sm mt-1 sm:mt-0 block text-center">⚡ Dapat 3 foto gratis!</span>
               </div>
             </StaggerItem>
 

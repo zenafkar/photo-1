@@ -244,7 +244,7 @@ const InteractiveSandbox = () => {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </SignedIn>
-              <span className="text-xs text-slate-400 font-mono">⚡ Gratis 3 kredit</span>
+              <span className="text-xs text-slate-400 font-mono">⚡ Dapat 3 foto gratis!</span>
             </div>
           </div>
 

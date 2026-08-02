@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { buildCustomPromptText, getPresetPrompt, filterPresets } from "../promptBuilder";
 import type { PresetItem } from "../promptBuilder";

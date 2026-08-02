@@ -108,8 +108,22 @@ export default function StudioDashboard() {
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       loadProfile();
+
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === "visible") {
+          handleSyncReplicate(true);
+        }
+      };
+
+      window.addEventListener("focus", handleVisibilityChange);
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+
+      return () => {
+        window.removeEventListener("focus", handleVisibilityChange);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      };
     }
-  }, [isLoaded, isSignedIn, loadProfile]);
+  }, [isLoaded, isSignedIn, loadProfile, handleSyncReplicate]);
 
   const [imageBase64, setImageBase64] = useState<string | null>(null);
 
@@ -181,6 +195,21 @@ export default function StudioDashboard() {
 
   const handleGenerate = async () => {
     if (!previewUrl || credits === 0 || !imageBase64) return;
+
+    const resString = (resolution || "").toLowerCase();
+    const creditsToDeduct = resString === "4k" ? 2 : 1;
+
+    if (credits !== null && credits < creditsToDeduct) {
+      setGenerateError(`Kredit tidak cukup. Dibutuhkan ${creditsToDeduct} kredit untuk resolusi ini.`);
+      return;
+    }
+
+    const previousCredits = credits;
+    // Optimistic UI deduction for instant visual feedback
+    if (credits !== null) {
+      setCredits(prev => (prev !== null ? Math.max(0, prev - creditsToDeduct) : prev));
+    }
+
     setIsGenerating(true);
     setGenerateError(null);
     setGenerationStatus("Mengirimkan permintaan ke server AI...");
@@ -204,14 +233,31 @@ export default function StudioDashboard() {
         outputFormat: outputFormat
       });
       
-      setCredits(res.data.remainingCredits);
+      if (res && res.data && typeof res.data.remainingCredits === "number") {
+        setCredits(res.data.remainingCredits);
+      }
       
       // Update generation history with the new generated image
-      setGenerationHistory(prev => [res.data.generation, ...prev]);
+      if (res && res.data && res.data.generation) {
+        setGenerationHistory(prev => [res.data.generation, ...prev]);
+      }
+
+      // Auto-sync in background to keep DB and UI 100% aligned
+      handleSyncReplicate(true);
     } catch (error: any) {
       console.error("Error during generation:", error);
       const errMsg = error?.message || "Gagal memproses gambar.";
       setGenerateError(errMsg);
+
+      // Revert optimistic deduction if client request immediately failed
+      if (previousCredits !== null) {
+        setCredits(previousCredits);
+      }
+
+      // Background recovery sync in case server process completes asynchronously
+      setTimeout(() => {
+        handleSyncReplicate(true);
+      }, 4000);
     } finally {
       clearTimeout(timer1);
       clearTimeout(timer2);

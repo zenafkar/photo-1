@@ -30,6 +30,12 @@ router.post("/", async (req: Request, res: Response) => {
     }
     const { imageUrl, prompt, provider, aspectRatio, resolution, outputFormat } = parsed.data;
 
+    // Server-side size validation: reject base64 images larger than ~10MB
+    const MAX_BASE64_SIZE = 15 * 1024 * 1024; // 15MB (~10MB raw image + base64 overhead)
+    if (imageUrl && imageUrl.startsWith("data:") && imageUrl.length > MAX_BASE64_SIZE) {
+      return res.status(413).json({ success: false, message: "Ukuran gambar terlalu besar (maksimal 10MB). Silakan gunakan gambar dengan ukuran lebih kecil." });
+    }
+
     // Fetch user and check credits
     let user = await prisma.user.findUnique({
       where: { clerkId },
@@ -82,20 +88,17 @@ router.post("/", async (req: Request, res: Response) => {
     let updatedCredits, generationRecord;
     try {
       if (predictionId) {
-        const existing = await prisma.generation.findUnique({
-          where: { replicateId: predictionId }
+        const existing = await prisma.generation.findFirst({
+          where: { replicateId: predictionId, userId: user.id }
         });
         if (existing) {
-          updatedCredits = await prisma.userCredit.update({
-            where: { userId: user.id },
-            data: { remainingCredits: { decrement: creditsToDeduct } },
-          });
-          generationRecord = existing;
+          // Return existing generation WITHOUT deducting credits again
+          // (the original request already deducted them)
           return res.status(200).json({
             success: true,
             data: {
-              generation: generationRecord,
-              remainingCredits: updatedCredits.remainingCredits,
+              generation: existing,
+              remainingCredits: user.credits!.remainingCredits,
             },
           });
         }

@@ -16,6 +16,7 @@ const {
   mockUserFindUnique,
   mockUserCreditUpdate,
   mockUserCreditCreate,
+  mockGenFindFirst,
   mockGenFindUnique,
   mockGenCreate,
   mockGenDelete,
@@ -24,6 +25,7 @@ const {
   mockUserFindUnique: vi.fn(),
   mockUserCreditUpdate: vi.fn(),
   mockUserCreditCreate: vi.fn(),
+  mockGenFindFirst: vi.fn(),
   mockGenFindUnique: vi.fn(),
   mockGenCreate: vi.fn(),
   mockGenDelete: vi.fn(),
@@ -40,6 +42,7 @@ vi.mock("../../config/prisma.js", () => ({
       create: mockUserCreditCreate,
     },
     generation: {
+      findFirst: mockGenFindFirst,
       findUnique: mockGenFindUnique,
       create: mockGenCreate,
       delete: mockGenDelete,
@@ -198,13 +201,14 @@ describe("Generate Routes", () => {
   });
 
   // B1 pin: duplicate replicateId still deducts credits (flag for review)
-  it("POST /api/v1/generate handles duplicate replicateId — returns existing, still deducts (BUG B1)", async () => {
-    // First time: AI returns pred-dup
+  it("POST /api/v1/generate returns existing generation without double-charging on duplicate replicateId", async () => {
+    // Simulate: first request already completed, deducted credits, saved generation.
+    // Client retries → same predictionId → should return existing WITHOUT deducting again.
     mockAiGenerate.mockResolvedValue({
       url: "https://replicate.delivery/result.jpg",
       predictionId: "pred-dup",
     });
-    mockGenFindUnique.mockResolvedValue({
+    mockGenFindFirst.mockResolvedValue({
       id: "gen-existing",
       replicateId: "pred-dup",
       processedUrl: "https://example.com/existing.jpg",
@@ -212,16 +216,15 @@ describe("Generate Routes", () => {
       status: "completed",
       userId: "user-test",
     });
-    mockUserCreditUpdate.mockResolvedValue({ remainingCredits: 3 });
 
     const res = await request(app)
       .post("/api/v1/generate")
       .send(validPayload);
 
     expect(res.status).toBe(200);
-    // ⚠️ Documents current behavior: credits are deducted even on dedup hit
-    // This could cause double-charge if the original request already deducted
-    expect(mockUserCreditUpdate).toHaveBeenCalled();
+    expect(res.body.data.generation.id).toBe("gen-existing");
+    // ✅ Fix: credits should NOT be deducted again (original request already deducted)
+    expect(mockUserCreditUpdate).not.toHaveBeenCalled();
   });
 
   it("DELETE /api/v1/generate/:id returns 404 for unauthorized user", async () => {

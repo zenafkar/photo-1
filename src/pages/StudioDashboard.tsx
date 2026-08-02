@@ -520,8 +520,8 @@ export default function StudioDashboard() {
                             <Banana className="w-5 h-5" />
                           </div>
                           <div>
-                            <div className={`font-bold text-sm ${provider === "nanobanana" ? "text-amber-700" : "text-slate-700"}`}>Nano Banana Pro</div>
-                            <div className="text-[10px] text-slate-500">Premium 4K</div>
+                            <div className={`font-bold text-sm ${provider === "nanobanana" ? "text-amber-700" : "text-slate-700"}`}>Google</div>
+                            <div className="text-[10px] text-slate-500">Nano Banana Pro</div>
                           </div>
                         </button>
                         
@@ -541,8 +541,8 @@ export default function StudioDashboard() {
                             <Banana className="w-5 h-5" />
                           </div>
                           <div>
-                            <div className={`font-bold text-sm ${provider === "nanobanana2" ? "text-cyan-700" : "text-slate-700"}`}>Nano Banana 2</div>
-                            <div className="text-[10px] text-slate-500">Fast & Standard</div>
+                            <div className={`font-bold text-sm ${provider === "nanobanana2" ? "text-cyan-700" : "text-slate-700"}`}>Google</div>
+                            <div className="text-[10px] text-slate-500">Nano Banana 2</div>
                           </div>
                         </button>
                       </div>

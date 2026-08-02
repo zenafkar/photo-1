@@ -23,7 +23,7 @@ export default function StudioDashboard() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
-  const [provider, setProvider] = useState("nanobanana2");
+  const [provider, setProvider] = useState("gptimage");
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [resolution, setResolution] = useState("1k");
   const [outputFormat, setOutputFormat] = useState("jpg");
@@ -483,6 +483,27 @@ export default function StudioDashboard() {
                         AI Engine
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {/* OpenAI GPT-Image */}
+                        <button
+                          type="button"
+                          onClick={() => setProvider("gptimage")}
+                          className={`relative flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${provider === "gptimage" ? "bg-emerald-50 border-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "bg-slate-50 border-slate-200 hover:border-slate-300"}`}
+                        >
+                          <div className="absolute top-2 right-2">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                          </div>
+                          <div className={`p-2 rounded-lg ${provider === "gptimage" ? "bg-emerald-100 text-emerald-600" : "bg-slate-200 text-slate-500"}`}>
+                            <OpenAIIcon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className={`font-bold text-sm ${provider === "gptimage" ? "text-emerald-700" : "text-slate-700"}`}>OpenAI</div>
+                            <div className="text-[10px] text-slate-500">GPT-Image 1.5</div>
+                          </div>
+                        </button>
+                        
                         {/* Nano Banana Pro */}
                         <button
                           type="button"
@@ -522,27 +543,6 @@ export default function StudioDashboard() {
                           <div>
                             <div className={`font-bold text-sm ${provider === "nanobanana2" ? "text-cyan-700" : "text-slate-700"}`}>Nano Banana 2</div>
                             <div className="text-[10px] text-slate-500">Fast & Standard</div>
-                          </div>
-                        </button>
-
-                        {/* OpenAI GPT-Image */}
-                        <button
-                          type="button"
-                          onClick={() => setProvider("gptimage")}
-                          className={`relative flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${provider === "gptimage" ? "bg-emerald-50 border-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "bg-slate-50 border-slate-200 hover:border-slate-300"}`}
-                        >
-                          <div className="absolute top-2 right-2">
-                            <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                            </span>
-                          </div>
-                          <div className={`p-2 rounded-lg ${provider === "gptimage" ? "bg-emerald-100 text-emerald-600" : "bg-slate-200 text-slate-500"}`}>
-                            <OpenAIIcon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <div className={`font-bold text-sm ${provider === "gptimage" ? "text-emerald-700" : "text-slate-700"}`}>OpenAI</div>
-                            <div className="text-[10px] text-slate-500">GPT-Image 1.5</div>
                           </div>
                         </button>
                       </div>

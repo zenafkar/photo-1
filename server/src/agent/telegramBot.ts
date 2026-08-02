@@ -22,7 +22,7 @@ if (token) {
 • <b>/help</b> - Menampilkan daftar seluruh perintah bantuan ini.
 • <b>/check</b>, <b>/status</b>, <b>/health</b> - Menjalankan instant health check (API, Database, RAM/CPU VPS).
 • <b>/test</b>, <b>/deepcheck</b>, <b>/synthetic</b> - Memicu pengujian fungsional sintetis mendalam dari hulu ke hilir.
-• <b>/metrics</b>, <b>/vps</b>, <b>/ram</b> - Menampilkan statistik performa & penggunaan resource VPS real-time.
+• <b>/metrics</b>, <b>/vps</b>, <b>/ram</b>, <b>/storage</b>, <b>/disk</b> - Menampilkan statistik performa, RAM, & penggunaan storage VPS real-time.
 • <b>/restart</b> - Meminta restart PM2 process server (membutuhkan konfirmasi approval).
       `;
       bot?.sendMessage(chatId, helpText, { parse_mode: 'HTML' });
@@ -48,13 +48,29 @@ if (token) {
       bot?.sendMessage(chatId, statusText, { parse_mode: 'HTML' });
     });
 
-    // Command Handler for /metrics, /vps, /ram
-    bot.onText(/\/metrics|\/vps|\/ram/, async (msg) => {
+    // Command Handler for /metrics, /vps, /ram, /storage, /disk
+    bot.onText(/\/metrics|\/vps|\/ram|\/storage|\/disk/, async (msg) => {
       const chatId = msg.chat.id;
       const os = await import('os');
+      const fs = await import('fs');
+      
       const totalMem = (os.totalmem() / (1024 * 1024 * 1024)).toFixed(2);
       const freeMem = (os.freemem() / (1024 * 1024 * 1024)).toFixed(2);
       const usedMem = (parseFloat(totalMem) - parseFloat(freeMem)).toFixed(2);
+
+      let storageDetails = "• <b>Storage Info:</b> Unavailable";
+      try {
+        const rootPath = os.platform() === 'win32' ? 'C:\\' : '/';
+        const stats = await fs.promises.statfs(rootPath);
+        const totalStorage = (stats.blocks * stats.bsize) / (1024 * 1024 * 1024);
+        const freeStorage = (stats.bfree * stats.bsize) / (1024 * 1024 * 1024);
+        const usedStorage = totalStorage - freeStorage;
+        const storageUsage = ((usedStorage / totalStorage) * 100).toFixed(2);
+
+        storageDetails = `• <b>Total Storage:</b> ${totalStorage.toFixed(2)} GB\n• <b>Used Storage:</b> ${usedStorage.toFixed(2)} GB (${storageUsage}%)\n• <b>Free Storage:</b> ${freeStorage.toFixed(2)} GB`;
+      } catch (err) {
+        console.warn("Failed to check disk storage via statfs:", err);
+      }
 
       const metricsText = `
 📊 <b>VPS RESOURCE METRICS</b>
@@ -62,6 +78,7 @@ if (token) {
 • <b>Total RAM:</b> ${totalMem} GB
 • <b>Used RAM:</b> ${usedMem} GB
 • <b>Free RAM:</b> ${freeMem} GB
+${storageDetails}
 • <b>Platform:</b> ${os.platform()} (${os.arch()})
       `;
       bot?.sendMessage(chatId, metricsText, { parse_mode: 'HTML' });

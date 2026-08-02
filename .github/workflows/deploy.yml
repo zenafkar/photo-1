@@ -102,30 +102,49 @@ jobs:
             pm2 restart backend-api || pm2 start dist/index.js --name "backend-api"
 
             # ── Fix SEO: ensure robots.txt & sitemap.xml are served by Nginx ──
-            echo "=== SEO Fix: Checking files ==="
-            ls -la /var/www/zen-dev/dist/robots.txt /var/www/zen-dev/dist/sitemap.xml 2>&1 || echo "WARNING: SEO files missing!"
+            echo "=== SEO Fix: Starting ==="
 
-            # Create nginx snippet for SEO files
+            # 1. Verify the SEO files exist in dist
+            ls -la /var/www/zen-dev/dist/robots.txt /var/www/zen-dev/dist/sitemap.xml 2>&1 || echo "WARNING: SEO files missing in dist!"
+
+            # 2. Find nginx root dir and copy SEO files there (handles root != dist)
+            NGINX_ROOT=$(grep -rh 'root ' /etc/nginx/sites-enabled/ 2>/dev/null | grep -v '#' | head -1 | sed 's/.*root *//;s/;.*//' | xargs)
+            echo "Nginx root: ${NGINX_ROOT:-not found}"
+            if [ -n "$NGINX_ROOT" ] && [ -d "$NGINX_ROOT" ]; then
+              sudo cp -f /var/www/zen-dev/dist/robots.txt "$NGINX_ROOT/" 2>/dev/null
+              sudo cp -f /var/www/zen-dev/dist/sitemap.xml "$NGINX_ROOT/" 2>/dev/null
+              sudo chmod 644 "$NGINX_ROOT/robots.txt" "$NGINX_ROOT/sitemap.xml" 2>/dev/null
+              echo "Copied SEO files to $NGINX_ROOT"
+              ls -la "$NGINX_ROOT/robots.txt" "$NGINX_ROOT/sitemap.xml" 2>&1
+            fi
+
+            # 3. Also fix permissions in dist
+            sudo chmod 644 /var/www/zen-dev/dist/robots.txt /var/www/zen-dev/dist/sitemap.xml 2>/dev/null || true
+
+            # 4. Create nginx snippet with simple echo (avoids printf quoting issues)
             sudo mkdir -p /etc/nginx/snippets
-            printf 'location = /robots.txt {\n    default_type text/plain;\n    try_files $uri =404;\n}\n\nlocation = /sitemap.xml {\n    default_type application/xml;\n    try_files $uri =404;\n}\n' | sudo tee /etc/nginx/snippets/seo-files.conf > /dev/null
+            echo 'location = /robots.txt { default_type text/plain; try_files $uri =404; }' | sudo tee /etc/nginx/snippets/seo-files.conf > /dev/null
+            echo 'location = /sitemap.xml { default_type application/xml; try_files $uri =404; }' | sudo tee -a /etc/nginx/snippets/seo-files.conf > /dev/null
+            echo "Snippet content:"
+            cat /etc/nginx/snippets/seo-files.conf
 
-            # Find the active nginx config for this site
+            # 5. Find active nginx config (use -E for extended regex)
             NGINX_CONF=""
             for f in /etc/nginx/sites-enabled/*; do
-              if grep -q "zenstudio\|zen-dev" "$f" 2>/dev/null; then
+              if grep -qE "zenstudio|zen-dev" "$f" 2>/dev/null; then
                 NGINX_CONF="$f"
                 break
               fi
             done
             [ -z "$NGINX_CONF" ] && NGINX_CONF="/etc/nginx/sites-enabled/default"
+            echo "Using config: $NGINX_CONF"
 
-            echo "=== Using nginx config: $NGINX_CONF ==="
+            # 6. Remove old SEO includes (prevent duplicates), then add fresh
+            sudo sed -i '/seo-files/d' "$NGINX_CONF" 2>/dev/null
+            sudo sed -i '/server_name/a\    include /etc/nginx/snippets/seo-files.conf;' "$NGINX_CONF" 2>/dev/null
+            echo "Updated nginx config"
 
-            # Add snippet include if not already present
-            if [ -f "$NGINX_CONF" ] && ! grep -q "seo-files" "$NGINX_CONF" 2>/dev/null; then
-              sudo sed -i '/server_name/a\    include /etc/nginx/snippets/seo-files.conf;' "$NGINX_CONF"
-              echo "=== Added SEO snippet include ==="
-            fi
+            # 7. Test and reload nginx
+            sudo nginx -t 2>&1
+            sudo systemctl reload nginx 2>&1 && echo "=== Nginx reloaded ===" || echo "WARNING: Nginx reload failed"
 
-            # Test and reload nginx
-            sudo nginx -t && sudo systemctl reload nginx && echo "=== Nginx reloaded ===" || echo "WARNING: Nginx reload failed"

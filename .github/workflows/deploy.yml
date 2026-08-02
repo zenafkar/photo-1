@@ -110,15 +110,19 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Write the Nginx site config for zenstudio.my.id
-            sudo tee /etc/nginx/sites-available/zenstudio.my.id > /dev/null << 'NGINX_EOF'
-            server {
+            # Detect SSL certificate paths (Let's Encrypt standard paths)
+            CERT_PATH="/etc/letsencrypt/live/zenstudio.my.id/fullchain.pem"
+            KEY_PATH="/etc/letsencrypt/live/zenstudio.my.id/privkey.pem"
+
+            if [ -f "$CERT_PATH" ] && [ -f "$KEY_PATH" ]; then
+              # HTTPS config (SSL available)
+              sudo python3 -c "
+            import sys
+            config = '''server {
                 listen 80;
                 listen [::]:80;
                 server_name zenstudio.my.id www.zenstudio.my.id;
-
-                # Redirect HTTP to HTTPS (if SSL is configured)
-                return 301 https://$host$request_uri;
+                return 301 https://\$host\$request_uri;
             }
 
             server {
@@ -126,49 +130,97 @@ jobs:
                 listen [::]:443 ssl;
                 server_name zenstudio.my.id www.zenstudio.my.id;
 
+                ssl_certificate /etc/letsencrypt/live/zenstudio.my.id/fullchain.pem;
+                ssl_certificate_key /etc/letsencrypt/live/zenstudio.my.id/privkey.pem;
+
                 root /var/www/zen-dev/dist;
                 index index.html;
 
-                # ── SEO static files: serve directly, never fall through to SPA ──
                 location = /robots.txt {
                     add_header Content-Type text/plain;
-                    try_files $uri =404;
+                    try_files \$uri =404;
                 }
 
                 location = /sitemap.xml {
                     add_header Content-Type application/xml;
-                    try_files $uri =404;
+                    try_files \$uri =404;
                 }
 
-                # ── API proxy → Express backend ──
                 location /api/ {
                     proxy_pass http://localhost:5000;
                     proxy_http_version 1.1;
-                    proxy_set_header Upgrade $http_upgrade;
-                    proxy_set_header Connection 'upgrade';
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                    proxy_cache_bypass $http_upgrade;
+                    proxy_set_header Upgrade \$http_upgrade;
+                    proxy_set_header Connection upgrade;
+                    proxy_set_header Host \$host;
+                    proxy_set_header X-Real-IP \$remote_addr;
+                    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto \$scheme;
+                    proxy_cache_bypass \$http_upgrade;
                 }
 
-                # ── Static assets with long cache ──
                 location /assets/ {
                     expires 1y;
-                    add_header Cache-Control "public, immutable";
-                    try_files $uri =404;
+                    add_header Cache-Control \"public, immutable\";
+                    try_files \$uri =404;
                 }
 
-                # ── SPA fallback: all other routes serve index.html ──
                 location / {
-                    try_files $uri $uri/ /index.html;
+                    try_files \$uri \$uri/ /index.html;
                 }
             }
-            NGINX_EOF
+            '''
+            open('/etc/nginx/sites-available/zenstudio.my.id', 'w').write(config)
+            "
+            else
+              # HTTP-only config (no SSL cert found)
+              sudo python3 -c "
+            config = '''server {
+                listen 80;
+                listen [::]:80;
+                server_name zenstudio.my.id www.zenstudio.my.id;
 
-            # Enable site if not already linked
+                root /var/www/zen-dev/dist;
+                index index.html;
+
+                location = /robots.txt {
+                    add_header Content-Type text/plain;
+                    try_files \$uri =404;
+                }
+
+                location = /sitemap.xml {
+                    add_header Content-Type application/xml;
+                    try_files \$uri =404;
+                }
+
+                location /api/ {
+                    proxy_pass http://localhost:5000;
+                    proxy_http_version 1.1;
+                    proxy_set_header Upgrade \$http_upgrade;
+                    proxy_set_header Connection upgrade;
+                    proxy_set_header Host \$host;
+                    proxy_set_header X-Real-IP \$remote_addr;
+                    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto \$scheme;
+                    proxy_cache_bypass \$http_upgrade;
+                }
+
+                location /assets/ {
+                    expires 1y;
+                    add_header Cache-Control \"public, immutable\";
+                    try_files \$uri =404;
+                }
+
+                location / {
+                    try_files \$uri \$uri/ /index.html;
+                }
+            }
+            '''
+            open('/etc/nginx/sites-available/zenstudio.my.id', 'w').write(config)
+            "
+            fi
+
+            # Enable site
             sudo ln -sf /etc/nginx/sites-available/zenstudio.my.id /etc/nginx/sites-enabled/zenstudio.my.id
 
-            # Test config and reload Nginx
+            # Test and reload
             sudo nginx -t && sudo systemctl reload nginx

@@ -101,126 +101,31 @@ jobs:
             ./node_modules/.bin/prisma db push --accept-data-loss || true
             pm2 restart backend-api || pm2 start dist/index.js --name "backend-api"
 
-      # 6. Update Nginx config to fix robots.txt and sitemap.xml not being served correctly
-      - name: Configure Nginx on VPS
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.VPS_IP }}
-          username: ${{ secrets.VPS_USERNAME }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            # Detect SSL certificate paths (Let's Encrypt standard paths)
-            CERT_PATH="/etc/letsencrypt/live/zenstudio.my.id/fullchain.pem"
-            KEY_PATH="/etc/letsencrypt/live/zenstudio.my.id/privkey.pem"
+            # ── Fix SEO: ensure robots.txt & sitemap.xml are served by Nginx ──
+            echo "=== SEO Fix: Checking files ==="
+            ls -la /var/www/zen-dev/dist/robots.txt /var/www/zen-dev/dist/sitemap.xml 2>&1 || echo "WARNING: SEO files missing!"
 
-            if [ -f "$CERT_PATH" ] && [ -f "$KEY_PATH" ]; then
-              # HTTPS config (SSL available)
-              sudo python3 -c "
-            import sys
-            config = '''server {
-                listen 80;
-                listen [::]:80;
-                server_name zenstudio.my.id www.zenstudio.my.id;
-                return 301 https://\$host\$request_uri;
-            }
+            # Create nginx snippet for SEO files
+            sudo mkdir -p /etc/nginx/snippets
+            printf 'location = /robots.txt {\n    default_type text/plain;\n    try_files $uri =404;\n}\n\nlocation = /sitemap.xml {\n    default_type application/xml;\n    try_files $uri =404;\n}\n' | sudo tee /etc/nginx/snippets/seo-files.conf > /dev/null
 
-            server {
-                listen 443 ssl;
-                listen [::]:443 ssl;
-                server_name zenstudio.my.id www.zenstudio.my.id;
+            # Find the active nginx config for this site
+            NGINX_CONF=""
+            for f in /etc/nginx/sites-enabled/*; do
+              if grep -q "zenstudio\|zen-dev" "$f" 2>/dev/null; then
+                NGINX_CONF="$f"
+                break
+              fi
+            done
+            [ -z "$NGINX_CONF" ] && NGINX_CONF="/etc/nginx/sites-enabled/default"
 
-                ssl_certificate /etc/letsencrypt/live/zenstudio.my.id/fullchain.pem;
-                ssl_certificate_key /etc/letsencrypt/live/zenstudio.my.id/privkey.pem;
+            echo "=== Using nginx config: $NGINX_CONF ==="
 
-                root /var/www/zen-dev/dist;
-                index index.html;
-
-                location = /robots.txt {
-                    add_header Content-Type text/plain;
-                    try_files \$uri =404;
-                }
-
-                location = /sitemap.xml {
-                    add_header Content-Type application/xml;
-                    try_files \$uri =404;
-                }
-
-                location /api/ {
-                    proxy_pass http://localhost:5000;
-                    proxy_http_version 1.1;
-                    proxy_set_header Upgrade \$http_upgrade;
-                    proxy_set_header Connection upgrade;
-                    proxy_set_header Host \$host;
-                    proxy_set_header X-Real-IP \$remote_addr;
-                    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto \$scheme;
-                    proxy_cache_bypass \$http_upgrade;
-                }
-
-                location /assets/ {
-                    expires 1y;
-                    add_header Cache-Control \"public, immutable\";
-                    try_files \$uri =404;
-                }
-
-                location / {
-                    try_files \$uri \$uri/ /index.html;
-                }
-            }
-            '''
-            open('/etc/nginx/sites-available/zenstudio.my.id', 'w').write(config)
-            "
-            else
-              # HTTP-only config (no SSL cert found)
-              sudo python3 -c "
-            config = '''server {
-                listen 80;
-                listen [::]:80;
-                server_name zenstudio.my.id www.zenstudio.my.id;
-
-                root /var/www/zen-dev/dist;
-                index index.html;
-
-                location = /robots.txt {
-                    add_header Content-Type text/plain;
-                    try_files \$uri =404;
-                }
-
-                location = /sitemap.xml {
-                    add_header Content-Type application/xml;
-                    try_files \$uri =404;
-                }
-
-                location /api/ {
-                    proxy_pass http://localhost:5000;
-                    proxy_http_version 1.1;
-                    proxy_set_header Upgrade \$http_upgrade;
-                    proxy_set_header Connection upgrade;
-                    proxy_set_header Host \$host;
-                    proxy_set_header X-Real-IP \$remote_addr;
-                    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto \$scheme;
-                    proxy_cache_bypass \$http_upgrade;
-                }
-
-                location /assets/ {
-                    expires 1y;
-                    add_header Cache-Control \"public, immutable\";
-                    try_files \$uri =404;
-                }
-
-                location / {
-                    try_files \$uri \$uri/ /index.html;
-                }
-            }
-            '''
-            open('/etc/nginx/sites-available/zenstudio.my.id', 'w').write(config)
-            "
+            # Add snippet include if not already present
+            if [ -f "$NGINX_CONF" ] && ! grep -q "seo-files" "$NGINX_CONF" 2>/dev/null; then
+              sudo sed -i '/server_name/a\    include /etc/nginx/snippets/seo-files.conf;' "$NGINX_CONF"
+              echo "=== Added SEO snippet include ==="
             fi
 
-            # Enable site
-            sudo ln -sf /etc/nginx/sites-available/zenstudio.my.id /etc/nginx/sites-enabled/zenstudio.my.id
-
-            # Test and reload
-            sudo nginx -t && sudo systemctl reload nginx
+            # Test and reload nginx
+            sudo nginx -t && sudo systemctl reload nginx && echo "=== Nginx reloaded ===" || echo "WARNING: Nginx reload failed"

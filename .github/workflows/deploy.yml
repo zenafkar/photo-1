@@ -51,7 +51,7 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
             -d parse_mode="HTML" \
-            -d text="<b>🔴 CI TESTS FAILED — Deploy Blocked</b>%0A%0A<b>Repo:</b> ${{ github.repository }}%0A<b>Branch:</b> ${{ github.ref_name }}%0A<b>Commit:</b> ${{ github.sha }}%0A<b>By:</b> ${{ github.actor }}%0A%0A<i>Production is safe — last good version still running.</i>%0A%0A<a href='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'>View Details</a>"
+            -d text="<b>🚫 Deploy Blocked — Tests Failed</b>%0A%0A──────────────────────────%0A<b>Who</b>    ${{ github.actor }}%0A<b>Branch</b>  ${{ github.ref_name }}%0A──────────────────────────%0A%0A<b>Commit</b>%0A${{ github.event.head_commit.message }}%0A%0A<b>ID</b>  <code>${{ github.sha }}</code>%0A%0A──────────────────────────%0A🟢 Production still running last good version.%0A──────────────────────────%0A%0A<a href='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'>🔗 View on GitHub</a>"
 
       # 4. Mengirim hasil Build dari GitHub ke VPS Anda
       - name: Copy files to VPS via SCP

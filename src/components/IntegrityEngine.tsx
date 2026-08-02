@@ -1,26 +1,18 @@
 import { 
-  CheckCircle2, 
-  XCircle, 
-  Sparkles, 
-  Lock, 
-  Image as ImageIcon, 
-  SunMedium, 
-  Layers, 
-  Box, 
-  Palette, 
-  ScanText, 
-  Droplet, 
   Award, 
-  Fingerprint, 
-  Cpu, 
   ShieldAlert,
-  Zap
+  Droplet,
+  Image as ImageIcon,
+  Cpu, 
+  Zap,
+  MousePointer2
 } from 'lucide-react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
 
 const IntegrityEngine = () => {
   const sectionRef = useRef<HTMLElement>(null);
+  const [activeFeature, setActiveFeature] = useState<string | null>(null);
   
   // Scroll progress for the entire section (for background parallax)
   const { scrollYProgress: sectionScrollY } = useScroll({
@@ -38,79 +30,38 @@ const IntegrityEngine = () => {
     offset: ["start end", "center center"]
   });
 
-  const allowedItems = [
+  const features = [
     {
-      icon: ImageIcon,
-      title: 'Background & Setting',
-      desc: 'Studio, Cafe, Alam & Custom Scenes',
-      tag: 'DYNAMIC AI',
-      color: 'from-blue-500/20 to-cyan-500/20 border-cyan-500/30 text-cyan-400'
-    },
-    {
-      icon: SunMedium,
-      title: 'Pencahayaan & Shadow',
-      desc: 'Lighting Dramatis & Raytraced Reflection',
-      tag: 'ADAPTIVE',
-      color: 'from-amber-500/20 to-yellow-500/20 border-amber-500/30 text-amber-400'
-    },
-    {
-      icon: Layers,
-      title: 'Refleksi Meja / Lantai',
-      desc: 'Physically Accurate Surface Physics',
-      tag: 'PHYSICS AI',
-      color: 'from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-400'
-    },
-    {
-      icon: Box,
-      title: 'Properti Pendukung',
-      desc: 'Bunga, Kayu, Daun & Aksesoris',
-      tag: 'SMART PLACEMENT',
-      color: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-400'
-    },
-    {
-      icon: Palette,
-      title: 'Komposisi & Mood',
-      desc: 'Color Grading & Atmosphere Harmony',
-      tag: 'AESTHETIC',
-      color: 'from-purple-500/20 to-pink-500/20 border-purple-500/30 text-purple-400'
-    }
-  ];
-
-  const restrictedItems = [
-    {
-      icon: ShieldAlert,
-      title: 'Bentuk Asli Produk',
-      desc: '100% Geometry & Mesh Locked',
-      tag: '🔒 LOCKED',
-      color: 'from-rose-500/20 to-red-500/20 border-rose-500/30 text-rose-400'
-    },
-    {
-      icon: Droplet,
-      title: 'Warna Produk',
-      desc: 'Delta-E Precise Color Spectrum',
-      tag: '🔒 EXACT MATCH',
-      color: 'from-red-500/20 to-orange-500/20 border-red-500/30 text-red-400'
-    },
-    {
-      icon: ScanText,
-      title: 'Label & Tulisan',
-      desc: 'OCR Vector Preserved & Sharp Text',
-      tag: '🔒 PRESERVED',
-      color: 'from-rose-500/20 to-pink-500/20 border-rose-500/30 text-rose-400'
-    },
-    {
+      id: 'logo',
+      title: 'Keutuhan Logo',
+      desc: 'Tidak ada lagi logo aneh atau teks alien. Mesin OCR kami membaca dan mengunci merek Anda agar tetap tajam.',
       icon: Award,
-      title: 'Logo Brand',
-      desc: 'Zero Logo Deformation / Artifacts',
-      tag: '🔒 PROTECTED',
-      color: 'from-amber-500/20 to-red-500/20 border-amber-500/30 text-amber-400'
+      color: 'from-amber-500/20 to-red-500/20 border-amber-500/30 text-amber-400',
+      activeColor: 'border-amber-400 bg-amber-950/40 shadow-[0_0_30px_rgba(251,191,36,0.2)] scale-[1.02]'
     },
     {
-      icon: Fingerprint,
-      title: 'Motif & Tekstur Kemasan',
-      desc: 'High-Res Surface Grain & Finish',
-      tag: '🔒 UNTOUCHED',
-      color: 'from-red-500/20 to-rose-500/20 border-red-500/30 text-red-400'
+      id: 'shape',
+      title: 'Bentuk Absolut',
+      desc: 'Botol tidak akan tiba-tiba melengkung. Siluet asli produk Anda dikunci secara presisi hingga level piksel terdalam.',
+      icon: ShieldAlert,
+      color: 'from-blue-500/20 to-cyan-500/20 border-cyan-500/30 text-cyan-400',
+      activeColor: 'border-cyan-400 bg-cyan-950/40 shadow-[0_0_30px_rgba(6,182,212,0.2)] scale-[1.02]'
+    },
+    {
+      id: 'color',
+      title: 'Akurasi Warna Sejati',
+      desc: 'Merah ya merah, bukan oranye. Pelanggan tidak akan komplain karena barang datang beda warna dengan di foto.',
+      icon: Droplet,
+      color: 'from-rose-500/20 to-pink-500/20 border-rose-500/30 text-rose-400',
+      activeColor: 'border-rose-400 bg-rose-950/40 shadow-[0_0_30px_rgba(244,63,94,0.2)] scale-[1.02]'
+    },
+    {
+      id: 'bg',
+      title: 'Latar Bebas Diubah',
+      desc: 'Area di luar produk bebas Anda kreasikan. Ganti dari meja kafe ke atas awan dalam 5 detik tanpa merusak produk.',
+      icon: ImageIcon,
+      color: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-400',
+      activeColor: 'border-emerald-400 bg-emerald-950/40 shadow-[0_0_30px_rgba(16,185,129,0.2)] scale-[1.02]'
     }
   ];
 
@@ -126,13 +77,12 @@ const IntegrityEngine = () => {
             scale: backgroundScale,
           }}
         />
-        {/* Dark cyber gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-950/90 to-slate-950 backdrop-blur-md" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Header section with futuristic cyber pill */}
+        {/* Human-centric Header */}
         <div className="text-center mb-16">
           <motion.div 
             initial={{ opacity: 0, y: -10 }}
@@ -141,169 +91,160 @@ const IntegrityEngine = () => {
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-950/70 border border-blue-500/30 rounded-full mb-6 backdrop-blur-md shadow-lg shadow-blue-500/10"
           >
             <Cpu className="w-4 h-4 text-cyan-400 animate-pulse" />
-            <span className="text-xs uppercase tracking-widest font-mono text-cyan-300">AI Product Integrity Engine v2.0</span>
+            <span className="text-xs uppercase tracking-widest font-mono text-cyan-300">Pixel Protection Tech</span>
           </motion.div>
 
           <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">
-            Product Integrity <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Engine™</span>
+            Ubah Latar Bebas. <br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-rose-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">Tapi Jangan Sentuh Produk Saya.</span>
           </h2>
           <p className="text-base md:text-xl text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
-            Banyak AI generator yang mengubah produk asli Anda dan membuat pelanggan kecewa. 
-            <strong className="text-cyan-300 font-semibold"> ZenStudio menjamin produk Anda tetap autentik 100%.</strong>
+            Sering kesal karena AI merusak bentuk botol atau melengkungkan logo? Kami mengerti. <strong className="text-cyan-300 font-semibold">ZenStudio melindungi bentuk, warna, dan tulisan asli produk Anda 100%.</strong>
           </p>
         </div>
 
-        {/* Infographic Dual Matrix Grid */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {/* Card 1: AI Boleh Mengubah */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="relative group bg-slate-900/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.15)] hover:shadow-[0_0_40px_rgba(6,182,212,0.25)] transition-all duration-300 overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle,rgba(6,182,212,0.15)_0%,transparent_70%)] group-hover:bg-[radial-gradient(circle,rgba(6,182,212,0.25)_0%,transparent_70%)] rounded-full transition-all pointer-events-none" />
-            <div className="absolute -top-10 -right-10 w-24 h-24 border border-cyan-500/20 rounded-full" />
-
-            {/* Header Title */}
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-cyan-500/20">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shadow-inner">
-                  <Sparkles className="w-6 h-6 text-cyan-400" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    AI Boleh Mengubah
-                    <CheckCircle2 className="w-5 h-5 text-cyan-400" />
-                  </h3>
-                  <span className="text-xs font-mono text-cyan-400/80 uppercase tracking-wider">Dynamic Creative Enhancements</span>
-                </div>
-              </div>
-              <span className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono rounded-full hidden sm:inline-block">
-                GEN-AI PERMITTED
+        {/* Interactive Scanner ("Show, Don't Tell") */}
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-12 items-center mb-24">
+          
+          {/* Left Side: Interactive Feature Cards */}
+          <div className="flex-1 w-full space-y-4">
+            <div className="mb-6 lg:mb-8 text-center lg:text-left">
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/80 border border-slate-600 rounded-full text-xs font-mono text-slate-300 mb-4 shadow-inner">
+                <MousePointer2 className="w-3.5 h-3.5" /> Arahkan Kursor (Hover) di Sini
               </span>
+              <h3 className="text-2xl font-bold text-white mb-2">Anatomi Proteksi AI</h3>
             </div>
-
-            {/* Infographic Icon Items */}
-            <div className="space-y-4">
-              {allowedItems.map((item, i) => {
-                const IconComponent = item.icon;
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+              {features.map((f) => {
+                const Icon = f.icon;
+                const isActive = activeFeature === f.id;
                 return (
-                  <motion.div 
-                    key={i}
-                    whileHover={{ scale: 1.02, x: 4 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 hover:border-cyan-500/40 transition-all group/item"
+                  <div 
+                    key={f.id}
+                    onMouseEnter={() => setActiveFeature(f.id)}
+                    onMouseLeave={() => setActiveFeature(null)}
+                    className={`p-5 rounded-2xl border transition-all duration-300 cursor-crosshair flex items-start gap-4 
+                      ${isActive ? f.activeColor : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/80'}`}
                   >
-                    <div className="flex items-center gap-3.5">
-                      <div className={`p-2.5 rounded-xl bg-gradient-to-br ${item.color} border shrink-0`}>
-                        <IconComponent className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-100 group-hover/item:text-cyan-300 transition-colors">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs text-slate-400">{item.desc}</p>
-                      </div>
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${f.color} border shrink-0 transition-transform ${isActive ? 'scale-110' : ''}`}>
+                      <Icon className="w-6 h-6" />
                     </div>
-                    <span className="text-[10px] font-mono font-bold tracking-wider px-2.5 py-1 rounded-md bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 shrink-0 ml-2">
-                      {item.tag}
-                    </span>
-                  </motion.div>
-                );
+                    <div>
+                      <h4 className={`font-bold mb-1.5 transition-colors ${isActive ? 'text-white' : 'text-slate-200'}`}>
+                        {f.title}
+                      </h4>
+                      <p className={`text-sm leading-relaxed transition-colors ${isActive ? 'text-slate-300' : 'text-slate-400'}`}>
+                        {f.desc}
+                      </p>
+                    </div>
+                  </div>
+                )
               })}
             </div>
-          </motion.div>
+          </div>
 
-          {/* Card 2: AI Dilarang Mengubah */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="relative group bg-slate-900/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-rose-500/30 shadow-[0_0_30px_rgba(244,63,94,0.15)] hover:shadow-[0_0_40px_rgba(244,63,94,0.25)] transition-all duration-300 overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle,rgba(244,63,94,0.15)_0%,transparent_70%)] group-hover:bg-[radial-gradient(circle,rgba(244,63,94,0.25)_0%,transparent_70%)] rounded-full transition-all pointer-events-none" />
-            <div className="absolute -top-10 -right-10 w-24 h-24 border border-rose-500/20 rounded-full" />
-
-            {/* Header Title */}
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-rose-500/20">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center shadow-inner">
-                  <Lock className="w-6 h-6 text-rose-400" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    AI Dilarang Mengubah
-                    <XCircle className="w-5 h-5 text-rose-400" />
-                  </h3>
-                  <span className="text-xs font-mono text-rose-400/80 uppercase tracking-wider">Strict Preservation Matrix</span>
-                </div>
-              </div>
-              <span className="px-3 py-1 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono rounded-full hidden sm:inline-block">
-                HARDWARE LOCKED
-              </span>
-            </div>
-
-            {/* Infographic Icon Items */}
-            <div className="space-y-4">
-              {restrictedItems.map((item, i) => {
-                const IconComponent = item.icon;
-                return (
-                  <motion.div 
-                    key={i}
-                    whileHover={{ scale: 1.02, x: 4 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 hover:border-rose-500/40 transition-all group/item"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className={`p-2.5 rounded-xl bg-gradient-to-br ${item.color} border shrink-0`}>
-                        <IconComponent className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-100 group-hover/item:text-rose-300 transition-colors">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs text-slate-400">{item.desc}</p>
-                      </div>
+          {/* Right Side: Visual Scanner Simulator */}
+          <div className="flex-1 w-full max-w-lg lg:max-w-none mx-auto relative perspective-1000">
+            <div className="relative aspect-[4/5] sm:aspect-square md:aspect-video lg:aspect-square bg-slate-900/80 backdrop-blur-xl rounded-[2.5rem] border border-slate-700/50 overflow-hidden shadow-2xl flex items-center justify-center p-8 group">
+              {/* Sci-fi Background Patterns */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.1)_0%,transparent_70%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-30" />
+              
+              {/* Central Abstract Product Representation */}
+              <div className="relative w-full max-w-[240px] aspect-[1/2] sm:aspect-[3/4] mx-auto z-10 transition-all duration-500 flex items-center justify-center">
+                
+                {/* Dynamic Background Area */}
+                <div className={`absolute -inset-10 sm:-inset-16 rounded-[3rem] transition-all duration-1000 ${
+                  activeFeature === 'bg' 
+                    ? 'bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.3)_0%,transparent_70%)] blur-md scale-110' 
+                    : 'bg-slate-800/20 blur-sm scale-100'
+                }`} />
+                
+                {/* The Product Silhouette */}
+                <div className={`relative w-full h-[80%] bg-slate-800 rounded-3xl border-2 overflow-hidden transition-all duration-500 shadow-2xl ${
+                  activeFeature === 'shape' 
+                    ? 'border-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.5)] scale-105' 
+                    : 'border-slate-600'
+                }`}>
+                  {/* Color Overlay */}
+                  <div className={`absolute inset-0 transition-all duration-700 ${
+                    activeFeature === 'color' 
+                      ? 'bg-gradient-to-br from-rose-400/40 via-rose-600/60 to-rose-900/80 mix-blend-overlay' 
+                      : 'bg-gradient-to-br from-slate-700 to-slate-900'
+                  }`} />
+                  
+                  {/* Product Details (Cap & Label) */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-start pt-6 sm:pt-10 gap-6 sm:gap-10">
+                    <div className={`w-16 sm:w-20 h-6 sm:h-8 rounded-full transition-all duration-500 ${
+                      activeFeature === 'color' ? 'bg-rose-300 shadow-[0_0_20px_rgba(251,113,133,0.6)]' : 'bg-slate-700'
+                    }`} />
+                    
+                    {/* Logo/OCR Protected Area */}
+                    <div className={`w-full py-8 sm:py-12 px-4 flex items-center justify-center border-y-2 border-dashed transition-all duration-300 ${
+                      activeFeature === 'logo' 
+                        ? 'border-amber-400 bg-amber-500/20 backdrop-blur-md' 
+                        : 'border-slate-600/50'
+                    }`}>
+                      <span className={`font-black tracking-[0.2em] text-lg sm:text-2xl transition-all duration-300 ${
+                        activeFeature === 'logo' 
+                          ? 'text-amber-300 drop-shadow-[0_0_15px_rgba(251,191,36,1)] scale-110' 
+                          : 'text-slate-500'
+                      }`}>MYSTIQ</span>
                     </div>
-                    <span className="text-[10px] font-mono font-bold tracking-wider px-2.5 py-1 rounded-md bg-rose-950/80 border border-rose-500/30 text-rose-300 shrink-0 ml-2">
-                      {item.tag}
-                    </span>
-                  </motion.div>
-                );
-              })}
+                  </div>
+                </div>
+
+                {/* Scanning Laser Line (Ambient) */}
+                <motion.div 
+                  className="absolute left-[-20%] right-[-20%] h-[3px] bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,1)] z-20 pointer-events-none rounded-full"
+                  animate={{ top: ['0%', '100%', '0%'] }}
+                  transition={{ duration: 3, ease: "linear", repeat: Infinity }}
+                  style={{ opacity: activeFeature === null ? 0.7 : 0 }}
+                />
+              </div>
+
+              {/* Status Overlay UI */}
+              <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row justify-between items-center px-5 py-3 bg-slate-950/90 backdrop-blur-md rounded-2xl border border-slate-700/80 shadow-xl gap-2">
+                <span className="text-[10px] sm:text-xs font-mono text-slate-400 tracking-wider">SYSTEM STATUS:</span>
+                <span className="text-[10px] sm:text-xs font-mono text-cyan-400 font-bold flex items-center gap-2 bg-cyan-950/30 px-3 py-1 rounded-full border border-cyan-500/20">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                  {activeFeature === 'logo' && 'OCR LOCK ENGAGED'}
+                  {activeFeature === 'shape' && 'GEOMETRY PRESERVED'}
+                  {activeFeature === 'color' && 'DELTA-E MATCHED'}
+                  {activeFeature === 'bg' && 'SCENE GENERATION'}
+                  {activeFeature === null && 'AWAITING INPUT'}
+                </span>
+              </div>
             </div>
-          </motion.div>
+          </div>
         </div>
 
-        {/* Live Authenticity Score Infographic Validation Bar */}
-        <div ref={ringsRef} className="mt-16 bg-slate-900/90 backdrop-blur-xl rounded-3xl p-8 max-w-6xl mx-auto border border-blue-500/20 shadow-[0_0_50px_rgba(30,58,138,0.3)] relative overflow-hidden">
-          {/* Subtle Cyber Grid Accent */}
+        {/* Live Authenticity Score Validation (Humanized Labels) */}
+        <div ref={ringsRef} className="bg-slate-900/90 backdrop-blur-xl rounded-[2.5rem] p-6 md:p-10 max-w-6xl mx-auto border border-blue-500/20 shadow-[0_0_50px_rgba(30,58,138,0.3)] relative overflow-hidden">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
           
-          <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 border-b border-slate-800 pb-6 relative z-10">
-            <div className="flex items-center gap-3 text-left">
-              <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-                <Zap className="w-5 h-5 animate-pulse" />
+          <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4 border-b border-slate-800 pb-6 relative z-10">
+            <div className="flex items-center gap-4 text-center md:text-left">
+              <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hidden sm:block">
+                <Zap className="w-6 h-6 animate-pulse" />
               </div>
               <div>
-                <h4 className="font-bold text-lg text-white">Live Authenticity Score Validation</h4>
-                <p className="text-xs text-slate-400">Computer Vision Pixel Match & OCR Integrity Radar</p>
+                <h4 className="font-bold text-xl text-white mb-1">Skor Keaslian Produk</h4>
+                <p className="text-sm text-slate-400">Verifikasi piksel otomatis oleh Computer Vision</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-full text-xs font-mono text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              SYSTEM ACTIVE: 100% ACCURATE
+            <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-full text-xs font-mono text-emerald-400 shadow-inner">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+              100% AMAN DIGUNAKAN
             </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 relative z-10">
-            <ScoreRing label="Shape Mesh Match" value={99.8} scrollYProgress={ringsScrollY} color="#38BDF8" />
-            <ScoreRing label="Delta-E Color Match" value={99.5} scrollYProgress={ringsScrollY} color="#818CF8" />
-            <ScoreRing label="Logo Vector Lock" value={100} scrollYProgress={ringsScrollY} color="#34D399" />
-            <ScoreRing label="OCR Label Clarity" value={99.9} scrollYProgress={ringsScrollY} color="#F472B6" />
+            <ScoreRing label="Akurasi Bentuk Asli" value={99.8} scrollYProgress={ringsScrollY} color="#38BDF8" />
+            <ScoreRing label="Konsistensi Warna" value={99.5} scrollYProgress={ringsScrollY} color="#818CF8" />
+            <ScoreRing label="Keutuhan Logo" value={100} scrollYProgress={ringsScrollY} color="#34D399" />
+            <ScoreRing label="Ketajaman Teks" value={99.9} scrollYProgress={ringsScrollY} color="#F472B6" />
           </div>
         </div>
       </div>
@@ -315,14 +256,13 @@ const ScoreRing = ({ label, value, scrollYProgress, color = "#60A5FA" }: { label
   const circumference = 282.743; // 2 * Math.PI * 45
   const targetOffset = circumference * (1 - value / 100);
   
-  // Map scroll progress (0 to 1) to stroke dash offset (empty to filled)
   const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [circumference, targetOffset]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/50 border border-slate-800/80 hover:border-slate-700 transition-all">
-      <div className="relative w-24 h-24 mb-3">
-        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
+    <div className="flex flex-col items-center justify-center p-5 rounded-3xl bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 hover:bg-slate-900 transition-all duration-300">
+      <div className="relative w-24 h-24 mb-4">
+        <svg className="w-full h-full transform -rotate-90 drop-shadow-xl" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
           <motion.circle 
             cx="50" cy="50" r="45" 
             fill="none" 
@@ -334,14 +274,13 @@ const ScoreRing = ({ label, value, scrollYProgress, color = "#60A5FA" }: { label
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-xl font-black text-white tracking-tight">{value}%</span>
-          <span className="text-[9px] font-mono text-slate-400">PASSED</span>
+          <span className="text-2xl font-black text-white tracking-tighter">{value}%</span>
+          <span className="text-[10px] font-mono text-emerald-400 font-bold tracking-widest mt-0.5">LULUS</span>
         </div>
       </div>
-      <span className="text-slate-300 font-medium text-xs text-center">{label}</span>
+      <span className="text-slate-300 font-semibold text-sm text-center leading-tight">{label}</span>
     </div>
   );
 };
 
 export default IntegrityEngine;
-

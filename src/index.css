@@ -67,20 +67,3 @@
   }
 }
 
-/* ── Prevent Tailwind base reset from breaking Clerk modal components ── */
-/* Clerk renders in a portal to document.body — Tailwind's base reset
-   strips margins, padding, and box-sizing from Clerk's internal elements. */
-.cl-root,
-.cl-modal,
-.cl-card,
-.cl-form,
-.cl-socialButtons {
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-/* Restore button sizing that Tailwind base strips */
-.cl-formButtonPrimary,
-.cl-socialButtonsBlockButton {
-  box-sizing: content-box;
-}
-

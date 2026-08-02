@@ -20,34 +20,42 @@ const API_BASE_URL = getApiBaseUrl();
 export const useApiClient = () => {
   const { getToken } = useAuth();
 
-  const request = async (endpoint: string, options: RequestInit = {}) => {
+  const fetchValidToken = async (): Promise<string | null> => {
+    // Attempt 1: Standard cached token fetch
     try {
-      let token: string | null = null;
-      try {
-        token = await getToken();
-      } catch {
-        token = null;
-      }
+      const token = await getToken();
+      if (token) return token;
+    } catch {
+      // Fallback to bypass cache
+    }
 
-      // Jika token belum siap (sedang refresh/hydrating), tunggu sebentar lalu coba lagi
-      if (!token) {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        try {
-          token = await getToken({ skipCache: true });
-        } catch {
-          token = null;
-        }
+    // Attempt 2: Retry with skipCache and exponential backoff
+    const delays = [200, 500, 1000];
+    for (const delay of delays) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      try {
+        const token = await getToken({ skipCache: true });
+        if (token) return token;
+      } catch {
+        // Continue retrying
       }
+    }
+    return null;
+  };
+
+  const request = async (endpoint: string, options: RequestInit = {}, isRetry = false): Promise<any> => {
+    try {
+      let token = await fetchValidToken();
 
       if (!token) {
         throw new Error("Sesi login belum siap atau belum aktif. Silakan refresh halaman dan login kembali.");
       }
 
-      const headers = {
+      const headers: Record<string, string> = {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache, no-store, must-revalidate",
         Authorization: `Bearer ${token}`,
-        ...options.headers,
+        ...(options.headers as Record<string, string> || {}),
       };
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -57,6 +65,19 @@ export const useApiClient = () => {
 
       const contentType = response.headers.get("content-type") || "";
       const isJson = contentType.includes("application/json");
+
+      // Handle 401 Unauthorized with transparent 1x retry using a fresh token
+      if (response.status === 401 && !isRetry) {
+        console.warn(`[ApiClient] Received 401 for ${endpoint}. Attempting automatic token refresh and retry...`);
+        try {
+          const freshToken = await getToken({ skipCache: true });
+          if (freshToken) {
+            return await request(endpoint, options, true);
+          }
+        } catch (retryErr) {
+          console.error("[ApiClient] Automatic token refresh retry failed:", retryErr);
+        }
+      }
 
       if (!response.ok) {
         if (isJson) {

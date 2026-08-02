@@ -260,15 +260,22 @@ export class AIService {
 
       if (!response.ok) {
         const errText = await response.text();
-        console.error("[Replicate Error]", errText);
-        throw new Error(`Replicate API Error: ${response.statusText}`);
+        console.error("[Replicate OpenAI Error]", errText);
+        let parsedMessage = response.statusText;
+        try {
+          const parsedErr = JSON.parse(errText);
+          parsedMessage = parsedErr.detail || parsedErr.error || parsedMessage;
+        } catch {
+          // Use default response statusText
+        }
+        throw new Error(`Gagal memproses gambar pada model OpenAI: ${parsedMessage}`);
       }
 
       const data = await response.json();
       const predId = data.id;
       
       if (data.status === "failed") {
-        throw new Error(data.error || "Replicate prediction failed");
+        throw new Error(data.error || "Proses generasi gambar OpenAI gagal pada provider Replicate.");
       }
       
       if (data && data.output) {

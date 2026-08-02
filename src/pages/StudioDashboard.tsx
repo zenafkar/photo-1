@@ -575,7 +575,16 @@ export default function StudioDashboard() {
                         </label>
                         <select 
                           value={resolution} 
-                          onChange={(e) => setResolution(e.target.value)}
+                          onChange={(e) => {
+                            const newRes = e.target.value;
+                            setResolution(newRes);
+                            setPrompt(prev => {
+                              if (!prev) return prev;
+                              let updated = prev.replace(/(1k|2k|4k|8k)\s*resolution/gi, `${newRes.toLowerCase()} resolution`);
+                              updated = updated.replace(/\b(1k|2k|4k|8k)\b/gi, newRes.toLowerCase());
+                              return updated;
+                            });
+                          }}
                           className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium text-slate-700"
                         >
                           <option value="1k">1K (Standard - 1024px)</option>

@@ -48,7 +48,10 @@ router.post("/", async (req: Request, res: Response) => {
     }
 
     const resString = (resolution || "").toLowerCase();
-    const creditsToDeduct = resString === "4k" ? 2 : 1;
+    let creditsToDeduct = resString === "4k" ? 2 : 1;
+    if (provider === "nanobanana" || provider === "nanobanana2") {
+      creditsToDeduct = 2;
+    }
 
     if (!user || !user.credits || user.credits.remainingCredits < creditsToDeduct) {
       return res.status(403).json({ success: false, message: `Kredit tidak cukup. Dibutuhkan ${creditsToDeduct} kredit untuk resolusi ini.` });

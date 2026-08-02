@@ -185,7 +185,10 @@ export default function StudioDashboard() {
     if (!previewUrl || credits === 0 || !imageBase64) return;
 
     const resString = (resolution || "").toLowerCase();
-    const creditsToDeduct = resString === "4k" ? 2 : 1;
+    let creditsToDeduct = resString === "4k" ? 2 : 1;
+    if (provider === "nanobanana" || provider === "nanobanana2") {
+      creditsToDeduct = 2;
+    }
 
     if (credits !== null && credits < creditsToDeduct) {
       setGenerateError(`Kredit tidak cukup. Dibutuhkan ${creditsToDeduct} kredit untuk resolusi ini.`);

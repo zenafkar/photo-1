@@ -24,8 +24,9 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
         statusCode: res.statusCode,
         duration,
         timestamp: new Date().toISOString(),
-        body: req.body,
-        query: req.query,
+        // Never include raw request body/query — may contain base64 images or PII
+        bodySize: req.body ? JSON.stringify(req.body).length : 0,
+        queryKeys: req.query ? Object.keys(req.query) : [],
       });
     }
   });
@@ -43,10 +44,11 @@ export const telemetryErrorHandler = (err: any, req: Request, res: Response, nex
     errorMessage: err.message,
     stackTrace: err.stack,
     timestamp: new Date().toISOString(),
-    body: req.body,
-    query: req.query,
+    // Only include size metadata, never raw body/query content
+    bodySize: req.body ? JSON.stringify(req.body).length : 0,
+    queryKeys: req.query ? Object.keys(req.query) : [],
   });
-  
+
   next(err);
 };
 

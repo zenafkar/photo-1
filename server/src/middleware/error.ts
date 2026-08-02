@@ -8,10 +8,11 @@ export const errorHandler = (
 ) => {
   console.error("[Error]:", err.stack);
   
+  const isDev = process.env.NODE_ENV === "development";
   res.status(500).json({
     success: false,
-    message: err.message || "Internal Server Error",
-    // In production, we typically don't send the full stack trace to the client
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    message: isDev ? err.message : "Internal Server Error",
+    // Never send stack traces to clients in production
+    ...(isDev && { stack: err.stack }),
   });
 };

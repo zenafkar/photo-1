@@ -33,6 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_TELEMETRY_SECRET || 'dev-secret-change-in-production'}`,
         },
         body: JSON.stringify({
           type: 'CLIENT_UI_ERROR',

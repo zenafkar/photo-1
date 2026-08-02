@@ -96,6 +96,24 @@ export async function handleAnomaly(payload: any) {
 
   } catch (error) {
     console.error("AI Agent Failed to handle anomaly:", error);
+
+    // Safety net: when Gemini is down, still send a raw Telegram alert
+    // No AI diagnosis — just the raw payload so you know something happened
+    try {
+      const errorType = payload.type || "UNKNOWN";
+      const errorName = payload.errorName || payload.errorMessage || "N/A";
+      const component = payload.url || payload.method || "Unknown Component";
+
+      await telegramBot.sendFullActionReport({
+        time: payload.timestamp || new Date().toISOString(),
+        component,
+        rootCause: `[FALLBACK] Gemini unavailable — raw ${errorType}`,
+        action: `Raw alert: ${errorName}`,
+        status: "AI_DOWN_RAW_ALERT",
+      });
+    } catch (fallbackError) {
+      console.error("Even fallback Telegram alert failed:", fallbackError);
+    }
   }
 }
 

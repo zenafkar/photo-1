@@ -581,7 +581,21 @@ export default function StudioDashboard() {
                             setPrompt(prev => {
                               if (!prev) return prev;
                               let updated = prev.replace(/(1k|2k|4k|8k)\s*resolution/gi, `${newRes.toLowerCase()} resolution`);
-                              updated = updated.replace(/\b(1k|2k|4k|8k)\b/gi, newRes.toLowerCase());
+                              
+                              if (updated === prev) {
+                                updated = updated.replace(/\b(1k|2k|4k|8k)\b/gi, newRes.toLowerCase());
+                              }
+                              
+                              // If no resolution was found and replaced, append it automatically
+                              if (updated === prev && prev.trim().length > 0) {
+                                const trimmed = updated.trim();
+                                if (trimmed.endsWith('.') || trimmed.endsWith(',')) {
+                                  updated = `${trimmed} ${newRes.toLowerCase()} resolution`;
+                                } else {
+                                  updated = `${trimmed}, ${newRes.toLowerCase()} resolution`;
+                                }
+                              }
+                              
                               return updated;
                             });
                           }}

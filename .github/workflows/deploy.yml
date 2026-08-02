@@ -26,7 +26,7 @@ jobs:
       # 3. Proses Build Frontend & Backend di Server GitHub
       - name: Install and Build
         env:
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY || 'pk_live_Y2xlcmsuemVuc3R1ZGlvLm15LmlkJA' }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
           VITE_API_URL: '/api/v1'
         run: |
           npm install
@@ -53,15 +53,29 @@ jobs:
         uses: appleboy/ssh-action@master
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_REPORT_LEVEL: ${{ secrets.TELEGRAM_REPORT_LEVEL }}
+          ENABLE_AUTO_RESTART_PM2: ${{ secrets.ENABLE_AUTO_RESTART_PM2 }}
+          ENABLE_AUTO_GITHUB_ISSUE: ${{ secrets.ENABLE_AUTO_GITHUB_ISSUE }}
+          ENABLE_GIT_ROLLBACK: ${{ secrets.ENABLE_GIT_ROLLBACK }}
+          ENABLE_CACHE_FLUSH: ${{ secrets.ENABLE_CACHE_FLUSH }}
+          ENABLE_AUTO_GIT_PUSH: ${{ secrets.ENABLE_AUTO_GIT_PUSH }}
+          REQUIRE_APPROVAL_FOR_GIT_PUSH: ${{ secrets.REQUIRE_APPROVAL_FOR_GIT_PUSH }}
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: DATABASE_URL,CLERK_PUBLISHABLE_KEY,CLERK_SECRET_KEY,REPLICATE_API_TOKEN,GEMINI_API_KEY,GITHUB_TOKEN,TELEGRAM_BOT_TOKEN,TELEGRAM_CHAT_ID
+          envs: DATABASE_URL,CLERK_PUBLISHABLE_KEY,CLERK_SECRET_KEY,REPLICATE_API_TOKEN,GEMINI_API_KEY,GITHUB_TOKEN,TELEGRAM_BOT_TOKEN,TELEGRAM_CHAT_ID,TELEGRAM_REPORT_LEVEL,ENABLE_AUTO_RESTART_PM2,ENABLE_AUTO_GITHUB_ISSUE,ENABLE_GIT_ROLLBACK,ENABLE_CACHE_FLUSH,ENABLE_AUTO_GIT_PUSH,REQUIRE_APPROVAL_FOR_GIT_PUSH,FAL_KEY,HF_TOKEN,OPENAI_API_KEY
           script: |
             mkdir -p /var/www/zen-dev/server
             cd /var/www/zen-dev/server
@@ -88,47 +102,62 @@ jobs:
             }
 
             set_env "DATABASE_URL" "$DATABASE_URL"
-            set_env "CLERK_PUBLISHABLE_KEY" "${CLERK_PUBLISHABLE_KEY:-pk_live_Y2xlcmsuemVuc3R1ZGlvLm15LmlkJA}"
+            set_env "CLERK_PUBLISHABLE_KEY" "$CLERK_PUBLISHABLE_KEY"
             set_env "CLERK_SECRET_KEY" "${CLERK_SECRET_KEY}"
             set_env "REPLICATE_API_TOKEN" "$REPLICATE_API_TOKEN"
             set_env "GEMINI_API_KEY" "$GEMINI_API_KEY"
             set_env "GITHUB_TOKEN" "$GITHUB_TOKEN"
             set_env "TELEGRAM_BOT_TOKEN" "$TELEGRAM_BOT_TOKEN"
             set_env "TELEGRAM_CHAT_ID" "$TELEGRAM_CHAT_ID"
+            set_env "TELEGRAM_REPORT_LEVEL" "${TELEGRAM_REPORT_LEVEL:-WARNING_AND_ABOVE}"
+            set_env "FAL_KEY" "$FAL_KEY"
+            set_env "HF_TOKEN" "$HF_TOKEN"
+            set_env "OPENAI_API_KEY" "$OPENAI_API_KEY"
+            set_env "ENABLE_AUTO_RESTART_PM2" "${ENABLE_AUTO_RESTART_PM2:-true}"
+            set_env "ENABLE_AUTO_GITHUB_ISSUE" "${ENABLE_AUTO_GITHUB_ISSUE:-true}"
+            set_env "ENABLE_GIT_ROLLBACK" "${ENABLE_GIT_ROLLBACK:-true}"
+            set_env "ENABLE_CACHE_FLUSH" "${ENABLE_CACHE_FLUSH:-true}"
+            set_env "ENABLE_AUTO_GIT_PUSH" "${ENABLE_AUTO_GIT_PUSH:-true}"
+            set_env "REQUIRE_APPROVAL_FOR_GIT_PUSH" "${REQUIRE_APPROVAL_FOR_GIT_PUSH:-true}"
 
-            npm install
+            npm install --production
             ./node_modules/.bin/prisma generate
-            ./node_modules/.bin/prisma db push --accept-data-loss || true
+            ./node_modules/.bin/prisma db push
             pm2 restart backend-api || pm2 start dist/index.js --name "backend-api"
 
             # ── Fix SEO: ensure robots.txt & sitemap.xml are served by Nginx ──
             echo "=== SEO Fix: Starting ==="
 
-            # 1. Verify the SEO files exist in dist
-            ls -la /var/www/zen-dev/dist/robots.txt /var/www/zen-dev/dist/sitemap.xml 2>&1 || echo "WARNING: SEO files missing in dist!"
-
-            # 2. Find nginx root dir and copy SEO files there (handles root != dist)
-            NGINX_ROOT=$(grep -rh 'root ' /etc/nginx/sites-enabled/ 2>/dev/null | grep -v '#' | head -1 | sed 's/.*root *//;s/;.*//' | xargs)
-            echo "Nginx root: ${NGINX_ROOT:-not found}"
-            if [ -n "$NGINX_ROOT" ] && [ -d "$NGINX_ROOT" ]; then
-              sudo cp -f /var/www/zen-dev/dist/robots.txt "$NGINX_ROOT/" 2>/dev/null
-              sudo cp -f /var/www/zen-dev/dist/sitemap.xml "$NGINX_ROOT/" 2>/dev/null
-              sudo chmod 644 "$NGINX_ROOT/robots.txt" "$NGINX_ROOT/sitemap.xml" 2>/dev/null
-              echo "Copied SEO files to $NGINX_ROOT"
-              ls -la "$NGINX_ROOT/robots.txt" "$NGINX_ROOT/sitemap.xml" 2>&1
-            fi
-
-            # 3. Also fix permissions in dist
+            # 1. Verify the SEO files exist in dist after build
+            for f in robots.txt sitemap.xml; do
+              if [ -f "/var/www/zen-dev/dist/$f" ]; then
+                echo "OK: /var/www/zen-dev/dist/$f found ($(wc -c < /var/www/zen-dev/dist/$f) bytes)"
+              else
+                echo "ERROR: /var/www/zen-dev/dist/$f MISSING!"
+              fi
+            done
             sudo chmod 644 /var/www/zen-dev/dist/robots.txt /var/www/zen-dev/dist/sitemap.xml 2>/dev/null || true
 
-            # 4. Create nginx snippet with simple echo (avoids printf quoting issues)
+            # 2. Create nginx snippet — uses alias so it works regardless of the root directive
             sudo mkdir -p /etc/nginx/snippets
-            echo 'location = /robots.txt { default_type text/plain; try_files $uri =404; }' | sudo tee /etc/nginx/snippets/seo-files.conf > /dev/null
-            echo 'location = /sitemap.xml { default_type application/xml; try_files $uri =404; }' | sudo tee -a /etc/nginx/snippets/seo-files.conf > /dev/null
+            sudo tee /etc/nginx/snippets/seo-files.conf > /dev/null <<'NGINX_SNIPPET'
+            # Exact-match location blocks for SEO crawlers
+            # alias points directly to the known file paths — independent of the root directive
+            location = /robots.txt {
+                alias /var/www/zen-dev/dist/robots.txt;
+                default_type text/plain;
+                add_header Cache-Control "public, max-age=86400";
+            }
+            location = /sitemap.xml {
+                alias /var/www/zen-dev/dist/sitemap.xml;
+                default_type application/xml;
+                add_header Cache-Control "public, max-age=3600";
+            }
+            NGINX_SNIPPET
             echo "Snippet content:"
             cat /etc/nginx/snippets/seo-files.conf
 
-            # 5. Find active nginx config (use -E for extended regex)
+            # 3. Find the nginx config that serves zenstudio
             NGINX_CONF=""
             for f in /etc/nginx/sites-enabled/*; do
               if grep -qE "zenstudio|zen-dev" "$f" 2>/dev/null; then
@@ -139,12 +168,40 @@ jobs:
             [ -z "$NGINX_CONF" ] && NGINX_CONF="/etc/nginx/sites-enabled/default"
             echo "Using config: $NGINX_CONF"
 
-            # 6. Remove old SEO includes (prevent duplicates), then add fresh
-            sudo sed -i '/seo-files/d' "$NGINX_CONF" 2>/dev/null
-            sudo sed -i '/server_name/a\    include /etc/nginx/snippets/seo-files.conf;' "$NGINX_CONF" 2>/dev/null
-            echo "Updated nginx config"
+            # 4. Remove any old SEO includes (prevent duplicates)
+            sudo sed -i '/include \/etc\/nginx\/snippets\/seo-files\.conf/d' "$NGINX_CONF" 2>/dev/null
 
-            # 7. Test and reload nginx
+            # 5. Insert the include right after the server_name line that mentions zenstudio (or the first server_name as fallback)
+            if grep -q "server_name.*zenstudio" "$NGINX_CONF"; then
+              # Insert after the specific zenstudio server_name line
+              sudo sed -i '/server_name.*zenstudio/ s/$/\n    include \/etc\/nginx\/snippets\/seo-files.conf;/' "$NGINX_CONF"
+              echo "Inserted include after zenstudio server_name line"
+            else
+              # Fallback: insert after first server_name
+              sudo sed -i '0,/server_name.*/s//&\n    include \/etc\/nginx\/snippets\/seo-files.conf;/' "$NGINX_CONF"
+              echo "Inserted include after first server_name line (fallback)"
+            fi
+
+            # 6. Test and reload nginx
             sudo nginx -t 2>&1
-            sudo systemctl reload nginx 2>&1 && echo "=== Nginx reloaded ===" || echo "WARNING: Nginx reload failed"
+            if sudo nginx -t 2>&1; then
+              sudo systemctl reload nginx 2>&1 && echo "=== Nginx reloaded OK ===" || echo "WARNING: reload failed but config is valid"
+            else
+              echo "FATAL: nginx config test failed — removing snippet include to recover"
+              sudo sed -i '/include \/etc\/nginx\/snippets\/seo-files\.conf/d' "$NGINX_CONF"
+              sudo systemctl reload nginx 2>/dev/null || true
+              exit 1
+            fi
+
+            # 7. Verify the URLs are reachable
+            echo "Verifying SEO URLs..."
+            sleep 2
+            for url in "https://zenstudio.my.id/robots.txt" "https://zenstudio.my.id/sitemap.xml"; do
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null || echo "000")
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "  OK: $url → $HTTP_CODE"
+              else
+                echo "  WARN: $url → $HTTP_CODE (expected 200)"
+              fi
+            done
 

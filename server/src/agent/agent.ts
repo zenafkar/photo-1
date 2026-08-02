@@ -26,8 +26,8 @@ Decide on an action.
 Available Actions:
 1. "RESTART_PM2" - If memory leak or fatal server hang is suspected.
 2. "AUTO_FIX_PUSH" - If a simple code fix is identified.
-3. "GITHUB_ISSUE" - For complex bugs needing developer attention.
-4. "NO_ACTION" - If it's a transient client error.
+3. "GITHUB_ISSUE" - For complex bugs needing developer attention. ALSO use this for CLIENT_UI_ERROR — frontend crashes need developer investigation and fixing.
+4. "NO_ACTION" - Only for expected/benign events (e.g. 404s from bots, rate-limited requests within bounds). Never use for crashes, 5xx errors, or client UI errors.
 
 Respond strictly in JSON format:
 {

@@ -99,7 +99,7 @@ export default function StudioDashboard() {
     } catch (err: any) {
       console.error("Failed to load profile:", err);
       setProfileError(err.message || "Gagal memuat profil & riwayat gambar.");
-      setCredits(0); // Set ke 0 agar tombol terkunci saat error
+      // Keep existing credits state to prevent top-right badge from collapsing to 0 on network errors
     } finally {
       setIsLoadingProfile(false);
     }

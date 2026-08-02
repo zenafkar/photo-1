@@ -110,10 +110,17 @@ export const useApiClient = () => {
 
       const data = await response.json();
       return data;
-    } catch (error) {
+    } catch (error: any) {
       if (import.meta.env.DEV) {
         console.error(`[API Error] ${endpoint}:`, error);
       }
+
+      // Normalize raw browser network error strings (e.g. TypeError: Failed to fetch)
+      const message = error?.message || "";
+      if (message.includes("Failed to fetch") || message.includes("NetworkError") || error?.name === "TypeError") {
+        throw new Error("Koneksi terputus atau waktu pemrosesan server melebihi batas (Timeout). Silakan periksa koneksi atau coba beberapa saat lagi.");
+      }
+
       throw error;
     }
   };

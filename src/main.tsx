@@ -26,10 +26,21 @@ if (!PUBLISHABLE_KEY) {
   root.render(
     <React.StrictMode>
       <ErrorBoundary>
-        <ClerkProvider 
+        <ClerkProvider
           publishableKey={PUBLISHABLE_KEY}
           signInFallbackRedirectUrl="/studio"
           signUpFallbackRedirectUrl="/studio"
+          appearance={{
+            variables: {
+              colorBackground: '#0f172a',
+              colorInputBackground: '#1e293b',
+              colorInputText: '#e2e8f0',
+              colorText: '#e2e8f0',
+              colorTextSecondary: '#94a3b8',
+              colorPrimary: '#3b82f6',
+              colorNeutral: '#475569',
+            },
+          }}
         >
           <App />
         </ClerkProvider>

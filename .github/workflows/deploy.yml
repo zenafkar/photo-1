@@ -100,3 +100,75 @@ jobs:
             ./node_modules/.bin/prisma generate
             ./node_modules/.bin/prisma db push --accept-data-loss || true
             pm2 restart backend-api || pm2 start dist/index.js --name "backend-api"
+
+      # 6. Update Nginx config to fix robots.txt and sitemap.xml not being served correctly
+      - name: Configure Nginx on VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Write the Nginx site config for zenstudio.my.id
+            sudo tee /etc/nginx/sites-available/zenstudio.my.id > /dev/null << 'NGINX_EOF'
+            server {
+                listen 80;
+                listen [::]:80;
+                server_name zenstudio.my.id www.zenstudio.my.id;
+
+                # Redirect HTTP to HTTPS (if SSL is configured)
+                return 301 https://$host$request_uri;
+            }
+
+            server {
+                listen 443 ssl;
+                listen [::]:443 ssl;
+                server_name zenstudio.my.id www.zenstudio.my.id;
+
+                root /var/www/zen-dev/dist;
+                index index.html;
+
+                # ── SEO static files: serve directly, never fall through to SPA ──
+                location = /robots.txt {
+                    add_header Content-Type text/plain;
+                    try_files $uri =404;
+                }
+
+                location = /sitemap.xml {
+                    add_header Content-Type application/xml;
+                    try_files $uri =404;
+                }
+
+                # ── API proxy → Express backend ──
+                location /api/ {
+                    proxy_pass http://localhost:5000;
+                    proxy_http_version 1.1;
+                    proxy_set_header Upgrade $http_upgrade;
+                    proxy_set_header Connection 'upgrade';
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
+                    proxy_cache_bypass $http_upgrade;
+                }
+
+                # ── Static assets with long cache ──
+                location /assets/ {
+                    expires 1y;
+                    add_header Cache-Control "public, immutable";
+                    try_files $uri =404;
+                }
+
+                # ── SPA fallback: all other routes serve index.html ──
+                location / {
+                    try_files $uri $uri/ /index.html;
+                }
+            }
+            NGINX_EOF
+
+            # Enable site if not already linked
+            sudo ln -sf /etc/nginx/sites-available/zenstudio.my.id /etc/nginx/sites-enabled/zenstudio.my.id
+
+            # Test config and reload Nginx
+            sudo nginx -t && sudo systemctl reload nginx

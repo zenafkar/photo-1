@@ -229,7 +229,7 @@ const Hero = () => {
                   <img src="https://cdn.simpleicons.org/tiktok/ffffff" alt="TikTok" className="w-3.5 h-3.5 object-contain" />
                   TikTok Shop
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-semibold hidden sm:inline-flex">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-semibold">
                   <img src="https://cdn.worldvectorlogo.com/logos/tokopedia.svg" alt="Tokopedia" className="w-3.5 h-3.5 object-contain" />
                   Tokopedia
                 </span>
@@ -266,7 +266,7 @@ const Hero = () => {
                     <ArrowRight className="w-5 h-5" />
                   </Link>
                 </SignedIn>
-                <span className="text-slate-400 font-mono text-sm hidden sm:block">⚡ 3 Kredit/Bulan</span>
+                <span className="text-slate-400 font-mono text-xs sm:text-sm mt-1 sm:mt-0 block text-center">⚡ 3 Kredit/Bulan</span>
               </div>
             </StaggerItem>
 
@@ -290,10 +290,12 @@ const Hero = () => {
             {/* Live Visual Infographic Banner / Node Graphic */}
             <StaggerItem>
               <div className="p-4 mb-10 rounded-2xl bg-slate-900/60 border border-slate-800 max-w-5xl mx-auto backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-slate-300">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
-                  <span className="font-mono text-emerald-400 font-bold">LIVE AI PIPELINE:</span>
-                  <span className="hidden sm:inline">Upload Foto Biasa ➔ AI Integrity Protection ➔ Ekspor Foto Studio 4K</span>
+                <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                    <span className="font-mono text-emerald-400 font-bold">LIVE AI PIPELINE:</span>
+                  </div>
+                  <span className="text-[10px] sm:text-sm opacity-90">Upload Foto Biasa ➔ AI Integrity Protection ➔ Ekspor Foto Studio 4K</span>
                 </div>
                 <div className="flex items-center flex-wrap justify-center gap-3 shrink-0 text-slate-400 font-mono">
                   <span className="flex items-center gap-1"><Check className="w-4 h-4 text-cyan-400" /> Form Locked</span>

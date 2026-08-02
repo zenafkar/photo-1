@@ -233,6 +233,10 @@ const Hero = () => {
                   <img src="https://cdn.worldvectorlogo.com/logos/tokopedia.svg" alt="Tokopedia" className="w-3.5 h-3.5 object-contain" />
                   Tokopedia
                 </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-fuchsia-950/60 border border-fuchsia-500/40 text-fuchsia-300 text-xs font-semibold">
+                  <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" className="w-3.5 h-3.5 object-contain" />
+                  Instagram
+                </span>
               </div>
             </StaggerItem>
             

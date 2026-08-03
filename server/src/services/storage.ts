@@ -16,7 +16,7 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 export async function saveRemoteImageLocally(remoteUrl: string, req?: any): Promise<string> {
   try {
     // SSRF guard: only fetch from HTTPS URLs
-    const { isAllowedUrl } = await import("./urlSafety");
+    const { isAllowedUrl } = await import("./urlSafety.js");
     if (!isAllowedUrl(remoteUrl)) {
       console.warn(`[Storage] Blocked unsafe remote URL: ${remoteUrl.slice(0, 100)}`);
       return remoteUrl;

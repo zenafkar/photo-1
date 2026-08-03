@@ -137,3 +137,52 @@ All findings were verified against the codebase before any changes were made.
 | `src/components/InteractiveSandbox.tsx` | Lazy loading + dimensions |
 | `src/components/BeforeAfterSlider.tsx` | Lazy loading, removed high-priority fetches |
 | `src/index.css` | `prefers-reduced-motion` media query |
+
+---
+
+## Verification Analysis (Codebase Cross-Check)
+
+> **Date:** 2026-08-04 | Agent verified every fix against the actual source files.
+
+### ✅ All 8 Fixes Confirmed in Code
+
+| Fix | Verified Location | Result |
+|---|---|---|
+| Fix 1 — CSP img-src CDNs | `index.html:6` | ✅ Confirmed |
+| Fix 2 — `logo-text.png` deleted | `public/` directory | ✅ File gone |
+| Fix 3a — Revoke URL before new upload | `StudioDashboard.tsx:241-243` | ✅ Confirmed |
+| Fix 3b — Revoke URL on unmount | `StudioDashboard.tsx:157-164` | ✅ Confirmed |
+| Fix 4 — Gallery touch controls visible | `StudioDashboard.tsx:903,907` — `opacity-100 md:opacity-0 md:group-hover:opacity-100` | ✅ Confirmed |
+| Fix 5a — Hero `y` transform animation | `Hero.tsx:90` — `animate={{ y: ["0vh", "55vh", "55vh"] }}` + `willChange: 'transform'` | ✅ Confirmed |
+| Fix 5b — IntegrityEngine `y` transform animation | `IntegrityEngine.tsx:236` — `animate={{ y: ['0px', '380px', '0px'] }}` + `willChange: 'transform'` | ✅ Confirmed |
+| Fix 6 — `prefers-reduced-motion` | `src/index.css:116-125` — full media query block | ✅ Confirmed |
+| Fix 7 — Preconnect hints | `index.html:38-42` — 3 preconnect + 2 dns-prefetch | ✅ Confirmed |
+| Fix 8 — `loading="lazy"` + `width`/`height` | `BeforeAfterSlider.tsx:84-107`, `IntegrityEngine.tsx:181,189`, `InteractiveSandbox.tsx:288,302` | ✅ Confirmed |
+
+### ✅ False Alarm Resolved — `createObjectURL` at L353
+
+The `createObjectURL` call in `handleDownload` (L353) is **not a leak** — `URL.revokeObjectURL(objectUrl)` is called immediately at L361 after the click trigger. Clean.
+
+### 📦 Public Asset Size Audit
+
+| File | Size | Issue |
+|---|---|---|
+| `integrity-bg.jpg` | **2.35 MB** | Needs WebP compression — P2 |
+| `mystic-after.jpg` | **1.92 MB** | Mislabeled PNG data — P1+P2 |
+| `earfun-before.jpg` | **1.67 MB** | Mislabeled PNG data — P1+P2 |
+| `earfun-after.jpg` | 657 KB | Could be WebP'd |
+| `favicon.png` | **444 KB** | Mislabeled JPEG data — P1 |
+| `logo-icon.png` | **444 KB** | Mislabeled JPEG data — P1 |
+| `mystic-before.jpg` | 377 KB | Acceptable |
+| `hotin-before.jpg` | 153 KB | OK |
+| `fanta-after.jpg` | 251 KB | OK |
+| `hotin-after.jpg` | 100 KB | OK |
+| `fanta-before.jpg` | 14 KB | OK |
+
+> **Estimated savings from P1+P2:** ~6–7 MB reduction in public directory → significant LCP improvement.
+
+### ⚠️ `sitemap.xml` Still Has Issues (P6)
+
+Current state (not yet fixed):
+- `/login` and `/register` still present — these are Clerk-managed auth pages, not crawlable content
+- `/studio` (the main app page) is missing entirely

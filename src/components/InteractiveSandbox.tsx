@@ -280,20 +280,26 @@ const InteractiveSandbox = () => {
               onPointerMove={handlePointerMove}
             >
               {/* Layer 1: BEFORE Image */}
-              <img 
-                src={activeStyle.beforeImage} 
-                alt="Foto Mentah Asli" 
+              <img
+                src={activeStyle.beforeImage}
+                alt="Foto Mentah Asli"
+                width={1086}
+                height={1448}
+                loading="lazy"
                 className="block w-full h-auto object-cover select-none pointer-events-none"
               />
-              
+
               {/* Layer 2: AFTER Image */}
-              <motion.div 
+              <motion.div
                 className="absolute inset-0 overflow-hidden z-10 pointer-events-none select-none"
                 style={{ clipPath: clipPathValue }}
               >
-                <img 
-                  src={activeStyle.afterImage} 
-                  alt={activeStyle.name} 
+                <img
+                  src={activeStyle.afterImage}
+                  alt={activeStyle.name}
+                  width={1086}
+                  height={1448}
+                  loading="lazy"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </motion.div>

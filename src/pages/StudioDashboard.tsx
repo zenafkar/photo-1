@@ -153,6 +153,16 @@ export default function StudioDashboard() {
     }
   }, [isLoaded, isSignedIn, api, handleSyncReplicate]);
 
+  // Revoke blob URL on unmount to prevent memory leak
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       loadProfile();
@@ -225,6 +235,11 @@ export default function StudioDashboard() {
         alert("Ukuran file terlalu besar! Maksimal 10MB.");
         e.target.value = ''; // Reset input
         return;
+      }
+
+      // Revoke previous blob URL to prevent memory leak
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
       }
 
       setPreviewUrl(URL.createObjectURL(file));
@@ -885,11 +900,11 @@ export default function StudioDashboard() {
                                <span className="text-xs font-medium text-indigo-600">Processing...</span>
                             </div>
                           )}
-                          <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <p className="text-white text-xs font-medium truncate pr-8">{item.preset}</p>
                           </div>
                           {item.id && (
-                            <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                            <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
                               <button 
                                 onClick={() => handleDownload(item.processedUrl, `prodify-${item.id}.jpg`)}
                                 className="p-1.5 bg-black/40 text-white rounded-lg hover:bg-indigo-500 backdrop-blur-sm transition-colors"

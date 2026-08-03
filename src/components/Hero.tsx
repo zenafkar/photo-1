@@ -81,15 +81,16 @@ const HeroInteractiveDemo = () => {
            <img src="/mystic-after.jpg" alt="Studio Photo" className="w-full h-full object-cover" />
          </motion.div>
 
-         {/* Scanning Line Effect */}
+         {/* Scanning Line Effect — GPU-composited via transform */}
          <AnimatePresence>
            {step === 1 && (
-             <motion.div 
-               className="absolute left-0 right-0 h-[2px] bg-cyan-400 z-20"
-               initial={{ top: "0%", opacity: 0 }}
-               animate={{ top: "100%", opacity: [0, 1, 1, 0] }}
+             <motion.div
+               className="absolute top-0 left-0 right-0 h-[2px] bg-cyan-400 z-20"
+               initial={{ y: 0, opacity: 0 }}
+               animate={{ y: ["0vh", "55vh", "55vh"], opacity: [0, 1, 1, 0] }}
                exit={{ opacity: 0 }}
                transition={{ duration: 2, ease: "linear", repeat: Infinity }}
+               style={{ willChange: 'transform' }}
              >
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-24 bg-gradient-to-b from-transparent to-cyan-500/20" />
              </motion.div>

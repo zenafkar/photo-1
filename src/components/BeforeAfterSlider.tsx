@@ -80,29 +80,30 @@ const BeforeAfterSlider = ({ beforeImage, afterImage }: BeforeAfterSliderProps) 
     >
       <div className="absolute inset-0 bg-slate-100 animate-pulse" />
       
-      {/* Layer 1: Before Image (Background) */}
-      <img 
-        src={beforeImage} 
-        alt="Original Photo" 
-        // Using decoding="async" and fetchpriority="high" for performance best practices
+      {/* Layer 1: Before Image (Background) — lazy: component is below the fold */}
+      <img
+        src={beforeImage}
+        alt="Original Photo"
+        width={1086}
+        height={1448}
         decoding="async"
-        fetchPriority="high"
-        loading="eager"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
+        loading="lazy"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
       />
-      
+
       {/* Layer 2: After Image (Foreground with hardware-accelerated clip-path masking) */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 z-10 will-change-transform"
         style={{ clipPath }}
       >
-        <img 
-          src={afterImage} 
-          alt="AI Processed Photo" 
+        <img
+          src={afterImage}
+          alt="AI Processed Photo"
+          width={1086}
+          height={1448}
           decoding="async"
-          fetchPriority="high"
-          loading="eager"
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         />
       </motion.div>
       

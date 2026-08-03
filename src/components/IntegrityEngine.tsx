@@ -173,15 +173,21 @@ const IntegrityEngine = () => {
               {/* Real Product Image Visualizer */}
               <div className="relative w-full max-w-[280px] aspect-[3/4] mx-auto z-10 transition-all duration-500 rounded-3xl overflow-hidden shadow-2xl border border-slate-700/50">
                 {/* Images */}
-                <img 
-                  src="/hotin-after.jpg" 
-                  alt="Product After" 
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 z-10 hover:scale-105" 
+                <img
+                  src="/hotin-after.jpg"
+                  alt="Product After"
+                  width={280}
+                  height={373}
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 z-10 hover:scale-105"
                 />
-                <img 
-                  src="/hotin-before.jpg" 
-                  alt="Product Before" 
-                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 z-20 ${activeFeature === 'bg' ? 'opacity-100' : 'opacity-0'}`} 
+                <img
+                  src="/hotin-before.jpg"
+                  alt="Product Before"
+                  width={280}
+                  height={373}
+                  loading="lazy"
+                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 z-20 ${activeFeature === 'bg' ? 'opacity-100' : 'opacity-0'}`}
                 />
 
                 {/* Overlays for Highlights */}
@@ -224,12 +230,12 @@ const IntegrityEngine = () => {
                   )}
                 </div>
 
-                {/* Ambient Scanning Line */}
-                <motion.div 
-                  className="absolute left-[-10%] right-[-10%] h-[2px] bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,1)] z-40 pointer-events-none"
-                  animate={{ top: ['0%', '100%', '0%'] }}
+                {/* Ambient Scanning Line — GPU-composited */}
+                <motion.div
+                  className="absolute top-0 left-[-10%] right-[-10%] h-[2px] bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,1)] z-40 pointer-events-none"
+                  animate={{ y: ['0px', '380px', '0px'] }}
                   transition={{ duration: 3, ease: "linear", repeat: Infinity }}
-                  style={{ opacity: activeFeature === null ? 0.7 : 0 }}
+                  style={{ opacity: activeFeature === null ? 0.7 : 0, willChange: 'transform' }}
                 />
               </div>
 

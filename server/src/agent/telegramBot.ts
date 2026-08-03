@@ -13,15 +13,26 @@ function isAdminChat(chatIdToCheck: string): boolean {
   return adminIds.includes(chatIdToCheck);
 }
 
+/** Escape user-controlled strings for safe use in HTML parse_mode */
+export function escapeHtml(s: string): string {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export let bot: TelegramBot | null = null;
 
 if (token) {
   try {
     bot = new TelegramBot(token, { polling: true });
     
-    // Command Handler for /help
-    bot.onText(/\/help|\/start/, (msg) => {
+    // Command Handler for /help — admin only (prevents info disclosure)
+    bot.onText(/^\/help$|^\/start$/, (msg) => {
       const chatId = msg.chat.id;
+      if (!isAdminChat(String(chatId))) return;
       const helpText = `
 🛠️ <b>AI SRE AGENT COMMAND MENU</b>
 
@@ -34,9 +45,10 @@ if (token) {
       bot?.sendMessage(chatId, helpText, { parse_mode: 'HTML' });
     });
 
-    // Command Handler for /check, /status, /health
-    bot.onText(/\/check|\/status|\/health/, async (msg) => {
+    // Command Handler for /check, /status, /health — admin only
+    bot.onText(/^\/check$|^\/status$|^\/health$/, async (msg) => {
       const chatId = msg.chat.id;
+      if (!isAdminChat(String(chatId))) return;
       const os = await import('os');
       const totalMem = os.totalmem();
       const freeMem = os.freemem();
@@ -54,9 +66,10 @@ if (token) {
       bot?.sendMessage(chatId, statusText, { parse_mode: 'HTML' });
     });
 
-    // Command Handler for /metrics, /vps, /ram, /storage, /disk
-    bot.onText(/\/metrics|\/vps|\/ram|\/storage|\/disk/, async (msg) => {
+    // Command Handler for /metrics, /vps, /ram, /storage, /disk — admin only
+    bot.onText(/^\/metrics$|^\/vps$|^\/ram$|^\/storage$|^\/disk$/, async (msg) => {
       const chatId = msg.chat.id;
+      if (!isAdminChat(String(chatId))) return;
       const os = await import('os');
       const fs = await import('fs');
       
@@ -90,9 +103,10 @@ ${storageDetails}
       bot?.sendMessage(chatId, metricsText, { parse_mode: 'HTML' });
     });
 
-    // Command Handler for /test, /deepcheck, /synthetic
-    bot.onText(/\/test|\/deepcheck|\/synthetic/, async (msg) => {
+    // Command Handler for /test, /deepcheck, /synthetic — admin only
+    bot.onText(/^\/test$|^\/deepcheck$|^\/synthetic$/, async (msg) => {
       const chatId = msg.chat.id;
+      if (!isAdminChat(String(chatId))) return;
       bot?.sendMessage(chatId, "⏳ <i>Menjalankan Deep Synthetic Checkup (Pengujian Sintetis Seluruh Fitur A-to-Z)...</i>", { parse_mode: 'HTML' });
 
       // Run synthetic checks
@@ -113,20 +127,30 @@ ${storageDetails}
       }, 1500);
     });
 
-    // Command Handler for /restart
-    bot.onText(/\/restart/, (msg) => {
+    // Command Handler for /restart — admin only
+    bot.onText(/^\/restart$/, (msg) => {
       const chatId = msg.chat.id;
+      if (!isAdminChat(String(chatId))) {
+        bot?.sendMessage(chatId, "⛔ Unauthorized. Admin only.", { parse_mode: 'HTML' });
+        return;
+      }
       const { telegramBot } = require('./telegramBot.js');
       telegramBot.sendApprovalRequest('PM2_MANUAL_RESTART', 'Manual PM2 Restart requested via Telegram', 'HIGH');
     });
     
-    // Callback query handler for Interactive Approval
+    // Callback query handler for Interactive Approval — admin only
     bot.on('callback_query', async (callbackQuery) => {
       const message = callbackQuery.message;
       if (!message) return;
-      
+
+      // Require admin authorization for ALL approval callbacks
+      if (!isAdminChat(String(message.chat.id))) {
+        bot?.answerCallbackQuery(callbackQuery.id, { text: 'Unauthorized — admin only.' });
+        return;
+      }
+
       const data = callbackQuery.data; // e.g. "APPROVE_PM2_MANUAL_RESTART", "REJECT_..."
-      
+
       if (data?.startsWith('APPROVE_')) {
         const action = data.replace('APPROVE_', '');
         if (action.includes('RESTART') || action.includes('PM2')) {
@@ -169,7 +193,7 @@ ${storageDetails}
     // ── Credit Admin Commands ──────────────────────────────
 
     // /credit check <email> — show user's credit balance and recent transactions
-    bot.onText(/\/credit\s+check\s+(\S+)/, async (msg, match) => {
+    bot.onText(/^\/credit\s+check\s+(\S+)/, async (msg, match) => {
       const chatId = msg.chat.id.toString();
       if (!isAdminChat(chatId)) {
         bot?.sendMessage(msg.chat.id, "⛔ Unauthorized. Admin only.", { parse_mode: 'HTML' });
@@ -216,7 +240,7 @@ ${txns || "  (tidak ada transaksi)"}
     });
 
     // /credit add <email> <amount> — grant credits manually
-    bot.onText(/\/credit\s+add\s+(\S+)\s+(\d+)/, async (msg, match) => {
+    bot.onText(/^\/credit\s+add\s+(\S+)\s+(\d+)/, async (msg, match) => {
       const chatId = msg.chat.id.toString();
       if (!isAdminChat(chatId)) {
         bot?.sendMessage(msg.chat.id, "⛔ Unauthorized. Admin only.", { parse_mode: 'HTML' });
@@ -281,7 +305,7 @@ ${txns || "  (tidak ada transaksi)"}
     });
 
     // /credit fix <orderId> — force reconciliation for a specific order
-    bot.onText(/\/credit\s+fix\s+(\S+)/, async (msg, match) => {
+    bot.onText(/^\/credit\s+fix\s+(\S+)/, async (msg, match) => {
       const chatId = msg.chat.id.toString();
       if (!isAdminChat(chatId)) {
         bot?.sendMessage(msg.chat.id, "⛔ Unauthorized. Admin only.", { parse_mode: 'HTML' });
@@ -346,7 +370,7 @@ ${txns || "  (tidak ada transaksi)"}
     });
 
     // /order <orderId> — show full payment order details
-    bot.onText(/\/order\s+(\S+)/, async (msg, match) => {
+    bot.onText(/^\/order\s+(\S+)/, async (msg, match) => {
       const chatId = msg.chat.id.toString();
       if (!isAdminChat(chatId)) {
         bot?.sendMessage(msg.chat.id, "⛔ Unauthorized. Admin only.", { parse_mode: 'HTML' });
@@ -405,12 +429,12 @@ export const telegramBot = {
     
     const message = `
 🛠️ <b>[AGENT ACTION REPORT]</b>
-    
-• 🕒 <b>Waktu:</b> ${reportDetails.time}
-• 📌 <b>Komponen:</b> ${reportDetails.component}
-• 🔍 <b>Akar Masalah:</b> ${reportDetails.rootCause}
-• ⚙️ <b>Tindakan:</b> ${reportDetails.action}
-• 📊 <b>Status Akhir:</b> ${reportDetails.status}
+
+• 🕒 <b>Waktu:</b> ${escapeHtml(reportDetails.time)}
+• 📌 <b>Komponen:</b> ${escapeHtml(reportDetails.component)}
+• 🔍 <b>Akar Masalah:</b> ${escapeHtml(reportDetails.rootCause)}
+• ⚙️ <b>Tindakan:</b> ${escapeHtml(reportDetails.action)}
+• 📊 <b>Status Akhir:</b> ${escapeHtml(reportDetails.status)}
     `;
     
     await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
@@ -433,8 +457,8 @@ export const telegramBot = {
     
     const message = `
 ⚠️ <b>ACTION APPROVAL REQUIRED</b>
-• <b>Risk Level:</b> ${riskLevel}
-• <b>Action:</b> ${description}
+• <b>Risk Level:</b> ${escapeHtml(riskLevel)}
+• <b>Action:</b> ${escapeHtml(description)}
     `;
     
     const opts = {

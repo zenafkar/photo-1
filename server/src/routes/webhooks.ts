@@ -19,32 +19,35 @@ router.post("/clerk", async (req: Request, res: Response) => {
   try {
     const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET || "";
 
-    // Verify webhook signature if secret is configured
-    if (WEBHOOK_SECRET) {
-      const svixId = req.headers["svix-id"] as string;
-      const svixTimestamp = req.headers["svix-timestamp"] as string;
-      const svixSignature = req.headers["svix-signature"] as string;
+    // Fail closed: refuse to process Clerk webhooks without signature verification.
+    // A missing secret means the deployment is misconfigured — never process unsigned events.
+    if (!WEBHOOK_SECRET) {
+      console.error("[Clerk Webhook] CLERK_WEBHOOK_SECRET is not set — refusing to process webhook.");
+      return res.status(503).json({ success: false, message: "Server misconfiguration: Clerk webhook secret not set." });
+    }
 
-      if (!svixId || !svixTimestamp || !svixSignature) {
-        console.warn("[Clerk Webhook] Missing Svix headers — rejecting request");
-        return res.status(400).json({ success: false, message: "Missing Svix headers" });
-      }
+    // Verify webhook signature
+    const svixId = req.headers["svix-id"] as string;
+    const svixTimestamp = req.headers["svix-timestamp"] as string;
+    const svixSignature = req.headers["svix-signature"] as string;
 
-      // Use the raw body captured by the verify middleware for signature verification
-      try {
-        const rawBody = (req as any).rawBody || JSON.stringify(req.body);
-        const wh = new Webhook(WEBHOOK_SECRET);
-        wh.verify(rawBody, {
-          "svix-id": svixId,
-          "svix-timestamp": svixTimestamp,
-          "svix-signature": svixSignature,
-        });
-      } catch (verifyErr: any) {
-        console.error("[Clerk Webhook] Signature verification failed:", verifyErr.message);
-        return res.status(401).json({ success: false, message: "Invalid webhook signature" });
-      }
-    } else {
-      console.warn("[Clerk Webhook] CLERK_WEBHOOK_SECRET not set — running without signature verification (insecure)");
+    if (!svixId || !svixTimestamp || !svixSignature) {
+      console.warn("[Clerk Webhook] Missing Svix headers — rejecting request");
+      return res.status(400).json({ success: false, message: "Missing Svix headers" });
+    }
+
+    // Use the raw body captured by the verify middleware for signature verification
+    try {
+      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+      const wh = new Webhook(WEBHOOK_SECRET);
+      wh.verify(rawBody, {
+        "svix-id": svixId,
+        "svix-timestamp": svixTimestamp,
+        "svix-signature": svixSignature,
+      });
+    } catch (verifyErr: any) {
+      console.error("[Clerk Webhook] Signature verification failed:", verifyErr.message);
+      return res.status(401).json({ success: false, message: "Invalid webhook signature" });
     }
 
     const event = req.body;
@@ -112,7 +115,7 @@ router.post("/clerk", async (req: Request, res: Response) => {
     return res.status(200).json({ success: true, message: "Webhook processed successfully" });
   } catch (error: any) {
     console.error("[Clerk Webhook Error]", error);
-    return res.status(500).json({ success: false, message: error?.message || "Webhook processing error" });
+    return res.status(500).json({ success: false, message: "Internal error processing webhook." });
   }
 });
 
@@ -154,34 +157,43 @@ router.post("/xendit", async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: "Pesanan tidak ditemukan." });
     }
 
-    // 3. Amount/currency integrity check
-    if (amount !== undefined && amount !== order.amount) {
-      console.error(
-        `[Xendit Webhook] Amount mismatch! Expected ${order.amount}, got ${amount} for ${xenditInvoiceId}`
-      );
-      // Telegram alert for potential tampering
-      const { telegramBot } = await import("../agent/telegramBot.js");
-      await telegramBot.sendFullActionReport({
-        time: new Date().toISOString(),
-        component: "Xendit Webhook",
-        rootCause: `Amount mismatch for invoice ${xenditInvoiceId}: expected ${order.amount}, got ${amount}`,
-        action: "Manual investigation required — possible tampering or Xendit configuration error",
-        status: "CRITICAL_AMOUNT_MISMATCH",
-      });
-      return res.status(422).json({ success: false, message: "Jumlah pembayaran tidak sesuai." });
+    // 3. Amount/currency integrity check — mandatory for PAID/SETTLED
+    const xStatus = (status || "").toUpperCase();
+    if (xStatus === "PAID" || xStatus === "SETTLED") {
+      if (amount === undefined) {
+        console.error(`[Xendit Webhook] Missing amount for PAID invoice ${xenditInvoiceId}`);
+        return res.status(422).json({ success: false, message: "Data pembayaran tidak lengkap (amount)." });
+      }
+      if (amount !== order.amount) {
+        console.error(
+          `[Xendit Webhook] Amount mismatch! Expected ${order.amount}, got ${amount} for ${xenditInvoiceId}`
+        );
+        // Telegram alert for potential tampering
+        const { telegramBot } = await import("../agent/telegramBot.js");
+        await telegramBot.sendFullActionReport({
+          time: new Date().toISOString(),
+          component: "Xendit Webhook",
+          rootCause: `Amount mismatch for invoice ${xenditInvoiceId}: expected ${order.amount}, got ${amount}`,
+          action: "Manual investigation required — possible tampering or Xendit configuration error",
+          status: "CRITICAL_AMOUNT_MISMATCH",
+        });
+        return res.status(422).json({ success: false, message: "Jumlah pembayaran tidak sesuai." });
+      }
+
+      // Currency validation — only IDR is supported
+      const currency: string | undefined = body?.currency;
+      if (currency && currency !== "IDR") {
+        console.error(
+          `[Xendit Webhook] Currency mismatch! Expected IDR, got ${currency} for ${xenditInvoiceId}`
+        );
+        return res.status(422).json({ success: false, message: "Mata uang tidak valid." });
+      }
     }
 
-    // Currency validation — only IDR is supported
-    const currency: string | undefined = body?.currency;
-    if (currency && currency !== "IDR") {
-      console.error(
-        `[Xendit Webhook] Currency mismatch! Expected IDR, got ${currency} for ${xenditInvoiceId}`
-      );
-      return res.status(422).json({ success: false, message: "Mata uang tidak valid." });
-    }
-
-    // 4. Idempotency — terminal orders are no-ops
-    if (["settled", "expired", "failed"].includes(order.status)) {
+    // 4. Idempotency — only fully settled orders are terminal.
+    // PAID webhooks on expired/failed orders MUST be allowed to resurrect
+    // (customer paid late but payment did go through).
+    if (order.status === "settled") {
       await prisma.paymentOrder.update({
         where: { id: order.id },
         data: {
@@ -192,8 +204,7 @@ router.post("/xendit", async (req: Request, res: Response) => {
       return res.status(200).json({ success: true, message: "Already processed." });
     }
 
-    // 5. Dispatch by Xendit status
-    const xStatus = (status || "").toUpperCase();
+    // 5. Dispatch by Xendit status (xStatus already computed above)
 
     if (xStatus === "PAID" || xStatus === "SETTLED") {
       // ── Grant credits FIRST ──────────────────────────
@@ -223,7 +234,7 @@ router.post("/xendit", async (req: Request, res: Response) => {
         const claimed = await tx.paymentOrder.updateMany({
           where: {
             xenditInvoiceId,
-            status: { in: ["pending", "creating"] },
+            status: { in: ["pending", "creating", "expired", "failed"] },
           },
           data: {
             status: "settled",
@@ -254,8 +265,9 @@ router.post("/xendit", async (req: Request, res: Response) => {
         paymentMethod: body?.payment_method ?? null,
       });
     } else if (xStatus === "EXPIRED") {
-      await prisma.paymentOrder.update({
-        where: { id: order.id },
+      // CAS: only expire orders that haven't been settled yet
+      const expired = await prisma.paymentOrder.updateMany({
+        where: { id: order.id, status: { in: ["pending", "creating"] } },
         data: {
           status: "expired",
           expiredAt: new Date(),
@@ -263,29 +275,34 @@ router.post("/xendit", async (req: Request, res: Response) => {
           notifiedAt: new Date(),
         },
       });
-      paymentEvents.emit(`settled:${order.externalId}`, {
-        externalId: order.externalId,
-        status: "expired",
-        credits: 0,
-        paidAt: null,
-        paymentMethod: null,
-      });
+      if (expired.count > 0) {
+        paymentEvents.emit(`settled:${order.externalId}`, {
+          externalId: order.externalId,
+          status: "expired",
+          credits: 0,
+          paidAt: null,
+          paymentMethod: null,
+        });
+      }
     } else if (xStatus === "FAILED") {
-      await prisma.paymentOrder.update({
-        where: { id: order.id },
+      // CAS: only fail orders that haven't been settled yet
+      const failed = await prisma.paymentOrder.updateMany({
+        where: { id: order.id, status: { in: ["pending", "creating"] } },
         data: {
           status: "failed",
           rawResponse: sanitizeWebhookPayload(body) as any,
           notifiedAt: new Date(),
         },
       });
-      paymentEvents.emit(`settled:${order.externalId}`, {
-        externalId: order.externalId,
-        status: "failed",
-        credits: 0,
-        paidAt: null,
-        paymentMethod: null,
-      });
+      if (failed.count > 0) {
+        paymentEvents.emit(`settled:${order.externalId}`, {
+          externalId: order.externalId,
+          status: "failed",
+          credits: 0,
+          paidAt: null,
+          paymentMethod: null,
+        });
+      }
     }
     // PENDING: no-op
 

@@ -25,7 +25,7 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
         duration,
         timestamp: new Date().toISOString(),
         // Never include raw request body/query — may contain base64 images or PII
-        bodySize: req.body ? JSON.stringify(req.body).length : 0,
+        bodySize: parseInt(req.headers["content-length"] || "0", 10) || 0,
         queryKeys: req.query ? Object.keys(req.query) : [],
       });
     }
@@ -45,7 +45,7 @@ export const telemetryErrorHandler = (err: any, req: Request, res: Response, nex
     stackTrace: err.stack,
     timestamp: new Date().toISOString(),
     // Only include size metadata, never raw body/query content
-    bodySize: req.body ? JSON.stringify(req.body).length : 0,
+    bodySize: parseInt(req.headers["content-length"] || "0", 10) || 0,
     queryKeys: req.query ? Object.keys(req.query) : [],
   });
 
@@ -71,6 +71,8 @@ process.on('uncaughtException', (err: Error) => {
     stackTrace: err.stack,
     timestamp: new Date().toISOString(),
   });
-  
-  // Optionally decide whether to exit process or rely on PM2 to restart
+
+  // Exit the process after emitting telemetry so PM2 can restart it cleanly.
+  // Node leaves the process in an undefined state after uncaughtException.
+  setTimeout(() => process.exit(1), 500);
 });

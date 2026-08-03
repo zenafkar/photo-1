@@ -22,6 +22,7 @@ const {
   mockGenFindFirst,
   mockGenFindUnique,
   mockGenCreate,
+  mockGenUpdate,
   mockGenDelete,
   mockTransaction,
 } = vi.hoisted(() => ({
@@ -34,6 +35,7 @@ const {
   mockGenFindFirst: vi.fn(),
   mockGenFindUnique: vi.fn(),
   mockGenCreate: vi.fn(),
+  mockGenUpdate: vi.fn(),
   mockGenDelete: vi.fn(),
   mockTransaction: vi.fn(),
 }));
@@ -56,6 +58,7 @@ vi.mock("../../config/prisma.js", () => ({
       findFirst: mockGenFindFirst,
       findUnique: mockGenFindUnique,
       create: mockGenCreate,
+      update: mockGenUpdate,
       delete: mockGenDelete,
     },
     $transaction: mockTransaction,
@@ -135,6 +138,8 @@ describe("Generate Routes", () => {
           },
           generation: {
             create: mockGenCreate,
+            update: mockGenUpdate,
+            delete: mockGenDelete,
           },
         });
       }
@@ -151,6 +156,14 @@ describe("Generate Routes", () => {
       preset: "Studio lighting, 4k",
       status: "completed",
     });
+    mockGenUpdate.mockResolvedValue({
+      id: "gen-new",
+      replicateId: "pred-new-123",
+      processedUrl: "https://example.com/api/v1/uploads/generations/result-456.jpg",
+      preset: "Studio lighting, 4k",
+      status: "completed",
+    });
+    mockGenDelete.mockResolvedValue({});
   });
 
   it("POST /api/v1/generate returns 401 without auth", async () => {
@@ -223,10 +236,11 @@ describe("Generate Routes", () => {
     expect(res.body.data.remainingCredits).toBeDefined();
   });
 
-  // B1 pin: duplicate replicateId still deducts credits (flag for review)
-  it("POST /api/v1/generate returns existing generation without double-charging on duplicate replicateId", async () => {
+  // B1 pin: duplicate replicateId triggers refund to avoid net double-charge
+  it("POST /api/v1/generate returns existing generation without net double-charging on duplicate replicateId", async () => {
     // Simulate: first request already completed, deducted credits, saved generation.
-    // Client retries → same predictionId → should return existing WITHOUT deducting again.
+    // Client retries → same predictionId → deduction happens first (new flow),
+    // then dedup check refunds → net zero credit change, existing generation returned.
     mockAiGenerate.mockResolvedValue({
       url: "https://replicate.delivery/result.jpg",
       predictionId: "pred-dup",
@@ -246,8 +260,11 @@ describe("Generate Routes", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data.generation.id).toBe("gen-existing");
-    // ✅ Fix: credits should NOT be deducted again (original request already deducted)
-    expect(mockTransaction).not.toHaveBeenCalled();
+    // ✅ Fix: initial deduction transaction IS called (new flow: deduct before AI),
+    // but the dedup path refunds it, so net credits unchanged.
+    expect(mockTransaction).toHaveBeenCalled();
+    // Refund was processed (generation.delete in tx means gen-existing returned)
+    expect(mockGenDelete).toHaveBeenCalled();
   });
 
   it("DELETE /api/v1/generate/:id returns 404 for unauthorized user", async () => {

@@ -15,14 +15,41 @@ if (!fs.existsSync(UPLOADS_DIR)) {
  */
 export async function saveRemoteImageLocally(remoteUrl: string, req?: any): Promise<string> {
   try {
+    // SSRF guard: only fetch from HTTPS URLs
+    const { isAllowedUrl } = await import("./urlSafety");
+    if (!isAllowedUrl(remoteUrl)) {
+      console.warn(`[Storage] Blocked unsafe remote URL: ${remoteUrl.slice(0, 100)}`);
+      return remoteUrl;
+    }
+
+    // Size limit: check Content-Length before downloading
+    const headRes = await fetch(remoteUrl, { method: "HEAD" }).catch(() => null);
+    const contentLength = headRes?.headers.get("content-length");
+    const MAX_REMOTE_SIZE = 25 * 1024 * 1024; // 25MB
+    if (contentLength && parseInt(contentLength, 10) > MAX_REMOTE_SIZE) {
+      console.warn(`[Storage] Remote image too large: ${contentLength} bytes`);
+      return remoteUrl;
+    }
+
     const response = await fetch(remoteUrl);
     if (!response.ok) {
-      console.warn(`[Storage] Gagal mengunduh gambar dari ${remoteUrl}: ${response.statusText}`);
+      console.warn(`[Storage] Gagal mengunduh gambar dari ${remoteUrl.slice(0, 100)}: ${response.statusText}`);
+      return remoteUrl;
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+
+    // Block non-image and SVG content types
+    if (contentType && !contentType.startsWith("image/")) {
+      console.warn(`[Storage] Non-image content type rejected: ${contentType}`);
+      return remoteUrl;
+    }
+    if (contentType.includes("svg")) {
+      console.warn(`[Storage] SVG content type blocked (stored XSS prevention): ${contentType}`);
       return remoteUrl;
     }
 
     const buffer = Buffer.from(await response.arrayBuffer());
-    const contentType = response.headers.get("content-type") || "";
 
     let ext = "jpg";
     if (contentType.includes("png")) ext = "png";
@@ -59,7 +86,14 @@ export async function saveBase64Locally(base64Data: string, req?: any): Promise<
       return base64Data;
     }
 
-    let ext = matches[1] === "jpeg" ? "jpg" : matches[1];
+    // Block SVG — stored XSS prevention (SVG can contain scripts)
+    const mimeType = matches[1].toLowerCase();
+    if (mimeType === "svg" || mimeType === "svg+xml") {
+      console.warn("[Storage] SVG upload blocked (XSS prevention)");
+      return base64Data;
+    }
+
+    let ext = mimeType === "jpeg" ? "jpg" : mimeType;
     const buffer = Buffer.from(matches[2], "base64");
 
     const filename = `orig-${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${ext}`;

@@ -8,6 +8,6 @@ export const CREDIT_PACKAGES = {
 export type PackageId = keyof typeof CREDIT_PACKAGES;
 
 export function getPackage(id: string): (typeof CREDIT_PACKAGES)[PackageId] | null {
-  if (id in CREDIT_PACKAGES) return CREDIT_PACKAGES[id as PackageId];
+  if (Object.hasOwn(CREDIT_PACKAGES, id)) return CREDIT_PACKAGES[id as PackageId];
   return null;
 }

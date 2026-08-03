@@ -29,11 +29,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private async logErrorToTelemetry(error: Error, errorInfo: ErrorInfo) {
     try {
+      // Telemetry endpoint is protected by server-side schema validation + rate limiting.
+      // No client-side secret is embedded in the bundle (secrets belong server-side only).
       await fetch('/api/v1/telemetry', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_TELEMETRY_SECRET || 'dev-secret-change-in-production'}`,
         },
         body: JSON.stringify({
           type: 'CLIENT_UI_ERROR',

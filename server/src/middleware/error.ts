@@ -6,8 +6,13 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
+  // Prevent double-write when headers already sent (e.g., mid-stream SSE)
+  if (res.headersSent) {
+    return next(err);
+  }
+
   console.error("[Error]:", err.stack);
-  
+
   const isDev = process.env.NODE_ENV === "development";
   res.status(500).json({
     success: false,

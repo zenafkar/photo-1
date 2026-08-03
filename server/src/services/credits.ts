@@ -64,20 +64,26 @@ export const creditOps = {
     if (!userId) throw new Error("creditOps.add: userId is required");
 
     return withRetry(async (tx) => {
-      // ── Idempotency guard ─────────────────────────────
-      // With the @unique constraint on CreditTransaction.idempotencyKey,
-      // this makes concurrent webhook+poll safe: first writer wins, second
-      // finds the existing row on retry and returns without double-granting.
+      // ── Idempotency guard (scoped by userId) ──────────
+      // Prevents cross-user collision: two different users with the same
+      // idempotencyKey must NOT interfere with each other.
       if (opts.idempotencyKey) {
-        const existing = await tx.creditTransaction.findUnique({
-          where: { idempotencyKey: opts.idempotencyKey },
+        const existing = await tx.creditTransaction.findFirst({
+          where: { userId, idempotencyKey: opts.idempotencyKey },
         });
         if (existing) {
-          const current = await tx.userCredit.findUnique({ where: { userId } });
-          return {
-            remainingCredits: current?.remainingCredits ?? 0,
-            transactionId: existing.id,
-          };
+          // Verify ownership and type match before returning cached result
+          if (existing.userId === userId && existing.type === opts.type) {
+            const current = await tx.userCredit.findUnique({ where: { userId } });
+            return {
+              remainingCredits: current?.remainingCredits ?? 0,
+              transactionId: existing.id,
+            };
+          }
+          // Different user or type — this is a genuine collision, throw
+          throw new Error(
+            `Idempotency key conflict: key ${opts.idempotencyKey} already used by another user or operation.`
+          );
         }
       }
 
@@ -123,17 +129,22 @@ export const creditOps = {
     if (!userId) throw new Error("creditOps.deduct: userId is required");
 
     return withRetry(async (tx) => {
-      // ── Idempotency guard ─────────────────────────────
+      // ── Idempotency guard (scoped by userId) ──────────
       if (opts.idempotencyKey) {
-        const existing = await tx.creditTransaction.findUnique({
-          where: { idempotencyKey: opts.idempotencyKey },
+        const existing = await tx.creditTransaction.findFirst({
+          where: { userId, idempotencyKey: opts.idempotencyKey },
         });
         if (existing) {
-          const current = await tx.userCredit.findUnique({ where: { userId } });
-          return {
-            remainingCredits: current?.remainingCredits ?? 0,
-            transactionId: existing.id,
-          };
+          if (existing.userId === userId && existing.type === opts.type) {
+            const current = await tx.userCredit.findUnique({ where: { userId } });
+            return {
+              remainingCredits: current?.remainingCredits ?? 0,
+              transactionId: existing.id,
+            };
+          }
+          throw new Error(
+            `Idempotency key conflict: key ${opts.idempotencyKey} already used by another user or operation.`
+          );
         }
       }
 
@@ -196,18 +207,23 @@ export const creditOps = {
     if (!userId) throw new Error("creditOps.refund: userId is required");
 
     return withRetry(async (tx) => {
-      // ── Idempotency guard ─────────────────────────────
+      // ── Idempotency guard (scoped by userId) ──────────
       if (opts.idempotencyKey) {
-        const existing = await tx.creditTransaction.findUnique({
-          where: { idempotencyKey: opts.idempotencyKey },
+        const existing = await tx.creditTransaction.findFirst({
+          where: { userId, idempotencyKey: opts.idempotencyKey },
         });
         if (existing) {
-          const current = await tx.userCredit.findUnique({ where: { userId } });
-          return {
-            remainingCredits: current?.remainingCredits ?? 0,
-            transactionId: existing.id,
-            partial: false,
-          };
+          if (existing.userId === userId && existing.type === opts.type) {
+            const current = await tx.userCredit.findUnique({ where: { userId } });
+            return {
+              remainingCredits: current?.remainingCredits ?? 0,
+              transactionId: existing.id,
+              partial: false,
+            };
+          }
+          throw new Error(
+            `Idempotency key conflict: key ${opts.idempotencyKey} already used by another user or operation.`
+          );
         }
       }
 
@@ -218,13 +234,30 @@ export const creditOps = {
       const effective = Math.min(amount, current.remainingCredits);
       const partial = effective < amount;
 
-      const credit = await tx.userCredit.update({
-        where: { userId },
+      // CAS: use updateMany with gte guard to prevent concurrent refunds from
+      // driving the balance negative (same atomic pattern as deduct()).
+      const result = await tx.userCredit.updateMany({
+        where: {
+          userId,
+          remainingCredits: { gte: effective },
+        },
         data: {
           remainingCredits: { decrement: effective },
           version: { increment: 1 },
         },
       });
+
+      if (result.count === 0) {
+        // Balance changed concurrently — re-read and retry via withRetry
+        throw Object.assign(
+          new Error("Refund conflict — concurrent balance change detected."),
+          { code: "P2034" } // triggers withRetry
+        );
+      }
+
+      // Re-fetch actual balance after CAS
+      const updated = await tx.userCredit.findUnique({ where: { userId } });
+      if (!updated) throw new Error("Credit record disappeared during refund.");
 
       const txn = await tx.creditTransaction.create({
         data: {
@@ -232,7 +265,7 @@ export const creditOps = {
           orderId: opts.orderId || null,
           type: opts.type,
           amount: -effective,
-          balanceAfter: credit.remainingCredits,
+          balanceAfter: updated.remainingCredits,
           reason: partial
             ? `${opts.reason} (partial: ${effective}/${amount} — insufficient balance)`
             : opts.reason,
@@ -242,7 +275,7 @@ export const creditOps = {
         },
       });
 
-      return { remainingCredits: credit.remainingCredits, transactionId: txn.id, partial };
+      return { remainingCredits: updated.remainingCredits, transactionId: txn.id, partial };
     });
   },
 };

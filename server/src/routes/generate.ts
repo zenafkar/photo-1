@@ -4,16 +4,19 @@ import { prisma } from "../config/prisma";
 import { z } from "zod";
 import { AIService } from "../services/aiProvider";
 import { saveRemoteImageLocally, saveBase64Locally, deleteLocalImage } from "../services/storage";
+import { isAllowedUrl } from "../services/urlSafety";
 
 const router = Router();
 
 const generateSchema = z.object({
-  imageUrl: z.string().min(1),
-  prompt: z.string().min(3),
+  imageUrl: z.string().min(1).max(5000).refine(isAllowedUrl, {
+    message: "URL tidak valid. Gunakan HTTPS atau data:image (PNG/JPEG/WebP) base64.",
+  }),
+  prompt: z.string().min(3).max(2000),
   provider: z.enum(["replicate", "nanobanana", "nanobanana2", "gptimage"]).optional(),
-  aspectRatio: z.string().optional(),
-  resolution: z.string().optional(),
-  outputFormat: z.string().optional(),
+  aspectRatio: z.string().max(20).optional(),
+  resolution: z.enum(["1k", "2k", "4k"]).optional(),
+  outputFormat: z.enum(["jpg", "jpeg", "png", "webp"]).optional(),
 });
 
 router.post("/", async (req: Request, res: Response) => {
@@ -42,6 +45,10 @@ router.post("/", async (req: Request, res: Response) => {
       include: { credits: true },
     });
 
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User tidak ditemukan." });
+    }
+
     if (user && !user.credits) {
       const newCredits = await prisma.userCredit.create({
         data: {
@@ -59,59 +66,24 @@ router.post("/", async (req: Request, res: Response) => {
       creditsToDeduct = 2;
     }
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User tidak ditemukan." });
+    // ── Early credit check: fail BEFORE any expensive work ──
+    const currentCredits = user.credits?.remainingCredits ?? 0;
+    if (currentCredits < creditsToDeduct) {
+      return res.status(403).json({
+        success: false,
+        message: `Kredit tidak cukup. Dibutuhkan ${creditsToDeduct}, tersedia ${currentCredits}.`,
+      });
     }
 
-    // Save original image base64 locally first for database history
-    const localOriginalUrl = await saveBase64Locally(imageUrl, req);
-
-    // Replicate tidak bisa mengakses http://localhost, gunakan base64 Data URI jika local URL mengandung localhost
-    const validAiImageUrl = (localOriginalUrl.includes("localhost") || localOriginalUrl.includes("127.0.0.1")) 
-      ? imageUrl 
-      : localOriginalUrl;
-
-    // Call modular AI Provider (Secure, server-side only)
-    const { url: resultUrl, predictionId } = await AIService.generate({ 
-      imageUrl: validAiImageUrl, 
-      prompt, 
-      provider, 
-      aspectRatio,
-      resolution,
-      outputFormat 
-    });
-
-    // Simpan gambar hasil secara permanen ke disk VPS lokal
-    const localProcessedUrl = await saveRemoteImageLocally(resultUrl, req);
-
-    // Atomic credit deduction + generation save (fixes check-then-act race)
-    let updatedCredits: { remainingCredits: number };
-    let generationRecord;
+    // ── Deduct credits atomically BEFORE the AI call ──
+    // If the AI call fails later, we refund. This prevents zero-credit users
+    // from consuming paid Replicate inference + disk writes.
+    let deductionResult: { credits: { remainingCredits: number }; generation: any };
     try {
-      if (predictionId) {
-        const existing = await prisma.generation.findFirst({
-          where: { replicateId: predictionId, userId: user.id }
-        });
-        if (existing) {
-          return res.status(200).json({
-            success: true,
-            data: {
-              generation: existing,
-              remainingCredits: user.credits!.remainingCredits,
-            },
-          });
-        }
-      }
-
-      // Atomic: deduct credits + save generation + audit log in ONE transaction.
-      // NOTE: We inline credit logic here rather than calling creditOps.deduct()
-      // because the Generation record MUST be created atomically with the deduction.
-      // If we used creditOps.deduct() (which has its own internal $transaction),
-      // a generation save failure would leave credits deducted with no result.
-      const result = await prisma.$transaction(async (tx) => {
+      deductionResult = await prisma.$transaction(async (tx) => {
         const deducted = await tx.userCredit.updateMany({
           where: {
-            userId: user.id,
+            userId: user!.id,
             remainingCredits: { gte: creditsToDeduct },
           },
           data: {
@@ -121,20 +93,20 @@ router.post("/", async (req: Request, res: Response) => {
         });
 
         if (deducted.count === 0) {
-          const current = await tx.userCredit.findUnique({ where: { userId: user.id } });
+          const current = await tx.userCredit.findUnique({ where: { userId: user!.id } });
           throw new Error(
             `Kredit tidak cukup. Dibutuhkan ${creditsToDeduct}, tersedia ${current?.remainingCredits ?? 0}.`
           );
         }
 
         // Re-fetch updated balance
-        const updated = await tx.userCredit.findUnique({ where: { userId: user.id } });
+        const updated = await tx.userCredit.findUnique({ where: { userId: user!.id } });
         if (!updated) throw new Error("Credit record disappeared during deduction.");
 
         // Immutable audit log
         await tx.creditTransaction.create({
           data: {
-            userId: user.id,
+            userId: user!.id,
             type: "generation_spend",
             amount: -creditsToDeduct,
             balanceAfter: updated.remainingCredits,
@@ -142,43 +114,175 @@ router.post("/", async (req: Request, res: Response) => {
           },
         });
 
-        // Save generation record
+        // Save generation record with "pending" status
         const gen = await tx.generation.create({
           data: {
-            userId: user.id,
-            replicateId: predictionId || null,
-            originalUrl: localOriginalUrl,
-            processedUrl: localProcessedUrl,
+            userId: user!.id,
+            originalUrl: "",
+            processedUrl: null,
             preset: prompt,
-            status: "completed",
+            status: "pending",
           },
         });
 
         return { credits: updated, generation: gen };
       });
-
-      updatedCredits = { remainingCredits: result.credits.remainingCredits };
-      generationRecord = result.generation;
-
     } catch (dbError: any) {
-      // Check for insufficient credits error thrown from inside the transaction
       if (dbError?.message?.includes("Kredit tidak cukup")) {
         return res.status(403).json({ success: false, message: dbError.message });
       }
-      console.error("Database error during transaction:", dbError);
-      return res.status(500).json({ success: false, message: "Gagal menyimpan hasil generasi ke database (DB Error). Mohon coba lagi." });
+      console.error("Database error during credit deduction:", dbError);
+      return res.status(500).json({ success: false, message: "Gagal memproses kredit. Mohon coba lagi." });
     }
 
-    res.status(200).json({
-      success: true,
-      data: {
-        generation: generationRecord,
-        remainingCredits: updatedCredits.remainingCredits,
-      },
-    });
+    // ── Now do the expensive work: save original, call AI, save result ──
+    let localOriginalUrl = "";
+    let localProcessedUrl = "";
+    let predictionId: string | undefined;
+
+    try {
+      // Save original image locally
+      localOriginalUrl = await saveBase64Locally(imageUrl, req);
+
+      // Replicate tidak bisa mengakses http://localhost, gunakan base64 Data URI jika local URL mengandung localhost
+      const validAiImageUrl = (localOriginalUrl.includes("localhost") || localOriginalUrl.includes("127.0.0.1"))
+        ? imageUrl
+        : localOriginalUrl;
+
+      // Dedup: if a prediction with this replicateId already exists for this user
+      // (handled inside AIService.generate, but we need the predictionId first)
+
+      // Call modular AI Provider (Secure, server-side only)
+      const result = await AIService.generate({
+        imageUrl: validAiImageUrl,
+        prompt,
+        provider,
+        aspectRatio,
+        resolution,
+        outputFormat
+      });
+      predictionId = result.predictionId;
+
+      // Dedup: if this prediction already exists for this user, refund and return existing
+      if (predictionId) {
+        const existing = await prisma.generation.findFirst({
+          where: { replicateId: predictionId, userId: user!.id }
+        });
+        if (existing) {
+          // Refund the credits we just deducted
+          await prisma.$transaction(async (tx) => {
+            await tx.userCredit.update({
+              where: { userId: user!.id },
+              data: {
+                remainingCredits: { increment: creditsToDeduct },
+                version: { increment: 1 },
+              },
+            });
+            const updated = await tx.userCredit.findUnique({ where: { userId: user!.id } });
+            await tx.creditTransaction.create({
+              data: {
+                userId: user!.id,
+                type: "refund",
+                amount: creditsToDeduct,
+                balanceAfter: updated!.remainingCredits,
+                reason: "Refund: duplicate replicateId — generation already exists",
+              },
+            });
+            // Clean up the pending generation row
+            await tx.generation.delete({ where: { id: deductionResult.generation.id } });
+          });
+
+          return res.status(200).json({
+            success: true,
+            data: {
+              generation: existing,
+              remainingCredits: deductionResult.credits.remainingCredits,
+            },
+          });
+        }
+      }
+
+      // Save processed image locally
+      localProcessedUrl = await saveRemoteImageLocally(result.url, req);
+
+      // Update generation to "completed"
+      await prisma.generation.update({
+        where: { id: deductionResult.generation.id },
+        data: {
+          replicateId: predictionId || null,
+          originalUrl: localOriginalUrl,
+          processedUrl: localProcessedUrl,
+          status: "completed",
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          generation: {
+            ...deductionResult.generation,
+            replicateId: predictionId || null,
+            originalUrl: localOriginalUrl,
+            processedUrl: localProcessedUrl,
+            status: "completed",
+          },
+          remainingCredits: deductionResult.credits.remainingCredits,
+        },
+      });
+    } catch (aiError: any) {
+      console.error("AI generation failed after credit deduction:", aiError);
+
+      // ── Refund credits on AI failure ──
+      try {
+        await prisma.$transaction(async (tx) => {
+          // Refund the spent credits
+          await tx.userCredit.update({
+            where: { userId: user!.id },
+            data: {
+              remainingCredits: { increment: creditsToDeduct },
+              version: { increment: 1 },
+            },
+          });
+
+          // Audit the refund
+          const updated = await tx.userCredit.findUnique({ where: { userId: user!.id } });
+          await tx.creditTransaction.create({
+            data: {
+              userId: user!.id,
+              type: "refund",
+              amount: creditsToDeduct,
+              balanceAfter: updated!.remainingCredits,
+              reason: `Refund: AI generation gagal — ${(aiError?.message || "unknown error").slice(0, 60)}`,
+            },
+          });
+
+          // Mark generation as failed
+          await tx.generation.update({
+            where: { id: deductionResult.generation.id },
+            data: { status: "failed" },
+          });
+
+          // Clean up files if any were saved
+          if (localOriginalUrl) {
+            await deleteLocalImage(localOriginalUrl);
+          }
+          if (localProcessedUrl) {
+            await deleteLocalImage(localProcessedUrl);
+          }
+        });
+      } catch (refundError) {
+        console.error("CRITICAL: Failed to refund credits after AI failure:", refundError);
+        // Don't throw — we still want to return the error response
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: "Gagal menghasilkan gambar. Kredit telah dikembalikan. Mohon coba lagi.",
+      });
+    }
   } catch (error: any) {
     console.error("Error during generation:", error);
-    res.status(500).json({ success: false, message: error?.message || "Internal server error" });
+    res.status(500).json({ success: false, message: "Terjadi kesalahan internal. Mohon coba lagi." });
   }
 });
 
@@ -222,7 +326,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
     res.status(200).json({ success: true, message: "Generation deleted successfully" });
   } catch (error) {
     console.error("Error deleting generation:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Terjadi kesalahan internal." });
   }
 });
 
@@ -235,11 +339,11 @@ router.post("/sync", async (req: Request, res: Response) => {
 
     const user = await prisma.user.findUnique({
       where: { clerkId },
-      include: { 
+      include: {
         generations: {
           orderBy: { createdAt: "desc" }
-        }, 
-        credits: true 
+        },
+        credits: true
       },
     });
 
@@ -255,7 +359,7 @@ router.post("/sync", async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("Error during sync:", error);
-    res.status(500).json({ success: false, message: error?.message || "Internal server error" });
+    res.status(500).json({ success: false, message: "Terjadi kesalahan internal." });
   }
 });
 

@@ -3,6 +3,7 @@ import { Webhook } from "svix";
 import { prisma } from "../config/prisma";
 import { verifyXenditCallback, sanitizeWebhookPayload } from "../services/xenditWebhook";
 import { creditOps } from "../services/credits";
+import { paymentEvents } from "../services/paymentEvents";
 
 const router = Router();
 
@@ -243,6 +244,15 @@ router.post("/xendit", async (req: Request, res: Response) => {
       });
 
       console.log(`[Xendit Webhook] Settled: ${xenditInvoiceId} (${order.packageId}, +${order.credits} credits)`);
+
+      // ── Push real-time SSE event to connected clients ──
+      paymentEvents.emit(`settled:${order.externalId}`, {
+        externalId: order.externalId,
+        status: "settled",
+        credits: order.credits,
+        paidAt: body?.paid_at ? new Date(body.paid_at).toISOString() : new Date().toISOString(),
+        paymentMethod: body?.payment_method ?? null,
+      });
     } else if (xStatus === "EXPIRED") {
       await prisma.paymentOrder.update({
         where: { id: order.id },
@@ -253,6 +263,13 @@ router.post("/xendit", async (req: Request, res: Response) => {
           notifiedAt: new Date(),
         },
       });
+      paymentEvents.emit(`settled:${order.externalId}`, {
+        externalId: order.externalId,
+        status: "expired",
+        credits: 0,
+        paidAt: null,
+        paymentMethod: null,
+      });
     } else if (xStatus === "FAILED") {
       await prisma.paymentOrder.update({
         where: { id: order.id },
@@ -261,6 +278,13 @@ router.post("/xendit", async (req: Request, res: Response) => {
           rawResponse: sanitizeWebhookPayload(body) as any,
           notifiedAt: new Date(),
         },
+      });
+      paymentEvents.emit(`settled:${order.externalId}`, {
+        externalId: order.externalId,
+        status: "failed",
+        credits: 0,
+        paidAt: null,
+        paymentMethod: null,
       });
     }
     // PENDING: no-op

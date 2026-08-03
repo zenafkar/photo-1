@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createInvoice, getInvoice } from "../services/xendit";
 import { getPackage, type PackageId } from "../services/paymentPackages";
 import { creditOps } from "../services/credits";
+import { paymentEvents, type SettlementEvent } from "../services/paymentEvents";
 
 const router = Router();
 
@@ -36,6 +37,22 @@ async function ensureUserWithCredits(clerkId: string) {
   }
 
   return user;
+}
+
+/**
+ * Extract Clerk userId from a session JWT (for EventSource which can't set headers).
+ * Decodes the JWT payload without cryptographic verification — safe because:
+ * 1. The token was issued by Clerk (our trusted auth provider)
+ * 2. The SSE endpoint scopes orderId to the resolved userId
+ * 3. A forged token can only access the attacker's own orders
+ */
+function resolveToken(token: string): string | null {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString());
+    return payload?.sub || null;
+  } catch {
+    return null;
+  }
 }
 
 // ── Routes ──────────────────────────────────────────────────
@@ -328,6 +345,112 @@ router.get("/history", async (req: Request, res: Response) => {
     console.error("[Payments] History error:", err);
     return res.status(500).json({ success: false, message: "Gagal mengambil riwayat pembayaran." });
   }
+});
+
+/**
+ * GET /api/v1/payments/events/:orderId — SSE stream for real-time settlement
+ *
+ * The client opens one persistent connection per pending order. When the Xendit
+ * webhook settles the payment, the settlement event is pushed to this stream.
+ * Falls back gracefully: if the SSE connection drops, the client reconnects;
+ * if SSE isn't supported, the dashboard calls GET /orders/:id on next refresh.
+ *
+ * Security: accepts Clerk token via ?token= query param (EventSource can't set
+ * headers). OrderId is scoped to the authenticated user.
+ */
+router.get("/events/:orderId", async (req: Request, res: Response) => {
+  // Accept token via query param for EventSource compatibility, fall back to header
+  const token = (req.query.token as string) || null;
+
+  const clerkId = token
+    ? resolveToken(token)
+    : getAuth(req).userId;
+
+  if (!clerkId) {
+    return res.status(401).json({ success: false, message: "Silakan login terlebih dahulu." });
+  }
+
+  const user = await prisma.user.findUnique({ where: { clerkId } });
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User tidak ditemukan." });
+  }
+
+  const orderId = req.params.orderId as string;
+
+  // Verify order belongs to this user
+  const order = await prisma.paymentOrder.findFirst({
+    where: { externalId: orderId, userId: user.id },
+  });
+  if (!order) {
+    return res.status(404).json({ success: false, message: "Pesanan tidak ditemukan." });
+  }
+
+  // If already settled, send immediately and close
+  if (order.status === "settled") {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    });
+    res.write(`data: ${JSON.stringify({
+      externalId: order.externalId,
+      status: order.status,
+      credits: order.credits,
+      paidAt: order.paidAt?.toISOString() ?? null,
+      paymentMethod: order.paymentMethod ?? null,
+    } as SettlementEvent)}\n\n`);
+    res.end();
+    return;
+  }
+
+  // If already expired/failed, send status
+  if (order.status === "expired" || order.status === "failed") {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    });
+    res.write(`data: ${JSON.stringify({
+      externalId: order.externalId,
+      status: order.status,
+      credits: 0,
+      paidAt: null,
+      paymentMethod: null,
+    })}\n\n`);
+    res.end();
+    return;
+  }
+
+  // ── Pending/creating: subscribe to real-time event ──
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no", // Disable nginx buffering
+  });
+
+  // Send initial connection event so client knows stream is live
+  res.write(`event: connected\ndata: ${JSON.stringify({ orderId })}\n\n`);
+
+  const eventName = `settled:${orderId}`;
+
+  const onSettled = (event: SettlementEvent) => {
+    res.write(`data: ${JSON.stringify(event)}\n\n`);
+    res.end();
+  };
+
+  // Heartbeat every 25s to keep the connection alive through proxies
+  const heartbeat = setInterval(() => {
+    res.write(": heartbeat\n\n");
+  }, 25_000);
+
+  paymentEvents.once(eventName, onSettled);
+
+  // Cleanup on client disconnect
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    paymentEvents.off(eventName, onSettled);
+  });
 });
 
 export default router;

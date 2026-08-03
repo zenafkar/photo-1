@@ -45,7 +45,7 @@ export function TopUpModal({ isOpen, onClose, defaultPackageId }: TopUpModalProp
         // Save orderId so the dashboard can poll status after redirect-back
         sessionStorage.setItem("lastPaymentOrderId", res.data.orderId);
         setModalState("redirecting");
-        // Small delay so the user sees the "redirecting" state before the tab opens
+        // Brief delay so the user sees the "redirecting" state
         setTimeout(() => {
           openXenditCheckout(res.data.invoiceUrl);
           onClose();
@@ -54,7 +54,7 @@ export function TopUpModal({ isOpen, onClose, defaultPackageId }: TopUpModalProp
             setModalState("idle");
             setSelectedPackage((defaultPackageId as PackageId) || "pro");
           }, 300);
-        }, 600);
+        }, 200);
       } else if (res?.success && !res.data?.invoiceUrl) {
         // Idempotent replay of already-settled order (409 handled in api.ts as error)
         setErrorMessage("Pembayaran ini sudah selesai diproses sebelumnya.");

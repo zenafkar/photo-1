@@ -24,7 +24,7 @@ export async function saveRemoteImageLocally(remoteUrl: string, req?: any): Prom
 
     // Size limit: check Content-Length before downloading
     const headRes = await fetch(remoteUrl, { method: "HEAD" }).catch(() => null);
-    const contentLength = headRes?.headers.get("content-length");
+    const contentLength = headRes?.headers?.get("content-length");
     const MAX_REMOTE_SIZE = 25 * 1024 * 1024; // 25MB
     if (contentLength && parseInt(contentLength, 10) > MAX_REMOTE_SIZE) {
       console.warn(`[Storage] Remote image too large: ${contentLength} bytes`);

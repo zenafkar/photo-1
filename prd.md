@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD)
 
-## Prodify
+## Zen Studio
 
 ### Professional Product Photos. Authentic Products.
 
@@ -48,7 +48,7 @@ Matrix perbandingan fitur, kelebihan, kekurangan, dan peluang diferensiasi.
 
 # 4. Product Positioning
 
-Mengapa Prodify berbeda?
+Mengapa Zen Studio berbeda?
 
 * Bukan AI Image Generator
 * AI Product Photo Designer

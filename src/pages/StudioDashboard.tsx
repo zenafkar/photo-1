@@ -504,19 +504,83 @@ export default function StudioDashboard() {
 
                     {/* Prompt Input */}
                     <div className="space-y-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <label className="flex items-center text-sm font-bold text-slate-800">
-                          Prompt <span className="text-red-500 ml-1">*</span>
-                        </label>
+                      <label className="flex items-center text-sm font-bold text-slate-800">
+                        Prompt <span className="text-red-500 ml-1">*</span>
+                      </label>
+
+                      {/* ── Auto Generate Prompt – Mobile-First Prominent CTA ── */}
+                      <div className="relative group/gen">
+                        {/* Animated glow aura */}
+                        <div
+                          className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 opacity-30 blur-lg animate-glow-pulse pointer-events-none"
+                          aria-hidden="true"
+                        />
+
+                        {/* Floating sparkle particles */}
+                        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl" aria-hidden="true">
+                          <div className="absolute top-1/3 left-[15%] w-1.5 h-1.5 bg-amber-400 rounded-full animate-sparkle-drift-1" />
+                          <div className="absolute top-1/2 left-[70%] w-1 h-1 bg-cyan-400 rounded-full animate-sparkle-drift-2" />
+                          <div className="absolute top-1/4 left-[50%] w-1.5 h-1.5 bg-violet-400 rounded-full animate-sparkle-drift-3" />
+                        </div>
+
                         <button
                           type="button"
                           onClick={() => setIsPromptModalOpen(true)}
-                          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:from-indigo-700 hover:to-cyan-600 text-white rounded-lg font-bold text-[11px] sm:text-xs shadow-sm hover:shadow transition-all group"
+                          className="relative w-full flex items-center gap-3 p-3.5 bg-white/95 backdrop-blur-sm border-2 border-indigo-200/60 hover:border-indigo-400/80 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group active:scale-[0.98] min-h-[56px]"
+                          style={{
+                            backgroundImage:
+                              'linear-gradient(white, white), linear-gradient(135deg, #6366f1 0%, #a855f7 40%, #06b6d4 80%)',
+                            backgroundOrigin: 'border-box',
+                            backgroundClip: 'padding-box, border-box',
+                          }}
                         >
-                          <Wand2 className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
-                          <span>Auto Generate Prompt</span>
+                          {/* Animated icon pill */}
+                          <div className="relative shrink-0">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 transition-shadow">
+                              <Wand2 className="w-5 h-5 text-white animate-icon-pop" />
+                            </div>
+                            {/* Pulsing dot */}
+                            <div className="absolute -top-0.5 -right-0.5 w-3 h-3">
+                              <span className="absolute inset-0 rounded-full bg-amber-400 animate-ping opacity-75" />
+                              <span className="absolute inset-0 rounded-full bg-amber-400" />
+                            </div>
+                          </div>
+
+                          {/* Text + badge */}
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-extrabold text-slate-800 text-sm leading-tight">
+                                Auto Generate Prompt
+                              </span>
+                              <span className="text-[10px] font-black bg-gradient-to-r from-indigo-600 to-cyan-500 text-white px-2 py-0.5 rounded-full animate-glow-pulse tracking-wide whitespace-nowrap">
+                                ✦ AI
+                              </span>
+                            </div>
+                            <p className="text-[12px] text-slate-500 font-medium mt-0.5 leading-tight hidden xs:block">
+                              8 preset profesional • Kustom builder • 1-klik
+                            </p>
+                          </div>
+
+                          {/* Arrow indicator */}
+                          <div className="shrink-0 w-7 h-7 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
+                            <svg
+                              className="w-4 h-4 text-indigo-500 group-hover:translate-x-0.5 transition-transform"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2.5}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+
+                          {/* Shimmer sweep on hover */}
+                          <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">
+                            <div className="absolute inset-0 -translate-x-full animate-shimmer-sweep bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                          </div>
                         </button>
                       </div>
+
                       <textarea 
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}

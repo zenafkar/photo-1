@@ -1,7 +1,7 @@
 # 🎨 ZenStudio — Complete Environment Documentation
 
 > [!NOTE]
-> **Last Updated:** 2026-08-03 · **Product:** AI-powered professional product photography for e-commerce marketplaces  
+> **Last Updated:** 2026-08-04 · **Product:** AI-powered professional product photography for e-commerce marketplaces  
 > **Purpose:** Full-stack technical environment reference for developers, DevOps, and onboarding.
 
 ---
@@ -32,6 +32,8 @@
 | 20 | [Third-Party Integrations](#20-third-party-integrations) |
 | 21 | [Feature Flags](#21-feature-flags) |
 | 22 | [Infrastructure & Hosting](#22-infrastructure--hosting) |
+| 23 | [Agent Skills (AI Dev Tools)](#23-agent-skills-ai-dev-tools) |
+| 24 | [Changelog & Commit History](#24-changelog--commit-history) |
 
 ---
 
@@ -47,6 +49,7 @@
 - 💰 Pay-as-you-go pricing: **Starter** (10 credits = Rp 75,000) and **Pro** (30 credits = Rp 215,000)
 - 🛡️ Self-healing AI SRE agent with Telegram alerts and interactive remediation
 - 📊 Full observability stack (telemetry, cron health checks, reconciliation)
+- 🧾 Complete Top Up system with idempotent credit grants, payment polling, and reconciliation (V.1.1 production-ready)
 
 ### 🌐 Production URL
 
@@ -67,6 +70,14 @@ zen-dev/
 ├── tailwind.config.js                  # Tailwind CSS theme
 ├── postcss.config.js                   # PostCSS plugins
 ├── .env                                # Frontend env vars
+├── skills-lock.json                    # Installed agent skills lock file
+│
+├── .agents/
+│   └── skills/                         # AI coding agent skills
+│       ├── agent-browser/              # Browser automation skill (agent-browser)
+│       ├── find-skills/                # Skill discovery helper
+│       ├── frontend-design/            # UI/UX design guidance skill
+│       └── grill-me/                   # Interactive design interview skill
 │
 ├── server/
 │   ├── package.json                    # Backend (CommonJS)
@@ -74,18 +85,29 @@ zen-dev/
 │   ├── vitest.config.ts                # Backend test config (node)
 │   ├── .env                            # Server env vars
 │   ├── .env.example                    # Server env template
+│   ├── uploads/                        # Local disk image storage (generations)
 │   └── prisma/
 │       └── schema.prisma               # Database schema (PostgreSQL)
 │
 ├── src/                                # Frontend source
 │   ├── main.tsx                        # React entry (ClerkProvider)
-│   ├── App.tsx                         # Router (LandingPage, StudioDashboard)
+│   ├── App.tsx                         # Router (LandingPage, StudioDashboard) + TopUpProvider
+│   ├── index.css                       # Global styles + prefers-reduced-motion
 │   ├── pages/
 │   │   ├── LandingPage.tsx             # Marketing/landing page
-│   │   └── StudioDashboard.tsx         # Main app dashboard
-│   ├── components/                     # React components
-│   ├── services/api.ts                 # API client with Clerk auth token
-│   ├── lib/                            # Shared utilities
+│   │   └── StudioDashboard.tsx         # Main app dashboard (V.1.1 fixes)
+│   ├── components/                     # React components (see §3)
+│   ├── context/
+│   │   └── TopUpContext.tsx            # App-wide TopUp modal state (openTopUp)
+│   ├── hooks/
+│   │   └── usePaymentStatus.ts         # Payment polling hook (12s interval)
+│   ├── services/
+│   │   └── api.ts                      # API client with Clerk auth token
+│   ├── lib/
+│   │   ├── credits.ts                  # Credit display helpers
+│   │   ├── packages.ts                 # Frontend package definitions (Starter/Pro)
+│   │   ├── openXenditCheckout.ts       # Xendit checkout opener utility
+│   │   └── promptBuilder.ts            # AI prompt construction logic
 │   └── test/                           # Test setup & mocks
 │
 └── server/src/
@@ -101,12 +123,12 @@ zen-dev/
     │   ├── health.ts                   # Health check endpoint
     │   ├── user.ts                     # User profile
     │   ├── generate.ts                 # AI image generation
-    │   ├── payments.ts                 # Payment order management
-    │   ├── webhooks.ts                 # Clerk + Xendit webhooks
+    │   ├── payments.ts                 # Payment order management (V.1.1)
+    │   ├── webhooks.ts                 # Clerk + Xendit webhooks (V.1.1)
     │   └── telemetry.ts                # Client telemetry ingestion
     ├── services/
     │   ├── aiProvider.ts               # AI generation (Replicate)
-    │   ├── credits.ts                  # Atomic credit operations
+    │   ├── credits.ts                  # Atomic credit operations (V.1.1)
     │   ├── paymentPackages.ts          # Pricing source of truth
     │   ├── storage.ts                  # Local disk image storage
     │   ├── xendit.ts                   # Xendit API client
@@ -115,11 +137,11 @@ zen-dev/
     │   ├── agent.ts                    # SRE agent (Gemini 2.0 Flash)
     │   ├── guardrails.ts               # Feature flags, rate limits, data sanitization
     │   ├── scheduler.ts                # Cron jobs (health, reconciliation)
-    │   ├── telegramBot.ts              # Telegram bot with admin commands
+    │   ├── telegramBot.ts              # Telegram bot with admin commands (V.1.1)
     │   └── tools/
     │       └── remediationTools.ts      # Auto-fix actions (git push, PM2, GitHub issues)
     ├── reconciliation/
-    │   └── reconcilePayments.ts        # Payment reconciliation cron
+    │   └── reconcilePayments.ts        # Payment reconciliation cron (V.1.1)
     └── test/
         ├── setup.ts                    # Test environment setup
         └── prismaMock.ts               # Prisma mock helper
@@ -171,6 +193,11 @@ text-muted:     #64748B
 
 /* Typography */
 Font: Inter (sans-serif)
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *: animation-duration: 0.01ms, scroll-behavior: auto
+}
 ```
 
 ### 📄 Pages
@@ -179,6 +206,75 @@ Font: Inter (sans-serif)
 |-------|-----------|-------------|
 | `/` | `LandingPage` | Marketing page with hero, features, pricing, testimonials |
 | `/studio` | `StudioDashboard` | Authenticated AI photo editing workspace |
+
+### 🧩 Frontend Components
+
+| Component | File | Description |
+|-----------|------|-------------|
+| `BeforeAfterSlider` | `BeforeAfterSlider.tsx` | Image comparison slider |
+| `CompetitiveComparison` | `CompetitiveComparison.tsx` | Competitor feature comparison |
+| `ErrorBoundary` | `ErrorBoundary.tsx` | React error boundary wrapper |
+| `FAQ` | `FAQ.tsx` | Accordion FAQ section |
+| `Footer` | `Footer.tsx` | Site footer |
+| `GoToTop` | `GoToTop.tsx` | Scroll-to-top button |
+| `Hero` | `Hero.tsx` | Landing page hero section |
+| `IntegrityEngine` | `IntegrityEngine.tsx` | Animated trust/integrity section |
+| `InteractiveSandbox` | `InteractiveSandbox.tsx` | Interactive demo sandbox |
+| `MarketplacePresets` | `MarketplacePresets.tsx` | Marketplace preset thumbnails |
+| `Navbar` | `Navbar.tsx` | Navigation bar |
+| `PricingSection` | `PricingSection.tsx` | Pricing cards → triggers `openTopUp()` |
+| `PromptFeatureHighlight` | `PromptFeatureHighlight.tsx` | AI prompt feature highlights |
+| `PromptGeneratorModal` | `PromptGeneratorModal.tsx` | AI prompt builder modal |
+| `ScrollReveal` | `ScrollReveal.tsx` | Scroll-triggered animation wrapper |
+| `Testimonials` | `Testimonials.tsx` | Customer testimonials |
+| `TopUpModal` | `TopUpModal.tsx` | Credit purchase modal (V.1.1 — stable idempotency) |
+| `WorkflowSteps` | `WorkflowSteps.tsx` | How-it-works steps |
+| `ZenLogo` | `ZenLogo.tsx` | Brand logo component |
+| `ZoomableImage` | `ZoomableImage.tsx` | Pinch/click-to-zoom image viewer |
+
+### 🗂️ Frontend Context & Hooks
+
+| File | Purpose |
+|------|---------|
+| `context/TopUpContext.tsx` | App-wide `openTopUp(packageId?)` function via React Context |
+| `hooks/usePaymentStatus.ts` | Polls `/payments/orders/:id` every 12s; handles `pending→settled` transitions |
+
+### 📚 Frontend Libraries (`src/lib/`)
+
+| File | Purpose |
+|------|---------|
+| `credits.ts` | Credit count display helpers |
+| `packages.ts` | Frontend package definitions (Starter/Pro with price labels) |
+| `openXenditCheckout.ts` | Opens Xendit-hosted checkout URL in new tab |
+| `promptBuilder.ts` | Builds AI prompt strings for image generation |
+
+### ⚡ Frontend Performance Fixes (V.1 Audit — Applied)
+
+| Fix | Files | Impact |
+|-----|-------|--------|
+| CSP `img-src` expanded | `index.html` | Brand CDN icons load in prod |
+| Preconnect hints | `index.html` | ~300–500ms savings on font/Clerk handshakes |
+| `createObjectURL` leak fixed | `StudioDashboard.tsx` | No blob URL accumulation on file uploads |
+| Gallery touch controls always-visible | `StudioDashboard.tsx` | Mobile Download/Delete now tappable |
+| `top` animations → GPU `transform` | `Hero.tsx`, `IntegrityEngine.tsx` | Zero layout/paint overhead for scanning lines |
+| `prefers-reduced-motion` | `index.css` | Accessibility for motion-sensitive users |
+| `loading="lazy"` + `width`/`height` | `BeforeAfterSlider`, `IntegrityEngine`, `InteractiveSandbox` | No CLS, reduced LCP competition |
+| Deleted unused `logo-text.png` | `public/` | 2.07 MB saved |
+| JSON-LD structured data | `index.html` | SEO / rich results |
+| `sitemap.xml` fixed | `public/sitemap.xml` | Removed `/login`, `/register`; added `/studio` |
+
+### ⏳ Pending Frontend Tasks (Not Yet Applied)
+
+| # | Task | Priority |
+|---|------|----------|
+| P1 | Re-encode mislabeled images (`.jpg`→real JPEG, `.png`→real PNG) | High |
+| P2 | Compress oversized images to WebP (e.g. 2.35 MB `integrity-bg.jpg`) | High |
+| P3 | Create proper 1200×630 OG image | Medium |
+| P4 | Fix PWA manifest icon sizes and formats | Medium |
+| P7 | Modal a11y: `role="dialog"`, `aria-modal`, focus trap, Escape key | Low |
+| P8 | Navbar mobile toggle: `aria-label`, `aria-expanded` | Low |
+| P9 | FAQ accordion: `aria-expanded`, `aria-controls` | Low |
+| P10 | Credits pill in StudioDashboard: keyboard-focusable | Low |
 
 ---
 
@@ -456,6 +552,9 @@ Fallback retry with exponential backoff: `200ms → 500ms → 1000ms` if token f
 10. Return: { generation, remainingCredits }
 ```
 
+> [!IMPORTANT]
+> **Design Decision:** Credit deduction in `generate.ts` is intentionally **inline** (not delegated to `creditOps.deduct()`). The generation record MUST be created atomically with the deduction — splitting them into two transactions would allow a crash between them to leave credits deducted with no image saved.
+
 ### 🤖 AI Providers (via Replicate API)
 
 | Provider ID | Model | Credits | Notes |
@@ -493,7 +592,8 @@ Credits per generation:
 ## 9. Payment System (Xendit)
 
 > [!NOTE]
-> **Provider:** Xendit Invoice API v2 · **Currency:** IDR (Indonesian Rupiah) · **Region:** Indonesia
+> **Provider:** Xendit Invoice API v2 · **Currency:** IDR (Indonesian Rupiah) · **Region:** Indonesia  
+> **Status:** V.1.1 — Production-ready as of 2026-08-04
 
 ### 💰 Pricing *(Server-Side Source of Truth)*
 
@@ -516,8 +616,8 @@ Credits per generation:
 6.  Client: Redirect user to Xendit hosted checkout page
 7.  User: Pays via GOPAY, OVO, DANA, BCA VA, QRIS, etc.
 8.  Xendit: Sends webhook to POST /webhooks/xendit
-9.  Server: Verifies callback token (timingSafeEqual)
-10. Server: Updates order status, grants credits via creditOps.add()
+9.  Server: Verifies callback token (timingSafeEqual) + currency === "IDR" ✅
+10. Server: Grants credits FIRST (idempotent) → then CAS-settles order ✅
 ```
 
 ### 🛡️ Webhook Processing — 3-Layer Resilience
@@ -534,6 +634,7 @@ Credits per generation:
 - Uses PostgreSQL advisory lock (`pg_try_advisory_lock(72491)`) for single-instance safety
 - Finds orders stuck in `"creating"` (>10 min) or `"pending"` unreconciled (>15 min)
 - Queries Xendit for actual status, corrects local state
+- **Credits granted FIRST, then CAS-settle** (V.1.1 fix — same as webhooks.ts)
 - Grants credits if Xendit shows PAID/SETTLED but local DB doesn't
 - Soft-expires orders >24h old
 - **Escalation:** logs `CRITICAL` for orders with ≥8 failed reconcile attempts (~2h)
@@ -541,9 +642,26 @@ Credits per generation:
 ### 🔒 Security
 
 - Callback token verified with `crypto.timingSafeEqual` (prevents timing attacks)
+- **Currency validation:** rejects non-IDR payloads with `422` (V.1.1 fix)
 - Amount mismatch detection (422 response)
 - Sensitive fields stripped from stored `rawResponse` via `sanitizeWebhookPayload()`
 - Always returns `200` to Xendit (even on errors) to prevent retry storms
+
+### 🖥️ Frontend Top Up Flow
+
+```
+1. User clicks "Beli Paket" on PricingSection or opens TopUpModal from StudioDashboard
+2. TopUpContext.openTopUp(packageId?) triggered app-wide
+3. TopUpModal renders; idempotencyKey stored in useRef (stable per package selection)
+4. User confirms → POST /payments/orders
+5. openXenditCheckout(invoiceUrl) opens Xendit checkout in new tab
+6. sessionStorage saves { lastPaymentOrderId }
+7. usePaymentStatus polls every 12s → updates credit balance on settled
+8. StudioDashboard shows success/failure banner with auto-dismiss
+   - With orderId: dismisses after 8s (polled settled)
+   - Without orderId (cleared storage): calls loadProfile() directly, dismisses after 30s
+   - Failure: dismisses after 10s
+```
 
 ---
 
@@ -592,11 +710,16 @@ Credits per generation:
 | **Atomic guard on deduct** | `WHERE remainingCredits >= amount` in `updateMany` — prevents negative balance races |
 | **Transaction isolation** | `ReadCommitted` |
 | **CAS on settlement** | `updateMany WHERE status IN ('pending','creating')` — prevents double-credit |
+| **Credits-first ordering** | All 3 settlement paths (webhook, poll, reconciliation) grant credits before CAS-settling (V.1.1) |
 
 ### 🎁 Free Tier
 
 - **3 credits** granted on signup via Clerk webhook (`user.created`)
 - **Lazy creation:** if user has no credit record at first `/generate` call, auto-creates with 3 credits
+
+### 🔵 Deferred: Refund Idempotency
+
+When `creditOps.refund()` is eventually wired to an admin command, the idempotency key must be `${order.idempotencyKey}-refund` (not the raw purchase key) to prevent silent no-ops.
 
 ---
 
@@ -736,7 +859,7 @@ A global `EventEmitter` that the SRE agent listens to for `'anomaly'` events.
 ### ⏱️ Scheduled Tasks
 
 | Schedule | Task | Purpose |
-|----------|------|---------|
+|----------|------|---------| 
 | `*/4 * * * *` | DB keep-alive ping | Prevents Neon free-tier auto-suspend (5-min inactivity) |
 | `*/15 * * * *` | Resource check | RAM > 90% → trigger anomaly event |
 | `*/15 * * * *` | Payment reconciliation | Catch missed Xendit webhooks |
@@ -809,15 +932,20 @@ font-src     'self' data: https://fonts.gstatic.com
 img-src      'self' data: blob: https://replicate.delivery https://*.replicate.delivery
              https://*.amazonaws.com https://clerk.zenstudio.my.id https://img.clerk.com
              https://*.clerk.com https://images.clerk.dev https://*.clerk.accounts.dev
+             https://cdn.simpleicons.org https://cdn.worldvectorlogo.com
+             https://images.unsplash.com
 worker-src   'self' blob:
 ```
+
+> [!NOTE]
+> **V.1 Fix:** `img-src` was expanded to include `cdn.simpleicons.org`, `cdn.worldvectorlogo.com`, and `images.unsplash.com` — previously these were blocked in production, breaking brand icons (Shopee, TikTok, Tokopedia, Instagram).
 
 ### 🔐 Webhook Security
 
 | Webhook | Verification Method |
 |---------|---------------------|
 | **Clerk** | Svix signature (`svix-id`, `svix-timestamp`, `svix-signature`) |
-| **Xendit** | Callback token via `crypto.timingSafeEqual` |
+| **Xendit** | Callback token via `crypto.timingSafeEqual` + currency === "IDR" check |
 
 ### 🧹 Data Sanitization
 
@@ -834,6 +962,7 @@ worker-src   'self' blob:
 | Optimistic locking | `UserCredit.version` |
 | CAS | Compare-And-Swap on payment settlement |
 | Advisory locks | PostgreSQL advisory locks for reconciliation singleton |
+| Credits-first ordering | All 3 credit grant paths follow credits-before-CAS |
 
 > [!CAUTION]
 > **Production-Only Guard:** `validateTelemetryConfig()` fails fast if `TELEMETRY_INGEST_SECRET` is missing in production.
@@ -905,7 +1034,7 @@ Globals:     disabled
 **Test files:**
 - `src/components/__tests__/ErrorBoundary.test.tsx`
 - `src/services/__tests__/api.test.ts`
-- `src/lib/__tests__/credits.test.ts` — credit deduction logic
+- `src/lib/__tests__/credits.test.ts` — credit display logic
 - `src/lib/__tests__/promptBuilder.test.ts`
 
 ### ⚙️ Backend Tests
@@ -1055,6 +1184,49 @@ All controlled via environment variables (`true`/`false` strings):
 
 ---
 
+## 23. Agent Skills (AI Dev Tools)
+
+> [!NOTE]
+> Installed in `.agents/skills/` · Managed via `skills-lock.json`
+
+| Skill | Path | Description |
+|-------|------|-------------|
+| **agent-browser** | `.agents/skills/agent-browser/` | Browser automation CLI — navigate pages, fill forms, take screenshots, scrape data, test web apps, automate Electron apps |
+| **find-skills** | `.agents/skills/find-skills/` | Helps discover and install agent skills from external sources |
+| **frontend-design** | `.agents/skills/frontend-design/` | UI/UX design guidance — typography, color, aesthetic direction |
+| **grill-me** | `.agents/skills/grill-me/` | Interactive design interview to resolve ambiguous design decisions |
+
+---
+
+## 24. Changelog & Commit History
+
+### 📅 Recent Commits (as of 2026-08-04)
+
+| Hash | Message |
+|------|---------|
+| `0e7f03f` | feat: add agent-browser skill for browser automation |
+| `47ab73e` | fix: add JSON-LD structured data + fix sitemap.xml |
+| `897910b` | fix: frontend audit fixes V.1 — CSP, memory leak, mobile UX, perf |
+| `ec2d2b6` | perf: optimize Auto Generate Prompt button animations for mobile |
+| `489b049` | chore: update styles and StudioDashboard |
+| `04c6c52` | chore: update PromptGeneratorModal and tailwind config |
+| `113c9dd` | feat: implement top up system and integration |
+| `9662246` | Add frontend-design skill |
+| `a02babf` | Add agent skills: find-skills and grill-me |
+| `696bf2c` | docs: redesign ZENSTUDIO_ENVIRONMENT.md for better readability |
+
+### 🔄 System Version History
+
+| Version | Date | Summary |
+|---------|------|---------|
+| **V.1.1 Top Up** | 2026-08-04 | CAS ordering fixed (credits-first), currency validation, stable idempotency key, banner graceful fallback |
+| **V.1 Frontend Audit** | 2026-08-04 | CSP fix, memory leak fix, mobile gallery, GPU animations, preconnect hints, lazy loading, prefers-reduced-motion, JSON-LD, sitemap fix |
+| **Phase 4 Top Up** | 2026-08-03 | Full frontend (TopUpModal, TopUpContext, usePaymentStatus, API methods), server reconciliation, Telegram admin commands |
+| **Phase 3 Backend** | 2026-08-03 | Xendit integration, credit ops, webhook processing, reconciliation cron |
+| **Initial** | 2026-08-03 | Monorepo setup, AI generation, Clerk auth, SRE agent |
+
+---
+
 ## 📐 Appendix: Key Architectural Decisions
 
 > [!IMPORTANT]
@@ -1070,3 +1242,6 @@ All controlled via environment variables (`true`/`false` strings):
 | 6 | **Data privacy by design** | Telemetry events exclude raw body content; AI agent input is sanitized |
 | 7 | **Indonesian-language UX** | All user-facing messages and bot commands in Bahasa Indonesia |
 | 8 | **PM2 self-healing** | The SRE agent can restart itself via PM2 (with human approval for safety) |
+| 9 | **Credits-before-CAS** | All settlement paths grant credits first (idempotent), then CAS-settle — prevents permanent credit loss on crash (V.1.1) |
+| 10 | **Inline credit deduction in generate.ts** | Generation record must be atomic with credit deduction; splitting into two transactions creates a crash window |
+| 11 | **Stable idempotency key per package** | `useRef` in TopUpModal ensures retries reuse the same key — prevents duplicate Xendit invoices on network timeout |

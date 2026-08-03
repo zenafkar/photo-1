@@ -68,7 +68,6 @@ export async function handleAnomaly(payload: any) {
     console.log(`[SRE Agent] Skipping duplicate anomaly: ${fingerprint}`);
     return;
   }
-  anomalyCooldowns.set(fingerprint, Date.now());
 
   try {
     const sanitizedPayload = guardrails.sanitizeData(payload);
@@ -109,6 +108,10 @@ export async function handleAnomaly(payload: any) {
 
     const diagnosis = parsed.data;
     console.log("[SRE Agent Diagnosis]", diagnosis);
+
+    // Only set cooldown after successful diagnosis — failures (Gemini down,
+    // schema reject) should not suppress retries.
+    anomalyCooldowns.set(fingerprint, Date.now());
 
     // Execute Action based on validated diagnosis
     let actionStatus = 'PENDING';

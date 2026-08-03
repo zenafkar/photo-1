@@ -39,7 +39,9 @@ export const guardrails = {
       /password/i, /secret/i, /token/i, /apikey/i, /api[_-]?key/i,
       /private[_-]?key/i, /signing/i,
       /authorization/i, /bearer/i,
-      /stack[_-]?trace/i, /error[_-]?message/i, // prevent stack traces / errors leaking to external LLMs
+      // Note: stackTrace/errorMessage are NOT redacted — the SRE agent needs
+      // them to diagnose incidents. Injection is prevented via prompt hardening
+      // (XML delimiters + untrusted-data warning) and output schema validation.
     ];
 
     // Known secret value prefixes — redact even if the key isn't sensitive

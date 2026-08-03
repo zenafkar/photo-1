@@ -25,20 +25,12 @@ const TelemetryPayload = z.strictObject({
   userAgent: z.string().max(500).optional(),
 });
 
-// Shared secret for server-side telemetry ingestion (not embedded in client bundles).
-// Evaluated lazily so tests can inject the env var after module import.
-function getTelemetrySecret(): string {
-  return process.env.TELEMETRY_INGEST_SECRET || "";
-}
-
+// Telemetry ingestion is protected by Zod schema validation + IP rate limiting
+// (see telemetryLimiter in app.ts). No shared secret is needed — the client bundle
+// must never embed server secrets. The schema is the primary defense.
 export function validateTelemetryConfig(): void {
-  if (!getTelemetrySecret()) {
-    throw new Error(
-      "TELEMETRY_INGEST_SECRET is not set. " +
-      "This is required for telemetry endpoint authentication. " +
-      "Set it in your environment variables and restart the server."
-    );
-  }
+  // Telemetry endpoint is self-protecting via schema + rate limiting.
+  // This function exists as a no-op for backward compatibility with app.ts startup checks.
 }
 
 router.post("/", (req: Request, res: Response) => {

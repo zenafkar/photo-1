@@ -170,7 +170,7 @@ router.post("/", async (req: Request, res: Response) => {
         });
         if (existing) {
           // Refund the credits we just deducted
-          await prisma.$transaction(async (tx) => {
+          const refundResult = await prisma.$transaction(async (tx) => {
             await tx.userCredit.update({
               where: { userId: user!.id },
               data: {
@@ -190,13 +190,14 @@ router.post("/", async (req: Request, res: Response) => {
             });
             // Clean up the pending generation row
             await tx.generation.delete({ where: { id: deductionResult.generation.id } });
+            return updated;
           });
 
           return res.status(200).json({
             success: true,
             data: {
               generation: existing,
-              remainingCredits: deductionResult.credits.remainingCredits,
+              remainingCredits: refundResult!.remainingCredits,
             },
           });
         }

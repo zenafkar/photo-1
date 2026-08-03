@@ -4,7 +4,7 @@ import { Webhook } from "svix";
 
 // Set a test webhook secret — the handler now FAILS CLOSED when unset.
 // Svix requires the secret to be valid base64. This is a base64-encoded test key.
-const TEST_WEBHOOK_SECRET = "whsec_" + Buffer.from("test-secret-32-bytes-for-svix!!").toString("base64");
+const TEST_WEBHOOK_SECRET = "whsec_" + Buffer.from("test-secret-32-bytes-for-svix!!!").toString("base64");
 process.env.CLERK_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET;
 
 /** Generate valid Svix headers for a test payload */

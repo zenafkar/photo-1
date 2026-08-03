@@ -7,6 +7,12 @@ const token = process.env.TELEGRAM_BOT_TOKEN || '';
 const chatId = process.env.TELEGRAM_CHAT_ID || '';
 const reportLevel = process.env.TELEGRAM_REPORT_LEVEL || 'WARNING_AND_ABOVE'; // ALL, WARNING_AND_ABOVE
 
+/** Check if a chat ID is authorized for admin commands */
+function isAdminChat(chatIdToCheck: string): boolean {
+  const adminIds = (process.env.TELEGRAM_ADMIN_CHAT_IDS || chatId).split(",").map(s => s.trim());
+  return adminIds.includes(chatIdToCheck);
+}
+
 export let bot: TelegramBot | null = null;
 
 if (token) {
@@ -131,6 +137,28 @@ ${storageDetails}
         } else {
           bot?.sendMessage(message.chat.id, `✅ <b>Action Approved:</b> ${action}`, { parse_mode: 'HTML' });
         }
+      } else if (data?.startsWith("APPROVE_CREDIT_ADD_")) {
+        const parts = data.replace("APPROVE_CREDIT_ADD_", "").split("_");
+        const userId = parts.slice(0, -1).join("_"); // userId may contain underscores
+        const amount = parseInt(parts[parts.length - 1], 10);
+
+        try {
+          const { creditOps } = await import("../services/credits.js");
+          const { prisma } = await import("../config/prisma.js");
+          const user = await prisma.user.findUnique({ where: { id: userId } });
+          const result = await creditOps.add(userId, amount, {
+            type: "admin_credit",
+            reason: "Admin grant via Telegram (approved)",
+            operatorId: user?.clerkId || undefined,
+          });
+          bot?.sendMessage(
+            message.chat.id,
+            `✅ <b>+${amount} kredit</b> diberikan ke <b>${user?.email || userId}</b>. Sisa: <b>${result.remainingCredits}</b>.`,
+            { parse_mode: 'HTML' }
+          );
+        } catch (err: any) {
+          bot?.sendMessage(message.chat.id, `❌ Gagal grant: ${err?.message}`, { parse_mode: 'HTML' });
+        }
       } else if (data?.startsWith('REJECT_')) {
         bot?.sendMessage(message.chat.id, "❌ <b>Action Rejected:</b> Operator menolak eksekusi ini.", { parse_mode: 'HTML' });
       }
@@ -138,8 +166,230 @@ ${storageDetails}
       bot?.answerCallbackQuery(callbackQuery.id, { text: 'Done' });
     });
 
+    // ── Credit Admin Commands ──────────────────────────────
+
+    // /credit check <email> — show user's credit balance and recent transactions
+    bot.onText(/\/credit\s+check\s+(\S+)/, async (msg, match) => {
+      const chatId = msg.chat.id.toString();
+      if (!isAdminChat(chatId)) {
+        bot?.sendMessage(msg.chat.id, "⛔ Unauthorized. Admin only.", { parse_mode: 'HTML' });
+        return;
+      }
+
+      const email = match?.[1];
+      if (!email) {
+        bot?.sendMessage(msg.chat.id, "Usage: /credit check <email>", { parse_mode: 'HTML' });
+        return;
+      }
+
+      try {
+        const { prisma } = await import("../config/prisma.js");
+        const user = await prisma.user.findUnique({
+          where: { email },
+          include: {
+            credits: true,
+            creditTransactions: { orderBy: { createdAt: "desc" }, take: 10 },
+          },
+        });
+
+        if (!user) {
+          bot?.sendMessage(msg.chat.id, `❌ User dengan email <b>${email}</b> tidak ditemukan.`, { parse_mode: 'HTML' });
+          return;
+        }
+
+        const txns = user.creditTransactions
+          .map((t) => `  ${t.amount > 0 ? "+" : ""}${t.amount} — ${t.reason} (${t.createdAt.toISOString().slice(0, 16)})`)
+          .join("\n");
+
+        const text = `
+👤 <b>${user.email}</b> (${user.name || "N/A"})
+• <b>Plan:</b> ${user.credits?.planType || "free"}
+• <b>Credits:</b> ${user.credits?.remainingCredits ?? 0}
+
+📋 <b>10 Transaksi Terakhir:</b>
+${txns || "  (tidak ada transaksi)"}
+        `;
+        bot?.sendMessage(msg.chat.id, text, { parse_mode: 'HTML' });
+      } catch (err: any) {
+        bot?.sendMessage(msg.chat.id, `❌ Gagal: ${err?.message}`, { parse_mode: 'HTML' });
+      }
+    });
+
+    // /credit add <email> <amount> — grant credits manually
+    bot.onText(/\/credit\s+add\s+(\S+)\s+(\d+)/, async (msg, match) => {
+      const chatId = msg.chat.id.toString();
+      if (!isAdminChat(chatId)) {
+        bot?.sendMessage(msg.chat.id, "⛔ Unauthorized. Admin only.", { parse_mode: 'HTML' });
+        return;
+      }
+
+      const email = match?.[1];
+      const amount = parseInt(match?.[2] || "0", 10);
+      if (!email || amount <= 0) {
+        bot?.sendMessage(msg.chat.id, "Usage: /credit add <email> <amount>", { parse_mode: 'HTML' });
+        return;
+      }
+
+      try {
+        const { prisma } = await import("../config/prisma.js");
+        const { creditOps } = await import("../services/credits.js");
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+          bot?.sendMessage(msg.chat.id, `❌ User <b>${email}</b> tidak ditemukan.`, { parse_mode: 'HTML' });
+          return;
+        }
+
+        // Ensure credit record exists
+        let credit = await prisma.userCredit.findUnique({ where: { userId: user.id } });
+        if (!credit) {
+          credit = await prisma.userCredit.create({
+            data: { userId: user.id, remainingCredits: 3, planType: "free" },
+          });
+        }
+
+        // Large grants (>100) require approval via inline keyboard
+        if (amount > 100) {
+          const { telegramBot } = require("./telegramBot.js");
+          telegramBot.sendApprovalRequest(
+            `CREDIT_ADD_${user.id}_${amount}`,
+            `Grant ${amount} credits to ${email}`,
+            "MEDIUM"
+          );
+          bot?.sendMessage(
+            msg.chat.id,
+            `⏳ Menunggu approval untuk grant <b>${amount}</b> kredit ke <b>${email}</b>.`,
+            { parse_mode: 'HTML' }
+          );
+          return;
+        }
+
+        const result = await creditOps.add(user.id, amount, {
+          type: "admin_credit",
+          reason: `Admin grant via Telegram oleh ${msg.from?.username || msg.from?.first_name || "unknown"}`,
+          operatorId: user.clerkId,
+        });
+
+        bot?.sendMessage(
+          msg.chat.id,
+          `✅ <b>+${amount} kredit</b> diberikan ke <b>${email}</b>. Sisa: <b>${result.remainingCredits}</b>.`,
+          { parse_mode: 'HTML' }
+        );
+      } catch (err: any) {
+        bot?.sendMessage(msg.chat.id, `❌ Gagal: ${err?.message}`, { parse_mode: 'HTML' });
+      }
+    });
+
+    // /credit fix <orderId> — force reconciliation for a specific order
+    bot.onText(/\/credit\s+fix\s+(\S+)/, async (msg, match) => {
+      const chatId = msg.chat.id.toString();
+      if (!isAdminChat(chatId)) {
+        bot?.sendMessage(msg.chat.id, "⛔ Unauthorized. Admin only.", { parse_mode: 'HTML' });
+        return;
+      }
+
+      const externalId = match?.[1];
+      if (!externalId) {
+        bot?.sendMessage(msg.chat.id, "Usage: /credit fix <orderId>", { parse_mode: 'HTML' });
+        return;
+      }
+
+      try {
+        const { prisma } = await import("../config/prisma.js");
+        const { getInvoice } = await import("../services/xendit.js");
+        const { creditOps } = await import("../services/credits.js");
+
+        const order = await prisma.paymentOrder.findFirst({ where: { externalId } });
+        if (!order) {
+          bot?.sendMessage(msg.chat.id, `❌ Pesanan <b>${externalId}</b> tidak ditemukan.`, { parse_mode: 'HTML' });
+          return;
+        }
+
+        if (!order.xenditInvoiceId) {
+          bot?.sendMessage(msg.chat.id, `⚠️ Pesanan <b>${externalId}</b> belum memiliki invoice Xendit.`, { parse_mode: 'HTML' });
+          return;
+        }
+
+        const invoice = await getInvoice(order.xenditInvoiceId);
+        if (!invoice) {
+          bot?.sendMessage(msg.chat.id, `⚠️ Gagal mengambil data invoice dari Xendit.`, { parse_mode: 'HTML' });
+          return;
+        }
+
+        bot?.sendMessage(
+          msg.chat.id,
+          `📋 <b>${externalId}</b>\n• Xendit status: <b>${invoice.status}</b>\n• DB status: <b>${order.status}</b>\n• Amount: Rp ${order.amount}`,
+          { parse_mode: 'HTML' }
+        );
+
+        // If Xendit says PAID/SETTLED but DB doesn't, force settle
+        const xStatus = invoice.status.toUpperCase();
+        if ((xStatus === "PAID" || xStatus === "SETTLED") && !["settled"].includes(order.status)) {
+          await prisma.paymentOrder.update({
+            where: { id: order.id },
+            data: { status: "settled", settledAt: new Date(), paidAt: new Date() },
+          });
+          await creditOps.add(order.userId, order.credits, {
+            type: "reconcile_correction",
+            orderId: order.id,
+            reason: `Manual fix via Telegram: ${externalId}`,
+            idempotencyKey: order.idempotencyKey,
+            metadata: { xenditInvoiceId: order.xenditInvoiceId, source: "manual-fix" },
+          });
+          bot?.sendMessage(msg.chat.id, `✅ Credits granted! Order settled.`, { parse_mode: 'HTML' });
+        } else {
+          bot?.sendMessage(msg.chat.id, `ℹ️ No action needed.`, { parse_mode: 'HTML' });
+        }
+      } catch (err: any) {
+        bot?.sendMessage(msg.chat.id, `❌ Gagal: ${err?.message}`, { parse_mode: 'HTML' });
+      }
+    });
+
+    // /order <orderId> — show full payment order details
+    bot.onText(/\/order\s+(\S+)/, async (msg, match) => {
+      const chatId = msg.chat.id.toString();
+      if (!isAdminChat(chatId)) {
+        bot?.sendMessage(msg.chat.id, "⛔ Unauthorized. Admin only.", { parse_mode: 'HTML' });
+        return;
+      }
+
+      const externalId = match?.[1];
+      if (!externalId) {
+        bot?.sendMessage(msg.chat.id, "Usage: /order <orderId>", { parse_mode: 'HTML' });
+        return;
+      }
+
+      try {
+        const { prisma } = await import("../config/prisma.js");
+        const order = await prisma.paymentOrder.findFirst({
+          where: { externalId },
+          include: { creditTransactions: true },
+        });
+
+        if (!order) {
+          bot?.sendMessage(msg.chat.id, `❌ Pesanan <b>${externalId}</b> tidak ditemukan.`, { parse_mode: 'HTML' });
+          return;
+        }
+
+        const text = `
+📦 <b>${order.externalId}</b>
+• <b>Status:</b> ${order.status}
+• <b>Paket:</b> ${order.packageId} (${order.credits} kredit)
+• <b>Jumlah:</b> Rp ${order.amount}
+• <b>Metode:</b> ${order.paymentMethod || "N/A"}
+• <b>Xendit ID:</b> ${order.xenditInvoiceId}
+• <b>Reconcile:</b> ${order.reconcileCount}x
+• <b>Dibuat:</b> ${order.createdAt.toISOString().slice(0, 16)}
+• <b>Selesai:</b> ${order.settledAt?.toISOString().slice(0, 16) || "N/A"}
+        `;
+        bot?.sendMessage(msg.chat.id, text, { parse_mode: 'HTML' });
+      } catch (err: any) {
+        bot?.sendMessage(msg.chat.id, `❌ Gagal: ${err?.message}`, { parse_mode: 'HTML' });
+      }
+    });
+
     // Interactive AI chat functionality has been removed per user request (reverted to CMD-only SRE bot)
-    
+
   } catch (error) {
     console.error("Failed to initialize Telegram Bot", error);
   }

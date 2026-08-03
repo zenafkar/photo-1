@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 import { Webhook } from "svix";
 import { prisma } from "../config/prisma";
+import { verifyXenditCallback, sanitizeWebhookPayload } from "../services/xenditWebhook";
+import { creditOps } from "../services/credits";
 
 const router = Router();
 
@@ -110,6 +112,146 @@ router.post("/clerk", async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("[Clerk Webhook Error]", error);
     return res.status(500).json({ success: false, message: error?.message || "Webhook processing error" });
+  }
+});
+
+// ── Xendit Payment Webhook ──────────────────────────────────
+
+/**
+ * POST /api/v1/webhooks/xendit
+ * Handles payment status callbacks from Xendit.
+ * Security: callback token verification via timingSafeEqual.
+ * Idempotent: terminal-status orders are no-ops.
+ */
+router.post("/xendit", async (req: Request, res: Response) => {
+  try {
+    const XENDIT_WEBHOOK_TOKEN = process.env.XENDIT_WEBHOOK_TOKEN || "";
+
+    // 1. Verify callback token
+    const receivedToken = req.headers["x-callback-token"] as string | undefined;
+    if (!verifyXenditCallback(receivedToken, XENDIT_WEBHOOK_TOKEN)) {
+      console.warn("[Xendit Webhook] Invalid callback token");
+      return res.status(401).json({ success: false, message: "Token webhook tidak valid." });
+    }
+
+    const body = req.body;
+    const xenditInvoiceId: string | undefined = body?.id;
+    const status: string | undefined = body?.status;
+    const amount: number | undefined = body?.amount;
+
+    if (!xenditInvoiceId) {
+      return res.status(400).json({ success: false, message: "Missing invoice ID." });
+    }
+
+    // 2. Find payment order
+    const order = await prisma.paymentOrder.findUnique({
+      where: { xenditInvoiceId },
+    });
+
+    if (!order) {
+      console.warn(`[Xendit Webhook] Unknown invoice: ${xenditInvoiceId}`);
+      return res.status(404).json({ success: false, message: "Pesanan tidak ditemukan." });
+    }
+
+    // 3. Amount/currency integrity check
+    if (amount !== undefined && amount !== order.amount) {
+      console.error(
+        `[Xendit Webhook] Amount mismatch! Expected ${order.amount}, got ${amount} for ${xenditInvoiceId}`
+      );
+      return res.status(422).json({ success: false, message: "Jumlah pembayaran tidak sesuai." });
+    }
+
+    // 4. Idempotency — terminal orders are no-ops
+    if (["settled", "expired", "failed"].includes(order.status)) {
+      await prisma.paymentOrder.update({
+        where: { id: order.id },
+        data: {
+          notifiedAt: new Date(),
+          rawResponse: sanitizeWebhookPayload(body) as any,
+        },
+      });
+      return res.status(200).json({ success: true, message: "Already processed." });
+    }
+
+    // 5. Dispatch by Xendit status
+    const xStatus = (status || "").toUpperCase();
+
+    if (xStatus === "PAID" || xStatus === "SETTLED") {
+      // ── Grant credits FIRST ──────────────────────────
+      // If this fails, we do NOT settle — order stays pending so reconciliation will retry.
+      try {
+        await creditOps.add(order.userId, order.credits, {
+          type: "purchase",
+          orderId: order.id,
+          reason: `Pembelian paket ${order.packageId}`,
+          idempotencyKey: order.idempotencyKey,
+          metadata: {
+            xenditInvoiceId,
+            paymentMethod: body?.payment_method,
+            paymentChannel: body?.payment_channel,
+          },
+        });
+      } catch (creditErr: any) {
+        console.error(`[Xendit Webhook] Credit grant failed for ${xenditInvoiceId}:`, creditErr?.message);
+        // Order stays pending — reconciliation will retry
+        return res.status(200).json({ success: false, message: "Credit grant failed — will reconcile." });
+      }
+
+      // ── CAS settlement ──────────────────────────────
+      // Only settle AFTER credits are granted. CAS prevents double-settling
+      // if a concurrent poll/webhook already processed this order.
+      await prisma.$transaction(async (tx) => {
+        const claimed = await tx.paymentOrder.updateMany({
+          where: {
+            xenditInvoiceId,
+            status: { in: ["pending", "creating"] },
+          },
+          data: {
+            status: "settled",
+            settledAt: new Date(),
+            paidAt: body?.paid_at ? new Date(body.paid_at) : new Date(),
+            paymentMethod: body?.payment_method || null,
+            paymentChannel: body?.payment_channel || null,
+            xenditPaymentId: body?.payment_id || null,
+            rawResponse: sanitizeWebhookPayload(body) as any,
+            notifiedAt: new Date(),
+          },
+        });
+
+        if (claimed.count === 0) {
+          // Credits already granted by concurrent request — no-op
+          return;
+        }
+      });
+
+      console.log(`[Xendit Webhook] Settled: ${xenditInvoiceId} (${order.packageId}, +${order.credits} credits)`);
+    } else if (xStatus === "EXPIRED") {
+      await prisma.paymentOrder.update({
+        where: { id: order.id },
+        data: {
+          status: "expired",
+          expiredAt: new Date(),
+          rawResponse: sanitizeWebhookPayload(body) as any,
+          notifiedAt: new Date(),
+        },
+      });
+    } else if (xStatus === "FAILED") {
+      await prisma.paymentOrder.update({
+        where: { id: order.id },
+        data: {
+          status: "failed",
+          rawResponse: sanitizeWebhookPayload(body) as any,
+          notifiedAt: new Date(),
+        },
+      });
+    }
+    // PENDING: no-op
+
+    return res.status(200).json({ success: true });
+  } catch (err: any) {
+    console.error("[Xendit Webhook] Error:", err);
+    // Always return 200 to Xendit to prevent retry storms
+    return res.status(200).json({ success: false, message: "Internal error — will reconcile." });
   }
 });
 

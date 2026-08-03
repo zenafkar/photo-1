@@ -15,8 +15,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  credits     UserCredit?
-  generations Generation[]
+  credits           UserCredit?
+  generations       Generation[]
+  paymentOrders     PaymentOrder[]
+  creditTransactions CreditTransaction[]
 }
 
 model UserCredit {
@@ -24,9 +26,10 @@ model UserCredit {
   userId           String   @unique
   remainingCredits Int      @default(3) // Free tier
   planType         String   @default("free") // "free", "pro", "enterprise"
+  version          Int      @default(0) // Optimistic locking for concurrent credit mutations
   updatedAt        DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Generation {
@@ -42,4 +45,60 @@ model Generation {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+// Xendit payment order — tracks invoice lifecycle from creation through settlement
+model PaymentOrder {
+  id                String   @id @default(uuid())
+  userId            String
+  idempotencyKey    String   // Client-generated UUID per purchase attempt
+  xenditInvoiceId   String?  @unique // Xendit invoice ID — null until Xendit responds (nullable to avoid "pending" collisions)
+  externalId        String   @unique // Our order reference (e.g. "ZEN-20260803-AB12CD34")
+  packageId         String   // "starter" | "pro"
+  credits           Int      // credits in this package (10 | 30)
+  amount            Int      // in Rupiah (75000 | 215000)
+  status            String   @default("creating") // creating|pending|paid|settled|expired|failed
+  invoiceUrl        String?  // Xendit hosted checkout page URL
+  paymentMethod     String?  // e.g. "GOPAY", "OVO", "DANA", "BCA", "QRIS"
+  paymentChannel    String?  // more specific: "GOPAY_WEB", "BCA_VA", "QRIS_DYNAMIC"
+  xenditPaymentId   String?  // Xendit payment ID from webhook
+  rawResponse       Json?    // Full Xendit payload snapshot (auth-sanitized)
+  notifiedAt        DateTime? // Last webhook received
+  reconcileCount    Int      @default(0) // Layer 3 reconciliation attempts
+  lastReconcileAt   DateTime?
+  paidAt            DateTime?
+  settledAt         DateTime?
+  expiredAt         DateTime? // Server-side soft expiry
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creditTransactions CreditTransaction[]
+
+  @@unique([userId, idempotencyKey])    // Layer 1: idempotency scoped to user
+  @@index([status, createdAt])          // Layer 3: reconciliation scan
+  @@index([userId, createdAt])          // User order history
+  @@index([xenditInvoiceId])            // Webhook lookup
+}
+
+// Immutable audit log — every credit mutation is recorded here
+model CreditTransaction {
+  id              String   @id @default(uuid())
+  userId          String
+  orderId         String?  // FK → PaymentOrder (null for signup bonus, generation spend)
+  type            String   // "welcome_bonus" | "purchase" | "refund" | "admin_credit" | "admin_debit" | "reconcile_correction" | "generation_spend"
+  amount          Int      // signed: +N = credits added, -N = credits deducted
+  balanceAfter    Int      // snapshot of remainingCredits after this operation
+  reason          String   // human-readable Indonesian description
+  idempotencyKey  String?  @unique // from PaymentOrder, for dedup (null = non-purchase txns; unique prevents double grant)
+  operatorId      String?  // clerkId of admin (null for automated ops)
+  metadata        Json?    // arbitrary debug info (provider, resolution, etc.)
+  createdAt       DateTime @default(now())
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order PaymentOrder? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([orderId])
+  @@index([idempotencyKey])
 }

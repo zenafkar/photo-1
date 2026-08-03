@@ -17,6 +17,7 @@ import userRoutes from "./routes/user";
 import generateRoutes from "./routes/generate";
 import webhookRoutes from "./routes/webhooks.js";
 import telemetryRoutes from "./routes/telemetry.js";
+import paymentsRoutes from "./routes/payments.js";
 import { telemetryMiddleware, telemetryErrorHandler } from "./middleware/telemetry.js";
 import { validateTelemetryConfig } from "./routes/telemetry.js";
 import path from "path";
@@ -46,6 +47,14 @@ const telemetryLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: "Terlalu banyak permintaan." },
+});
+
+const paymentLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5, // 5 payment creates per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Terlalu banyak permintaan pembayaran. Silakan coba lagi nanti." },
 });
 
 export function createApp() {
@@ -97,6 +106,7 @@ export function createApp() {
   // Protected Routes (Require Clerk Auth) — with stricter rate limits
   app.use("/api/v1/user", requireAuth, userRoutes);
   app.use("/api/v1/generate", requireAuth, strictLimiter, generateRoutes);
+  app.use("/api/v1/payments", requireAuth, paymentLimiter, paymentsRoutes);
 
   // Global Error Handler
   app.use(telemetryErrorHandler); // Added telemetry error catcher

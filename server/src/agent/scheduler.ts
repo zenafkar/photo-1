@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import os from 'os';
 import { telegramBot } from './telegramBot.js';
 import { prisma } from '../config/prisma.js';
+import { reconcilePayments } from '../reconciliation/reconcilePayments.js';
 
 // DB keep-alive failure counter (reset on success)
 let dbFailCount = 0;
@@ -52,6 +53,15 @@ export function startScheduler() {
           timestamp: new Date().toISOString()
         });
       });
+    }
+  });
+
+  // Every 15 minutes — Payment reconciliation (Xendit webhook catch-up)
+  cron.schedule('*/15 * * * *', async () => {
+    try {
+      await reconcilePayments();
+    } catch (err) {
+      console.error("[Scheduler] Reconciliation cron failed:", err);
     }
   });
 

@@ -510,23 +510,23 @@ export default function StudioDashboard() {
 
                       {/* ── Auto Generate Prompt – Mobile-First Prominent CTA ── */}
                       <div className="relative group/gen">
-                        {/* Animated glow aura */}
+                        {/* Glow aura: fixed box-shadow, opacity-only animation → GPU layer */}
                         <div
-                          className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 opacity-30 blur-lg animate-glow-pulse pointer-events-none"
+                          className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 blur-lg animate-glow-pulse pointer-events-none shadow-[0_0_35px_rgba(99,102,241,0.35)]"
+                          style={{ willChange: 'opacity' }}
                           aria-hidden="true"
                         />
 
-                        {/* Floating sparkle particles */}
+                        {/* Floating sparkle particles (2 instead of 3 — lighter) */}
                         <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl" aria-hidden="true">
-                          <div className="absolute top-1/3 left-[15%] w-1.5 h-1.5 bg-amber-400 rounded-full animate-sparkle-drift-1" />
-                          <div className="absolute top-1/2 left-[70%] w-1 h-1 bg-cyan-400 rounded-full animate-sparkle-drift-2" />
-                          <div className="absolute top-1/4 left-[50%] w-1.5 h-1.5 bg-violet-400 rounded-full animate-sparkle-drift-3" />
+                          <div className="absolute top-1/3 left-[15%] w-1.5 h-1.5 bg-amber-400 rounded-full animate-sparkle-drift-1" style={{ willChange: 'transform, opacity' }} />
+                          <div className="absolute top-1/2 left-[70%] w-1 h-1 bg-cyan-400 rounded-full animate-sparkle-drift-2" style={{ willChange: 'transform, opacity' }} />
                         </div>
 
                         <button
                           type="button"
                           onClick={() => setIsPromptModalOpen(true)}
-                          className="relative w-full flex items-center gap-3 p-3.5 bg-white/95 backdrop-blur-sm border-2 border-indigo-200/60 hover:border-indigo-400/80 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group active:scale-[0.98] min-h-[56px]"
+                          className="relative w-full flex items-center gap-3 p-3.5 bg-white border-2 border-indigo-200/60 hover:border-indigo-400/80 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group active:scale-[0.98] min-h-[56px]"
                           style={{
                             backgroundImage:
                               'linear-gradient(white, white), linear-gradient(135deg, #6366f1 0%, #a855f7 40%, #06b6d4 80%)',
@@ -537,7 +537,7 @@ export default function StudioDashboard() {
                           {/* Animated icon pill */}
                           <div className="relative shrink-0">
                             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 transition-shadow">
-                              <Wand2 className="w-5 h-5 text-white animate-icon-pop" />
+                              <Wand2 className="w-5 h-5 text-white animate-icon-pop" style={{ willChange: 'transform' }} />
                             </div>
                             {/* Pulsing dot */}
                             <div className="absolute -top-0.5 -right-0.5 w-3 h-3">
@@ -552,7 +552,7 @@ export default function StudioDashboard() {
                               <span className="font-extrabold text-slate-800 text-sm leading-tight">
                                 Auto Generate Prompt
                               </span>
-                              <span className="text-[10px] font-black bg-gradient-to-r from-indigo-600 to-cyan-500 text-white px-2 py-0.5 rounded-full animate-glow-pulse tracking-wide whitespace-nowrap">
+                              <span className="text-[10px] font-black bg-gradient-to-r from-indigo-600 to-cyan-500 text-white px-2 py-0.5 rounded-full tracking-wide whitespace-nowrap">
                                 ✦ AI
                               </span>
                             </div>
@@ -574,9 +574,9 @@ export default function StudioDashboard() {
                             </svg>
                           </div>
 
-                          {/* Shimmer sweep on hover */}
-                          <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">
-                            <div className="absolute inset-0 -translate-x-full animate-shimmer-sweep bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                          {/* Shimmer sweep — only on hover, not continuously */}
+                          <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true">
+                            <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer-sweep bg-gradient-to-r from-transparent via-white/25 to-transparent" style={{ willChange: 'transform' }} />
                           </div>
                         </button>
                       </div>

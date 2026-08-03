@@ -26,15 +26,11 @@ export default {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))'
       },
       animation: {
-        'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
-        'gradient-rotate': 'gradient-rotate 4s linear infinite',
-        'icon-pop': 'icon-pop 2s ease-in-out infinite',
-        'sparkle-drift-1': 'sparkle-drift-1 2.5s ease-out infinite',
-        'sparkle-drift-2': 'sparkle-drift-2 3s ease-out infinite 0.8s',
-        'sparkle-drift-3': 'sparkle-drift-3 2.8s ease-out infinite 1.5s',
-        'shimmer-sweep': 'shimmer-sweep 2.5s ease-in-out infinite',
-        'attention-bounce': 'attention-bounce 5s ease-in-out infinite',
-        'border-glow-rotate': 'border-glow-rotate 3s ease-in-out infinite',
+        'glow-pulse': 'glow-pulse 4s ease-in-out infinite',
+        'icon-pop': 'icon-pop 3s ease-in-out infinite',
+        'sparkle-drift-1': 'sparkle-drift-1 3.2s ease-out infinite',
+        'sparkle-drift-2': 'sparkle-drift-2 3.8s ease-out infinite 1.2s',
+        'shimmer-sweep': 'shimmer-sweep 0.6s ease-in-out',
       }
     },
   },

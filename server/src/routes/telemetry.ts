@@ -4,11 +4,13 @@ import { telemetryEmitter } from "../middleware/telemetry";
 const router = Router();
 
 // Shared secret for client-side telemetry ingestion
-// Validate at startup (app.ts calls validateTelemetryConfig) — not at module level
-const TELEMETRY_SECRET = process.env.TELEMETRY_INGEST_SECRET || "";
+// Evaluated lazily so tests can inject the env var after module import
+function getTelemetrySecret(): string {
+  return process.env.TELEMETRY_INGEST_SECRET || "";
+}
 
 export function validateTelemetryConfig(): void {
-  if (!TELEMETRY_SECRET) {
+  if (!getTelemetrySecret()) {
     throw new Error(
       "TELEMETRY_INGEST_SECRET is not set. " +
       "This is required for telemetry endpoint authentication. " +
@@ -18,6 +20,8 @@ export function validateTelemetryConfig(): void {
 }
 
 router.post("/", (req: Request, res: Response) => {
+  const TELEMETRY_SECRET = getTelemetrySecret();
+
   // Refuse to operate if the secret was never configured (safety net)
   if (!TELEMETRY_SECRET) {
     return res.status(500).json({ success: false, message: "Server misconfiguration: telemetry secret not set" });

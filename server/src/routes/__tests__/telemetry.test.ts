@@ -9,8 +9,9 @@ vi.mock("@clerk/express", () => ({
 
 import { createApp } from "../../app.js";
 
+process.env.TELEMETRY_INGEST_SECRET = "test-telemetry-secret";
 const app = createApp();
-const TELEMETRY_SECRET = process.env.TELEMETRY_INGEST_SECRET || "dev-secret-change-in-production";
+const TELEMETRY_SECRET = "test-telemetry-secret";
 
 describe("Telemetry Routes", () => {
   it("POST /api/v1/telemetry accepts valid payload with correct secret", async () => {

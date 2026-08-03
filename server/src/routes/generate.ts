@@ -59,8 +59,8 @@ router.post("/", async (req: Request, res: Response) => {
       creditsToDeduct = 2;
     }
 
-    if (!user || !user.credits || user.credits.remainingCredits < creditsToDeduct) {
-      return res.status(403).json({ success: false, message: `Kredit tidak cukup. Dibutuhkan ${creditsToDeduct} kredit untuk resolusi ini.` });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User tidak ditemukan." });
     }
 
     // Save original image base64 locally first for database history
@@ -84,16 +84,15 @@ router.post("/", async (req: Request, res: Response) => {
     // Simpan gambar hasil secara permanen ke disk VPS lokal
     const localProcessedUrl = await saveRemoteImageLocally(resultUrl, req);
 
-    // Deduct calculated credits & Save History transactionally
-    let updatedCredits, generationRecord;
+    // Atomic credit deduction + generation save (fixes check-then-act race)
+    let updatedCredits: { remainingCredits: number };
+    let generationRecord;
     try {
       if (predictionId) {
         const existing = await prisma.generation.findFirst({
           where: { replicateId: predictionId, userId: user.id }
         });
         if (existing) {
-          // Return existing generation WITHOUT deducting credits again
-          // (the original request already deducted them)
           return res.status(200).json({
             success: true,
             data: {
@@ -104,12 +103,43 @@ router.post("/", async (req: Request, res: Response) => {
         }
       }
 
-      [updatedCredits, generationRecord] = await prisma.$transaction([
-        prisma.userCredit.update({
-          where: { userId: user.id },
-          data: { remainingCredits: { decrement: creditsToDeduct } },
-        }),
-        prisma.generation.create({
+      // Atomic: deduct credits only if sufficient balance remains
+      const result = await prisma.$transaction(async (tx) => {
+        const deducted = await tx.userCredit.updateMany({
+          where: {
+            userId: user.id,
+            remainingCredits: { gte: creditsToDeduct },
+          },
+          data: {
+            remainingCredits: { decrement: creditsToDeduct },
+            version: { increment: 1 },
+          },
+        });
+
+        if (deducted.count === 0) {
+          const current = await tx.userCredit.findUnique({ where: { userId: user.id } });
+          throw new Error(
+            `Kredit tidak cukup. Dibutuhkan ${creditsToDeduct}, tersedia ${current?.remainingCredits ?? 0}.`
+          );
+        }
+
+        // Re-fetch updated balance
+        const updated = await tx.userCredit.findUnique({ where: { userId: user.id } });
+        if (!updated) throw new Error("Credit record disappeared during deduction.");
+
+        // Immutable audit log
+        await tx.creditTransaction.create({
+          data: {
+            userId: user.id,
+            type: "generation_spend",
+            amount: -creditsToDeduct,
+            balanceAfter: updated.remainingCredits,
+            reason: `Generasi gambar: ${prompt.slice(0, 60)}`,
+          },
+        });
+
+        // Save generation record
+        const gen = await tx.generation.create({
           data: {
             userId: user.id,
             replicateId: predictionId || null,
@@ -118,9 +148,19 @@ router.post("/", async (req: Request, res: Response) => {
             preset: prompt,
             status: "completed",
           },
-        }),
-      ]);
+        });
+
+        return { credits: updated, generation: gen };
+      });
+
+      updatedCredits = { remainingCredits: result.credits.remainingCredits };
+      generationRecord = result.generation;
+
     } catch (dbError: any) {
+      // Check for insufficient credits error thrown from inside the transaction
+      if (dbError?.message?.includes("Kredit tidak cukup")) {
+        return res.status(403).json({ success: false, message: dbError.message });
+      }
       console.error("Database error during transaction:", dbError);
       return res.status(500).json({ success: false, message: "Gagal menyimpan hasil generasi ke database (DB Error). Mohon coba lagi." });
     }

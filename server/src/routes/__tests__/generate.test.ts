@@ -15,7 +15,10 @@ vi.mock("@clerk/express", () => ({
 const {
   mockUserFindUnique,
   mockUserCreditUpdate,
+  mockUserCreditUpdateMany,
+  mockUserCreditFindUnique,
   mockUserCreditCreate,
+  mockCreditTransactionCreate,
   mockGenFindFirst,
   mockGenFindUnique,
   mockGenCreate,
@@ -24,7 +27,10 @@ const {
 } = vi.hoisted(() => ({
   mockUserFindUnique: vi.fn(),
   mockUserCreditUpdate: vi.fn(),
+  mockUserCreditUpdateMany: vi.fn(),
+  mockUserCreditFindUnique: vi.fn(),
   mockUserCreditCreate: vi.fn(),
+  mockCreditTransactionCreate: vi.fn(),
   mockGenFindFirst: vi.fn(),
   mockGenFindUnique: vi.fn(),
   mockGenCreate: vi.fn(),
@@ -39,7 +45,12 @@ vi.mock("../../config/prisma.js", () => ({
     },
     userCredit: {
       update: mockUserCreditUpdate,
+      updateMany: mockUserCreditUpdateMany,
+      findUnique: mockUserCreditFindUnique,
       create: mockUserCreditCreate,
+    },
+    creditTransaction: {
+      create: mockCreditTransactionCreate,
     },
     generation: {
       findFirst: mockGenFindFirst,
@@ -110,14 +121,29 @@ describe("Generate Routes", () => {
     // Default: storage works
     mockSaveBase64.mockResolvedValue("https://example.com/api/v1/uploads/generations/orig-123.jpg");
     mockSaveRemote.mockResolvedValue("https://example.com/api/v1/uploads/generations/result-456.jpg");
-    // Default: transaction — execute callback synchronously
+    // Default: transaction — execute callback synchronously with full mock client
     mockTransaction.mockImplementation(async (arg: any) => {
       if (typeof arg === "function") {
-        return arg({ userCredit: { update: mockUserCreditUpdate }, generation: { create: mockGenCreate } });
+        return arg({
+          userCredit: {
+            update: mockUserCreditUpdate,
+            updateMany: mockUserCreditUpdateMany,
+            findUnique: mockUserCreditFindUnique,
+          },
+          creditTransaction: {
+            create: mockCreditTransactionCreate,
+          },
+          generation: {
+            create: mockGenCreate,
+          },
+        });
       }
       return Promise.all(arg);
     });
-    mockUserCreditUpdate.mockResolvedValue({ remainingCredits: 4 });
+    // Default: credit deduction succeeds
+    mockUserCreditUpdateMany.mockResolvedValue({ count: 1 });
+    mockUserCreditFindUnique.mockResolvedValue({ remainingCredits: 4 });
+    mockCreditTransactionCreate.mockResolvedValue({ id: "txn-new" });
     mockGenCreate.mockResolvedValue({
       id: "gen-new",
       replicateId: "pred-new-123",
@@ -149,11 +175,9 @@ describe("Generate Routes", () => {
   });
 
   it("POST /api/v1/generate returns 403 when credits insufficient", async () => {
-    mockUserFindUnique.mockResolvedValue({
-      id: "user-poor",
-      clerkId: "clerk_test",
-      credits: { remainingCredits: 0, planType: "free" },
-    });
+    // Simulate atomic deduction failure: updateMany returns count 0
+    mockUserCreditUpdateMany.mockResolvedValue({ count: 0 });
+    mockUserCreditFindUnique.mockResolvedValue({ remainingCredits: 0 });
 
     const res = await request(app)
       .post("/api/v1/generate")
@@ -169,9 +193,8 @@ describe("Generate Routes", () => {
       .send({ ...validPayload, resolution: "1k" });
 
     expect(res.status).toBe(200);
-    // Verify credit deduction amount
-    const updateCall = mockUserCreditUpdate.mock.calls[0];
-    expect(updateCall).toBeDefined();
+    // Verify credit deduction was attempted via atomic updateMany
+    expect(mockUserCreditUpdateMany).toHaveBeenCalled();
   });
 
   it("POST /api/v1/generate deducts 2 credits for 4K resolution", async () => {
@@ -224,7 +247,7 @@ describe("Generate Routes", () => {
     expect(res.status).toBe(200);
     expect(res.body.data.generation.id).toBe("gen-existing");
     // ✅ Fix: credits should NOT be deducted again (original request already deducted)
-    expect(mockUserCreditUpdate).not.toHaveBeenCalled();
+    expect(mockTransaction).not.toHaveBeenCalled();
   });
 
   it("DELETE /api/v1/generate/:id returns 404 for unauthorized user", async () => {

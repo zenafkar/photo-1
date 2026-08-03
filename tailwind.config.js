@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '475px',
+      },
       colors: {
         background: '#FFFFFF',
         surface: '#FFFFFF',
@@ -24,5 +27,20 @@ export default {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        '.scrollbar-none': {
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+        },
+        '.overscroll-contain': {
+          'overscroll-behavior': 'contain',
+        },
+      });
+    },
+  ],
 }

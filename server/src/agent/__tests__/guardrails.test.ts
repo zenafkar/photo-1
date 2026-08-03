@@ -58,22 +58,86 @@ describe("guardrails", () => {
   });
 
   describe("sanitizeData", () => {
-    it("masks password, token, secret, and key values", () => {
-      const input = 'password "mysecret123" token=abc123 secret: xyz key: "hello"';
+    it("redacts values for sensitive keys (password, secret, token, apiKey, auth)", () => {
+      const input = {
+        username: "testuser",
+        password: "mysecret123",
+        apiKey: "sk_live_abc123",
+        token: "bearer-token-xyz",
+        secret: "super-secret-value",
+        nested: {
+          Authorization: "Bearer eyJhbGciOi...",
+          data: "safe-data",
+        },
+      };
       const result = guardrails.sanitizeData(input);
-      expect(result).not.toContain("mysecret123");
-      expect(result).not.toContain("abc123");
-      expect(result).not.toContain("xyz");
-      expect(result).not.toContain('"hello"');
-      expect(result).toContain("***MASKED***");
+      expect(result.password).toBe("***REDACTED***");
+      expect(result.apiKey).toBe("***REDACTED***");
+      expect(result.token).toBe("***REDACTED***");
+      expect(result.secret).toBe("***REDACTED***");
+      expect(result.nested.Authorization).toBe("***REDACTED***");
+      expect(result.username).toBe("testuser");
+      expect(result.nested.data).toBe("safe-data");
     });
 
-    it("handles non-string input by returning unchanged", () => {
-      const obj = { foo: "bar" };
-      const result = guardrails.sanitizeData(obj);
-      // Since sanitizeData stringifies internally, the result is a string
-      // but the masking should still apply to any secret-like keys in JSON
-      expect(typeof result).toBe("string");
+    it("redacts string values matching known secret prefixes", () => {
+      const input = {
+        service: "analytics",
+        key: "sk_live_fakeTestKey123abc",
+        webhook: "whsec_fakeWebhookSecret456",
+        gh: "github_pat_fakePatToken789",
+        message: "this is safe text",
+      };
+      const result = guardrails.sanitizeData(input);
+      expect(result.key).toBe("***REDACTED***");
+      expect(result.webhook).toBe("***REDACTED***");
+      expect(result.gh).toBe("***REDACTED***");
+      expect(result.service).toBe("analytics");
+      expect(result.message).toBe("this is safe text");
+    });
+
+    it("handles arrays and nested structures", () => {
+      const input = {
+        items: [
+          { name: "item1", token: "secret-a" },
+          { name: "item2", token: "secret-b" },
+        ],
+        meta: {
+          credentials: [{ api_key: "hidden-value" }],
+        },
+      };
+      const result = guardrails.sanitizeData(input);
+      expect(result.items[0].token).toBe("***REDACTED***");
+      expect(result.items[1].token).toBe("***REDACTED***");
+      expect(result.items[0].name).toBe("item1");
+      expect(result.meta.credentials[0].api_key).toBe("***REDACTED***");
+    });
+
+    it("returns primitives unchanged", () => {
+      expect(guardrails.sanitizeData(null)).toBe(null);
+      expect(guardrails.sanitizeData(42)).toBe(42);
+      expect(guardrails.sanitizeData("plain string")).toBe("plain string");
+      expect(guardrails.sanitizeData(true)).toBe(true);
+    });
+
+    it("handles depth limit to prevent stack overflow", () => {
+      // Build a deeply nested object (25 levels deep)
+      let deep: any = { value: "safe" };
+      for (let i = 0; i < 25; i++) {
+        deep = { nested: deep };
+      }
+      const result = guardrails.sanitizeData(deep);
+      // Should not throw — max-depth marker present somewhere deep
+      let current = result;
+      let foundMaxDepth = false;
+      for (let i = 0; i < 25; i++) {
+        if (current.nested === "[max-depth]") {
+          foundMaxDepth = true;
+          break;
+        }
+        current = current.nested;
+      }
+      expect(foundMaxDepth).toBe(true);
     });
   });
 });

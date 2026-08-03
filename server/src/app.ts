@@ -18,6 +18,7 @@ import generateRoutes from "./routes/generate";
 import webhookRoutes from "./routes/webhooks.js";
 import telemetryRoutes from "./routes/telemetry.js";
 import { telemetryMiddleware, telemetryErrorHandler } from "./middleware/telemetry.js";
+import { validateTelemetryConfig } from "./routes/telemetry.js";
 import path from "path";
 
 dotenv.config();
@@ -53,6 +54,11 @@ export function createApp() {
   // Trust proxy for accurate client IP behind nginx
   app.set("trust proxy", 1);
 
+  // Fail-fast on missing required secrets in production
+  if (process.env.NODE_ENV === "production") {
+    validateTelemetryConfig();
+  }
+
   // Middleware
   app.use(telemetryMiddleware); // Run first to catch all requests for latency
   app.use(generalLimiter); // Global rate limit
@@ -65,14 +71,19 @@ export function createApp() {
     ],
     credentials: true,
   }));
+  // Route-specific body parser: allow large 50mb payloads only on /generate
+  // Registered before the global parser so it takes precedence for matching routes
+  app.use("/api/v1/generate", express.json({ limit: "50mb" }));
+
+  // Global body parser: 1mb default for all other routes
   app.use(express.json({
-    limit: "50mb",
+    limit: "1mb",
     // Preserve raw body for webhook signature verification (svix)
     verify: (req, _res, buf) => {
       (req as any).rawBody = buf.toString("utf8");
     },
   }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  app.use(express.urlencoded({ limit: "1mb", extended: true }));
   app.use(clerkMiddleware()); // Required by @clerk/express before requireAuth
 
   // Serve static uploaded files (under /api/v1 so Nginx proxies it properly in production)

@@ -103,7 +103,11 @@ router.post("/", async (req: Request, res: Response) => {
         }
       }
 
-      // Atomic: deduct credits only if sufficient balance remains
+      // Atomic: deduct credits + save generation + audit log in ONE transaction.
+      // NOTE: We inline credit logic here rather than calling creditOps.deduct()
+      // because the Generation record MUST be created atomically with the deduction.
+      // If we used creditOps.deduct() (which has its own internal $transaction),
+      // a generation save failure would leave credits deducted with no result.
       const result = await prisma.$transaction(async (tx) => {
         const deducted = await tx.userCredit.updateMany({
           where: {

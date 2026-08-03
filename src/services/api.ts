@@ -125,19 +125,19 @@ export const useApiClient = () => {
 
   return useMemo(() => ({
     getProfile: () => request("/user/me"),
-    generateImage: (payload: { 
-      imageUrl: string; 
-      prompt: string; 
+    generateImage: (payload: {
+      imageUrl: string;
+      prompt: string;
       provider?: string;
       aspectRatio?: string;
       resolution?: string;
       outputFormat?: string;
-    }) => 
+    }) =>
       request("/generate", {
         method: "POST",
         body: JSON.stringify(payload),
       }),
-    deleteGeneration: (id: string) => 
+    deleteGeneration: (id: string) =>
       request(`/generate/${id}`, {
         method: "DELETE",
       }),
@@ -145,5 +145,12 @@ export const useApiClient = () => {
       request("/generate/sync", {
         method: "POST",
       }),
+    createPaymentOrder: (payload: { packageId: string; idempotencyKey: string }) =>
+      request("/payments/orders", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    getPaymentOrder: (orderId: string) =>
+      request(`/payments/orders/${orderId}`),
   }), [request]);
 };

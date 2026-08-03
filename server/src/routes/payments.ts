@@ -211,8 +211,37 @@ router.get("/orders/:id", async (req: Request, res: Response) => {
           const xStatus = invoice.status.toUpperCase();
 
           if (xStatus === "PAID" || xStatus === "SETTLED") {
-            // CAS: atomically claim settlement (idempotent vs webhook)
-            const claimed = await prisma.paymentOrder.updateMany({
+            // ── Grant credits FIRST (idempotent via idempotencyKey) ──
+            // If this fails, we do NOT settle — order stays pending for reconciliation retry.
+            // This matches the webhooks.ts pattern and prevents permanent credit loss
+            // if the server crashes between settlement and credit grant.
+            try {
+              await creditOps.add(order.userId, order.credits, {
+                type: "purchase",
+                orderId: order.id,
+                reason: `Pembelian paket ${order.packageId} (poll)`,
+                idempotencyKey: order.idempotencyKey,
+                metadata: { xenditInvoiceId: order.xenditInvoiceId, source: "poll" },
+              });
+            } catch (creditErr: any) {
+              console.error(`[Payments] Poll credit grant failed for ${order.externalId}:`, creditErr?.message);
+              // Don't settle — return current status so reconciliation can retry
+              return res.status(200).json({
+                success: true,
+                data: {
+                  orderId: order.externalId,
+                  status: order.status,
+                  credits: order.credits,
+                  amount: order.amount,
+                  paidAt: order.paidAt,
+                  paymentMethod: order.paymentMethod,
+                },
+              });
+            }
+
+            // ── CAS settlement SECOND (idempotent vs webhook) ──
+            // Credits are already granted. CAS just marks the order as done.
+            await prisma.paymentOrder.updateMany({
               where: {
                 id: order.id,
                 status: { in: ["pending", "creating"] },
@@ -228,21 +257,6 @@ router.get("/orders/:id", async (req: Request, res: Response) => {
               },
             });
 
-            if (claimed.count > 0) {
-              // We claimed the settlement — grant credits
-              try {
-                await creditOps.add(order.userId, order.credits, {
-                  type: "purchase",
-                  orderId: order.id,
-                  reason: `Pembelian paket ${order.packageId} (poll)`,
-                  idempotencyKey: order.idempotencyKey,
-                  metadata: { xenditInvoiceId: order.xenditInvoiceId, source: "poll" },
-                });
-              } catch (creditErr: any) {
-                // Credit grant failed but order is already settled — reconcile will retry
-                console.error(`[Payments] Poll credit grant failed for ${order.externalId}:`, creditErr?.message);
-              }
-            }
             order.status = "settled";
           } else if (xStatus === "EXPIRED" || xStatus === "FAILED") {
             await prisma.paymentOrder.update({

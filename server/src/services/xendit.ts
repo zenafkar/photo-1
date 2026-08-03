@@ -3,10 +3,12 @@ import { CREDIT_PACKAGES, getPackage, type PackageId } from "./paymentPackages";
 const XENDIT_API_KEY = process.env.XENDIT_API_KEY || "";
 const XENDIT_IS_PRODUCTION = process.env.XENDIT_IS_PRODUCTION === "true";
 
+// Xendit uses the same API base URL for both sandbox and production.
+// Environments are differentiated by the API key prefix:
+//   xnd_development_... → sandbox
+//   xnd_production_...  → production
 function baseUrl(): string {
-  return XENDIT_IS_PRODUCTION
-    ? "https://api.xendit.co"
-    : "https://api.xendit.co";
+  return "https://api.xendit.co";
 }
 
 function authHeader(): string {

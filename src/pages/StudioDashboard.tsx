@@ -1,10 +1,13 @@
 import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useAuth } from "@clerk/clerk-react";
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useApiClient } from "../services/api";
-import { Loader2, Upload, Sparkles, Image as ImageIcon, Trash2, Download, Home, Zap, AlertTriangle, RefreshCw, Wand2 } from 'lucide-react';
+import { Loader2, Upload, Sparkles, Image as ImageIcon, Trash2, Download, Home, Zap, AlertTriangle, RefreshCw, Wand2, CheckCircle2, XCircle } from 'lucide-react';
 import ZoomableImage from '../components/ZoomableImage';
 import { ZenLogo } from '../components/ZenLogo';
 import { PromptGeneratorModal } from '../components/PromptGeneratorModal';
+import { useTopUp } from "../context/TopUpContext";
+import { usePaymentStatus } from "../hooks/usePaymentStatus";
 
 const OpenAIIcon = ({ className }: { className?: string }) => (
   <svg 
@@ -51,6 +54,64 @@ export default function StudioDashboard() {
 
   const { isLoaded, isSignedIn } = useAuth();
   const api = useApiClient();
+  const { openTopUp } = useTopUp();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // ── Payment return detection ───────────────────────────
+  const [paymentBanner, setPaymentBanner] = useState<"success" | "failed" | null>(null);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+
+  const paymentStatus = usePaymentStatus(pendingOrderId);
+
+  // Detect ?payment=success or ?payment=failed on mount
+  useEffect(() => {
+    const paymentParam = searchParams.get("payment");
+    if (paymentParam === "success") {
+      // Try to find the orderId from a pending order to poll
+      const storedOrderId = sessionStorage.getItem("lastPaymentOrderId");
+      if (storedOrderId) {
+        setPaymentBanner("success");
+        setPendingOrderId(storedOrderId);
+      } else {
+        // No orderId available — fall back to direct profile refresh
+        loadProfile();
+        setPaymentBanner("success");
+        // Auto-dismiss after 30s since we can't poll without an orderId
+        setTimeout(() => setPaymentBanner(null), 30_000);
+      }
+      // Clean URL
+      const next = new URLSearchParams(searchParams);
+      next.delete("payment");
+      setSearchParams(next, { replace: true });
+    } else if (paymentParam === "failed") {
+      setPaymentBanner("failed");
+      // Auto-dismiss after 30s
+      setTimeout(() => setPaymentBanner(null), 30_000);
+      const next = new URLSearchParams(searchParams);
+      next.delete("payment");
+      setSearchParams(next, { replace: true });
+    }
+  }, []); // Only on mount
+
+  // When polling settles, refresh credits and show success
+  useEffect(() => {
+    if (paymentStatus.status === "settled") {
+      loadProfile();
+      setPaymentBanner("success");
+      sessionStorage.removeItem("lastPaymentOrderId");
+      setPendingOrderId(null);
+      // Auto-dismiss success banner after 8s once settled
+      const timer = setTimeout(() => setPaymentBanner(null), 8_000);
+      return () => clearTimeout(timer);
+    } else if (paymentStatus.status === "expired" || paymentStatus.status === "failed") {
+      setPaymentBanner("failed");
+      sessionStorage.removeItem("lastPaymentOrderId");
+      setPendingOrderId(null);
+      // Auto-dismiss failure banner after 10s
+      const timer = setTimeout(() => setPaymentBanner(null), 10_000);
+      return () => clearTimeout(timer);
+    }
+  }, [paymentStatus.status]);
 
 
   const handleSyncReplicate = useCallback(async (isSilent = true) => {
@@ -302,7 +363,10 @@ export default function StudioDashboard() {
                 <span className="font-bold text-xl tracking-tight text-slate-800">ZenStudio</span>
               </div>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3 bg-white border border-slate-200 p-1 pl-3 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer group">
+                <div 
+                  onClick={() => openTopUp()}
+                  className="flex items-center gap-3 bg-white border border-slate-200 p-1 pl-3 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                >
                   <div className="flex items-center gap-1.5">
                     <div className="relative flex items-center justify-center">
                       <div className="absolute inset-0 bg-amber-400 blur-sm opacity-40 group-hover:opacity-70 transition-opacity"></div>
@@ -315,7 +379,7 @@ export default function StudioDashboard() {
                         <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
                       ) : (
                         <button 
-                          onClick={loadProfile} 
+                          onClick={(e) => { e.stopPropagation(); loadProfile(); }} 
                           title="Klik untuk memuat ulang"
                           className="text-xs text-red-500 hover:text-red-600 font-semibold underline flex items-center gap-1"
                         >
@@ -325,9 +389,11 @@ export default function StudioDashboard() {
                       <span className="text-slate-400 font-semibold hidden sm:inline">Kredit</span>
                     </span>
                   </div>
-                  <div className="bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-full group-hover:bg-indigo-600 transition-colors shadow-sm">
+                  <button
+                    className="bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-full group-hover:bg-indigo-600 transition-colors shadow-sm cursor-pointer"
+                  >
                     Top Up
-                  </div>
+                  </button>
                 </div>
                 <UserButton afterSignOutUrl="/">
                   <UserButton.MenuItems>
@@ -344,6 +410,46 @@ export default function StudioDashboard() {
               </div>
             </div>
           </header>
+
+          {/* Payment return banner */}
+          {paymentBanner === "success" && (
+            <div className="bg-emerald-50 border-b border-emerald-200">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-emerald-800">Pembayaran berhasil!</p>
+                  <p className="text-xs text-emerald-600">
+                    {paymentStatus.status === "settled"
+                      ? `+${paymentStatus.credits} kredit telah ditambahkan.`
+                      : "Kredit sedang diproses. Saldo akan diperbarui otomatis."}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setPaymentBanner(null)}
+                  className="ml-auto text-emerald-500 hover:text-emerald-700"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+          {paymentBanner === "failed" && (
+            <div className="bg-red-50 border-b border-red-200">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-red-800">Pembayaran gagal atau dibatalkan.</p>
+                  <p className="text-xs text-red-600">Silakan coba lagi atau gunakan metode pembayaran lain.</p>
+                </div>
+                <button
+                  onClick={() => setPaymentBanner(null)}
+                  className="ml-auto text-red-400 hover:text-red-600"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
 
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid lg:grid-cols-12 gap-8">
@@ -612,19 +718,27 @@ export default function StudioDashboard() {
 
                   {/* Sticky Footer / Run Button */}
                   <div className="p-4 border-t border-slate-200 bg-white">
-                    <button 
-                      onClick={handleGenerate}
-                      disabled={!previewUrl || isGenerating || credits === 0}
-                      className="w-full py-3.5 bg-black hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
-                    >
-                      {isGenerating ? (
-                        <><Loader2 className="w-5 h-5 animate-spin" /> Sedang Memproses...</>
-                      ) : credits === 0 ? (
-                        "Kredit Habis - Upgrade"
-                      ) : (
-                        <>Transform <span className="text-slate-300 font-medium text-sm ml-1 px-2 py-0.5 bg-white/20 rounded-md">-{(provider === 'nanobanana' || provider === 'nanobanana2') ? 2 : (resolution === '4k' ? 2 : 1)} Kredit</span></>
-                      )}
-                    </button>
+                    {credits === 0 && !isGenerating ? (
+                      <button
+                        onClick={() => openTopUp()}
+                        className="w-full py-3.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                      >
+                        <Zap className="w-5 h-5" />
+                        Kredit Habis — Top Up Sekarang
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleGenerate}
+                        disabled={!previewUrl || isGenerating}
+                        className="w-full py-3.5 bg-black hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
+                      >
+                        {isGenerating ? (
+                          <><Loader2 className="w-5 h-5 animate-spin" /> Sedang Memproses...</>
+                        ) : (
+                          <>Transform <span className="text-slate-300 font-medium text-sm ml-1 px-2 py-0.5 bg-white/20 rounded-md">-{(provider === 'nanobanana' || provider === 'nanobanana2') ? 2 : (resolution === '4k' ? 2 : 1)} Kredit</span></>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

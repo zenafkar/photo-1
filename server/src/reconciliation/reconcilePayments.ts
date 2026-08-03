@@ -58,7 +58,24 @@ export async function reconcilePayments(): Promise<void> {
         const xStatus = invoice.status.toUpperCase();
 
         if (xStatus === "PAID" || xStatus === "SETTLED") {
-          // CAS: only transition from pending/creating
+          // ── Grant credits FIRST (idempotent via idempotencyKey) ──
+          // If this fails, we do NOT settle — order stays pending for next reconciliation run.
+          // This matches webhooks.ts and prevents permanent credit loss on crash.
+          try {
+            await creditOps.add(order.userId, order.credits, {
+              type: "purchase",
+              orderId: order.id,
+              reason: `Pembelian paket ${order.packageId} (reconciliation)`,
+              idempotencyKey: order.idempotencyKey,
+              metadata: { xenditInvoiceId: order.xenditInvoiceId, source: "reconciliation" },
+            });
+          } catch (creditErr: any) {
+            console.error(`[Reconciliation] Credit grant failed for ${order.externalId}:`, creditErr?.message);
+            // Don't settle — retry next reconciliation tick
+            continue;
+          }
+
+          // ── CAS settlement SECOND ──
           const claimed = await prisma.paymentOrder.updateMany({
             where: {
               xenditInvoiceId: order.xenditInvoiceId,
@@ -75,20 +92,8 @@ export async function reconcilePayments(): Promise<void> {
           });
 
           if (claimed.count > 0) {
-            // Grant credits
-            try {
-              await creditOps.add(order.userId, order.credits, {
-                type: "purchase",
-                orderId: order.id,
-                reason: `Pembelian paket ${order.packageId} (reconciliation)`,
-                idempotencyKey: order.idempotencyKey,
-                metadata: { xenditInvoiceId: order.xenditInvoiceId, source: "reconciliation" },
-              });
-              settled++;
-              console.log(`[Reconciliation] Settled: ${order.externalId}`);
-            } catch (creditErr: any) {
-              console.error(`[Reconciliation] Credit grant failed for ${order.externalId}:`, creditErr?.message);
-            }
+            settled++;
+            console.log(`[Reconciliation] Settled: ${order.externalId}`);
           }
         } else if (xStatus === "EXPIRED") {
           await prisma.paymentOrder.update({
@@ -139,7 +144,14 @@ export async function reconcilePayments(): Promise<void> {
       console.error(
         `[Reconciliation] CRITICAL: Order ${order.externalId} stuck (status: ${order.status}, attempts: ${order.reconcileCount})`
       );
-      // Telegram alert handled by scheduler
+      const { telegramBot } = await import("../agent/telegramBot.js");
+      await telegramBot.sendFullActionReport({
+        time: new Date().toISOString(),
+        component: "Payment Reconciliation",
+        rootCause: `Order ${order.externalId} stuck in "${order.status}" after ${order.reconcileCount} reconciliation attempts`,
+        action: `Manual intervention required — verify Xendit invoice ${order.xenditInvoiceId} and grant credits manually if paid`,
+        status: "CRITICAL_ORDER_STUCK",
+      });
     }
   } catch (err: any) {
     console.error("[Reconciliation] Fatal error:", err?.message);

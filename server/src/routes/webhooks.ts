@@ -158,7 +158,25 @@ router.post("/xendit", async (req: Request, res: Response) => {
       console.error(
         `[Xendit Webhook] Amount mismatch! Expected ${order.amount}, got ${amount} for ${xenditInvoiceId}`
       );
+      // Telegram alert for potential tampering
+      const { telegramBot } = await import("../agent/telegramBot.js");
+      await telegramBot.sendFullActionReport({
+        time: new Date().toISOString(),
+        component: "Xendit Webhook",
+        rootCause: `Amount mismatch for invoice ${xenditInvoiceId}: expected ${order.amount}, got ${amount}`,
+        action: "Manual investigation required — possible tampering or Xendit configuration error",
+        status: "CRITICAL_AMOUNT_MISMATCH",
+      });
       return res.status(422).json({ success: false, message: "Jumlah pembayaran tidak sesuai." });
+    }
+
+    // Currency validation — only IDR is supported
+    const currency: string | undefined = body?.currency;
+    if (currency && currency !== "IDR") {
+      console.error(
+        `[Xendit Webhook] Currency mismatch! Expected IDR, got ${currency} for ${xenditInvoiceId}`
+      );
+      return res.status(422).json({ success: false, message: "Mata uang tidak valid." });
     }
 
     // 4. Idempotency — terminal orders are no-ops

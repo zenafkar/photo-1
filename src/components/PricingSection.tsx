@@ -1,9 +1,11 @@
 import { Sparkles, Zap, Image as ImageIcon, Layers, Aperture, Shield, Type, FastForward } from 'lucide-react';
 import { SignedOut, SignedIn, useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
+import { useTopUp } from '../context/TopUpContext';
 
 const PricingSection = () => {
   const { openSignIn, openSignUp } = useClerk();
+  const { openTopUp } = useTopUp();
   const handleOpenAuth = () => {
     try {
       if (typeof openSignUp === 'function') {
@@ -92,9 +94,12 @@ const PricingSection = () => {
               </button>
             </SignedOut>
             <SignedIn>
-              <Link to="/studio" className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold flex justify-center transition-all shadow-md">
+              <button
+                onClick={() => openTopUp("starter")}
+                className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold flex justify-center transition-all shadow-md cursor-pointer"
+              >
                 Beli Paket
-              </Link>
+              </button>
             </SignedIn>
           </div>
 
@@ -132,9 +137,12 @@ const PricingSection = () => {
               </button>
             </SignedOut>
             <SignedIn>
-              <Link to="/studio" className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold flex justify-center transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:-translate-y-0.5 border border-cyan-400/50">
+              <button
+                onClick={() => openTopUp("pro")}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold flex justify-center transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:-translate-y-0.5 border border-cyan-400/50 cursor-pointer"
+              >
                 Beli Paket
-              </Link>
+              </button>
             </SignedIn>
           </div>
         </div>

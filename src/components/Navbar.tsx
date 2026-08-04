@@ -52,11 +52,19 @@ const Navbar = () => {
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
+  const navLinks = [
+    { href: '#cara-kerja', label: 'Cara Kerja' },
+    { href: '#fitur', label: 'Fitur' },
+    { href: '#integrity', label: 'Integrity Engine' },
+    { href: '#harga', label: 'Harga' },
+    { href: '#faq', label: 'FAQ' },
+  ];
+
   return (
     <nav
       className={`fixed w-full z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-background/80 backdrop-blur-lg border-b border-surface-border py-2 shadow-sm'
+          ? 'bg-background/90 backdrop-blur-lg border-b border-surface-border py-2'
           : 'bg-transparent py-3'
       }`}
     >
@@ -65,34 +73,26 @@ const Navbar = () => {
           {/* Logo */}
           <a href="#" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
             <ZenLogo className="w-8 h-8 sm:w-9 sm:h-9 group-hover:scale-105 transition-transform" />
-            <span className={`font-display text-lg sm:text-xl font-extrabold tracking-tight transition-colors text-text`}>
+            <span className="font-display text-xl sm:text-2xl font-bold tracking-tight text-text">
               ZenStudio
             </span>
           </a>
 
-          {/* Desktop Nav Links */}
-          <div className="hidden lg:block">
-            <div className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-surface/80 border border-surface-border">
-              <a href="#cara-kerja" className="px-4 py-1.5 rounded-full text-text-muted hover:text-primary hover:bg-background transition-all text-sm font-medium">
-                Cara Kerja
+          {/* Desktop Nav Links — editorial, clean text */}
+          <div className="hidden lg:flex items-center gap-1">
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="px-4 py-1.5 text-sm font-medium text-text-muted hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-px after:bg-primary after:transition-all hover:after:w-3/4"
+              >
+                {link.label}
               </a>
-              <a href="#fitur" className="px-4 py-1.5 rounded-full text-text-muted hover:text-primary hover:bg-background transition-all text-sm font-medium">
-                Fitur
-              </a>
-              <a href="#integrity" className="px-4 py-1.5 rounded-full text-text-muted hover:text-primary hover:bg-background transition-all text-sm font-medium">
-                Integrity Engine
-              </a>
-              <a href="#harga" className="px-4 py-1.5 rounded-full text-text-muted hover:text-primary hover:bg-background transition-all text-sm font-medium">
-                Harga
-              </a>
-              <a href="#faq" className="px-4 py-1.5 rounded-full text-text-muted hover:text-primary hover:bg-background transition-all text-sm font-medium">
-                FAQ
-              </a>
-            </div>
+            ))}
           </div>
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-4">
             {!ready ? (
               <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
             ) : isSignedIn ? (
@@ -118,9 +118,9 @@ const Navbar = () => {
                 </button>
                 <button
                   onClick={handleOpenSignUp}
-                  className="bg-gradient-to-r from-primary to-indigo-500 hover:from-primary-dark hover:to-primary text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_2px_15px_rgba(79,70,229,0.3)] hover:shadow-[0_4px_20px_rgba(79,70,229,0.4)] hover:scale-[1.02] active:scale-95 flex items-center gap-2"
+                  className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-2 shadow-[0_2px_12px_rgba(212,69,42,0.25)]"
                 >
-                  <Sparkles className="w-4 h-4 text-indigo-200" />
+                  <Sparkles className="w-4 h-4" />
                   Coba Gratis
                 </button>
               </>
@@ -132,7 +132,7 @@ const Navbar = () => {
             {!ready ? null : !isSignedIn ? (
               <button
                 onClick={handleOpenSignUp}
-                className="bg-primary text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm flex items-center gap-1"
+                className="bg-primary text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-[0_1px_8px_rgba(212,69,42,0.2)]"
               >
                 <Sparkles className="w-3 h-3" />
                 3 Foto Gratis
@@ -140,7 +140,7 @@ const Navbar = () => {
             ) : null}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-xl text-text-muted hover:text-primary hover:bg-surface border border-surface-border focus:outline-none min-w-[40px] min-h-[40px]"
+              className="inline-flex items-center justify-center p-2 rounded-xl text-text-muted hover:text-primary border border-transparent hover:border-surface-border focus:outline-none min-w-[40px] min-h-[40px]"
               aria-label={isOpen ? 'Tutup menu' : 'Buka menu'}
             >
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -153,41 +153,16 @@ const Navbar = () => {
       {isOpen && (
         <div className="fixed inset-0 top-[56px] z-40 bg-background lg:hidden overflow-y-auto">
           <div className="px-4 pt-6 pb-8 space-y-1">
-            <a
-              href="#cara-kerja"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface transition-colors min-h-[52px]"
-            >
-              🚀 Cara Kerja
-            </a>
-            <a
-              href="#fitur"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface transition-colors min-h-[52px]"
-            >
-              ✨ Fitur
-            </a>
-            <a
-              href="#integrity"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface transition-colors min-h-[52px]"
-            >
-              🛡️ Integrity Engine
-            </a>
-            <a
-              href="#harga"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface transition-colors min-h-[52px]"
-            >
-              💰 Harga
-            </a>
-            <a
-              href="#faq"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface transition-colors min-h-[52px]"
-            >
-              ❓ FAQ
-            </a>
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsOpen(false)}
+                className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface transition-colors min-h-[52px] font-display"
+              >
+                {link.label}
+              </a>
+            ))}
 
             {/* Mobile Auth Section */}
             <div className="pt-6 mt-4 border-t border-surface-border space-y-3">
@@ -200,9 +175,9 @@ const Navbar = () => {
                   <Link
                     to="/studio"
                     onClick={() => setIsOpen(false)}
-                    className="w-full bg-gradient-to-r from-primary to-indigo-500 text-white px-4 py-4 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-[0_4px_15px_rgba(79,70,229,0.3)] min-h-[52px]"
+                    className="w-full bg-primary text-white px-4 py-4 rounded-xl text-base font-bold flex items-center gap-2 justify-center min-h-[52px]"
                   >
-                    <Sparkles className="w-5 h-5 text-indigo-200" />
+                    <Sparkles className="w-5 h-5" />
                     Masuk Studio
                   </Link>
                   <div className="flex items-center justify-between px-4 py-3 bg-surface rounded-xl border border-surface-border">
@@ -226,7 +201,7 @@ const Navbar = () => {
                   </button>
                   <button
                     onClick={() => { setIsOpen(false); handleOpenSignUp(); }}
-                    className="w-full bg-gradient-to-r from-primary to-indigo-500 text-white px-4 py-4 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-[0_4px_15px_rgba(79,70,229,0.3)] min-h-[52px]"
+                    className="w-full bg-primary text-white px-4 py-4 rounded-xl text-base font-bold flex items-center gap-2 justify-center min-h-[52px]"
                   >
                     <Sparkles className="w-5 h-5" />
                     Coba Gratis — 3 Foto

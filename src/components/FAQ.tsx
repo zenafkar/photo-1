@@ -56,7 +56,7 @@ const FAQ = () => {
             <HelpCircle className="w-3.5 h-3.5" />
             <span>FAQ</span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-extrabold text-text mb-4 tracking-tight">Pertanyaan Sering Diajukan</h2>
+          <h2 className="font-display text-3xl md:text-5xl font-bold text-text mb-4 tracking-tight">Pertanyaan Sering Diajukan</h2>
           <p className="text-lg text-text-muted max-w-2xl mx-auto">
             Segala hal yang perlu Anda ketahui tentang ZenStudio.
           </p>
@@ -75,8 +75,8 @@ const FAQ = () => {
                   return (
                     <div
                       key={idx}
-                      className={`border rounded-2xl overflow-hidden transition-all duration-200 glass-card ${
-                        isOpen ? 'border-primary/50 shadow-[0_0_15px_rgba(79,70,229,0.15)]' : 'hover:border-primary/30'
+                      className={`border rounded-2xl overflow-hidden transition-all duration-200 bg-surface/40 ${
+                        isOpen ? 'border-primary/50' : 'border-surface-border hover:border-primary/30'
                       }`}
                     >
                       <button
@@ -107,12 +107,12 @@ const FAQ = () => {
 
         {/* WhatsApp CTA */}
         <div className="mt-12 text-center">
-          <p className="text-text-muted/70 text-sm mb-3">Masih ragu? Tanya kami langsung.</p>
+          <p className="text-text-muted text-sm mb-3">Masih ragu? Tanya kami langsung.</p>
           <a
             href="https://wa.me/6281234567890"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold hover:bg-emerald-500/20 transition-colors text-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary/10 border border-secondary/20 text-secondary font-semibold hover:bg-secondary/20 transition-colors text-sm"
           >
             💬 Chat via WhatsApp
           </a>

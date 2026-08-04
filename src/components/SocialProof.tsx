@@ -75,11 +75,12 @@ const SocialProof = () => {
             <Award className="w-3.5 h-3.5" />
             <span>DIPERCAYA 10.000+ UMKM</span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-extrabold text-text mb-4 tracking-tight">
+          <h2 className="font-display text-3xl md:text-5xl font-bold text-text mb-4 tracking-tight">
             Kenapa UMKM Pilih ZenStudio?
           </h2>
           <p className="text-lg text-text-muted max-w-2xl mx-auto">
-            Bukan cuma AI generator biasa — ZenStudio <strong className="text-text">satu-satunya</strong> yang menjamin produk Anda tetap 100% asli.
+            Bukan cuma AI generator biasa — ZenStudio{" "}
+            <strong className="text-text font-semibold">satu-satunya</strong> yang menjamin produk Anda tetap 100% asli.
           </p>
         </div>
 
@@ -88,7 +89,7 @@ const SocialProof = () => {
           {trustBadges.map((badge, i) => {
             const Icon = badge.icon;
             return (
-              <div key={i} className="flex items-center gap-3 p-4 rounded-2xl glass-card hover:border-primary/40 transition-colors shadow-sm">
+              <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-surface/40 border border-surface-border hover:border-primary/30 transition-colors">
                 <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
                   <Icon className="w-5 h-5" />
                 </div>
@@ -108,7 +109,7 @@ const SocialProof = () => {
               <Star key={s} className="w-6 h-6 fill-amber-400 text-amber-400" />
             ))}
           </div>
-          <div className="text-lg font-extrabold text-text">4.9 dari 5</div>
+          <div className="text-lg font-bold text-text">4.9 dari 5</div>
           <div className="text-sm text-text-muted">Berdasarkan 500+ ulasan pengguna</div>
         </div>
 
@@ -118,7 +119,7 @@ const SocialProof = () => {
           {canScrollLeft && (
             <button
               onClick={() => scroll('left')}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 rounded-full bg-white border border-stone-200 shadow-md flex items-center justify-center text-stone-600 hover:text-indigo-600 transition-colors hidden md:flex"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 rounded-full bg-surface border border-surface-border shadow-md flex items-center justify-center text-text-muted hover:text-primary transition-colors hidden md:flex"
               aria-label="Scroll kiri"
             >
               ←
@@ -127,7 +128,7 @@ const SocialProof = () => {
           {canScrollRight && (
             <button
               onClick={() => scroll('right')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 rounded-full bg-white border border-stone-200 shadow-md flex items-center justify-center text-stone-600 hover:text-indigo-600 transition-colors hidden md:flex"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 rounded-full bg-surface border border-surface-border shadow-md flex items-center justify-center text-text-muted hover:text-primary transition-colors hidden md:flex"
               aria-label="Scroll kanan"
             >
               →
@@ -142,7 +143,7 @@ const SocialProof = () => {
             {testimonials.map((t, i) => (
               <div
                 key={i}
-                className="snap-start shrink-0 w-[85vw] max-w-[380px] md:w-[350px] glass-card rounded-2xl p-6 flex flex-col shadow-sm hover:shadow-md hover:border-primary/40 transition-all"
+                className="snap-start shrink-0 w-[85vw] max-w-[380px] md:w-[350px] bg-surface/40 border border-surface-border rounded-2xl p-6 flex flex-col hover:border-primary/30 transition-all"
               >
                 {/* Stars */}
                 <div className="flex gap-0.5 mb-4">
@@ -154,7 +155,7 @@ const SocialProof = () => {
                 <p className="text-sm text-text-muted mb-6 flex-grow leading-relaxed">"{t.content}"</p>
                 {/* Author */}
                 <div className="flex items-center gap-3 mt-auto">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center font-bold text-white text-sm shadow-[0_0_10px_rgba(79,70,229,0.5)]">
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-white text-sm">
                     {t.avatar}
                   </div>
                   <div>
@@ -174,24 +175,24 @@ const SocialProof = () => {
           </div>
         </div>
 
-        {/* Stats Banner */}
-        <div className="mt-14 md:mt-20 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-3xl p-6 sm:p-10 text-center text-white max-w-4xl mx-auto">
+        {/* Stats Banner — warm gradient */}
+        <div className="mt-14 md:mt-20 bg-gradient-to-r from-primary to-primary-dark rounded-3xl p-6 sm:p-10 text-center text-white max-w-4xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
-              <div className="text-3xl md:text-4xl font-extrabold mb-1">10K+</div>
-              <div className="text-indigo-200 text-sm">UMKM Pengguna</div>
+              <div className="text-3xl md:text-4xl font-bold mb-1 font-display">10K+</div>
+              <div className="text-white/70 text-sm">UMKM Pengguna</div>
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-extrabold mb-1">50K+</div>
-              <div className="text-indigo-200 text-sm">Foto Digenerate</div>
+              <div className="text-3xl md:text-4xl font-bold mb-1 font-display">50K+</div>
+              <div className="text-white/70 text-sm">Foto Digenerate</div>
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-extrabold mb-1">99.8%</div>
-              <div className="text-indigo-200 text-sm">Akurasi Produk</div>
+              <div className="text-3xl md:text-4xl font-bold mb-1 font-display">99.8%</div>
+              <div className="text-white/70 text-sm">Akurasi Produk</div>
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-extrabold mb-1">30dtk</div>
-              <div className="text-indigo-200 text-sm">Rata-rata Proses</div>
+              <div className="text-3xl md:text-4xl font-bold mb-1 font-display">30dtk</div>
+              <div className="text-white/70 text-sm">Rata-rata Proses</div>
             </div>
           </div>
         </div>

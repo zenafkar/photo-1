@@ -10,21 +10,23 @@ export default {
         'xs': '475px',
       },
       colors: {
-        background: '#0A0A0A',
-        surface: '#121212',
-        'surface-border': '#27272A', // zinc-800
-        primary: '#4F46E5',
-        'primary-dark': '#4338CA',
-        secondary: '#0EA5E9',
-        text: '#FAFAFA', // zinc-50
-        'text-muted': '#A1A1AA', // zinc-400
-        page: '#0A0A0A',
-        card: '#121212',
-        line: '#27272A',
+        // "The Darkroom" palette — warm black, brick-red safelight, teal trust
+        background: '#0D0C0A',
+        surface: '#161512',
+        'surface-border': '#2A2722',
+        primary: '#D4452A',          // brick-red safelight — bold, distinctive
+        'primary-dark': '#B8381F',   // deeper brick for hover states
+        secondary: '#3D8B7D',        // teal — Integrity Engine / trust elements
+        text: '#EBE5D9',             // warm white (safelight on photo paper)
+        'text-muted': '#9B9488',     // warm grey
+        page: '#0D0C0A',
+        card: '#161512',
+        line: '#2A2722',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        display: ['Outfit', 'sans-serif'],
+        display: ['Cormorant Garamond', 'Georgia', 'serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))'

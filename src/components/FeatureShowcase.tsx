@@ -17,16 +17,16 @@ const FeatureShowcase = () => {
   return (
     <section id="fitur" className="py-16 md:py-24 bg-background border-t border-surface-border relative overflow-hidden text-text">
       {/* Background glow */}
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.06)_0%,transparent_70%)] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(212,69,42,0.04)_0%,transparent_70%)] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-10 md:mb-14">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-surface-border text-xs font-semibold text-primary mb-5 mx-auto shadow-sm">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-surface-border text-xs font-semibold text-primary mb-5 mx-auto">
             <Wand2 className="w-3.5 h-3.5" />
             <span>FITUR UNGGULAN</span>
           </div>
-          <h2 className="font-display text-3xl md:text-5xl font-extrabold text-text mb-4 tracking-tight">
+          <h2 className="font-display text-3xl md:text-5xl font-bold text-text mb-4 tracking-tight">
             Teknologi AI untuk Foto Produk
           </h2>
           <p className="text-lg text-text-muted max-w-2xl mx-auto">
@@ -34,9 +34,9 @@ const FeatureShowcase = () => {
           </p>
         </div>
 
-        {/* Tab Bar */}
+        {/* Tab Bar — editorial, clean */}
         <div className="flex justify-center mb-10">
-          <div className="inline-flex bg-surface rounded-2xl p-1.5 border border-surface-border shadow-sm">
+          <div className="inline-flex bg-surface border border-surface-border rounded-2xl p-1.5">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -46,7 +46,7 @@ const FeatureShowcase = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all ${
                     isActive
-                      ? 'bg-background text-primary shadow-sm border border-surface-border'
+                      ? 'bg-background text-primary border border-surface-border'
                       : 'text-text-muted hover:text-text'
                   }`}
                 >

@@ -14,12 +14,12 @@ const Footer = lazy(() => import('../components/Footer'));
 
 // Light placeholder for lazy sections
 const SectionPlaceholder = () => (
-  <div className="w-full h-32 bg-stone-100/50" />
+  <div className="w-full h-32 bg-surface/20" />
 );
 
 export default function LandingPage() {
   return (
-    <div className="min-h-[100dvh] bg-background selection:bg-primary/30 selection:text-primary-light text-text antialiased overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-background selection:bg-primary/30 selection:text-text text-text antialiased overflow-x-hidden">
       <Navbar />
       <main>
         {/* Above-fold: sync-loaded for instant first paint */}

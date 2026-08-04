@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
-import { 
-  Sparkles, 
-  Smartphone, 
-  Cpu, 
-  ShieldCheck, 
-  ArrowRight, 
-  Sliders, 
+import {
+  Sparkles,
+  Smartphone,
+  Cpu,
+  ShieldCheck,
+  ArrowRight,
+  Sliders,
   Wand2,
   CheckCircle2,
   Banana
@@ -15,10 +15,10 @@ import { SignedOut, SignedIn, useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 
 const OpenAIIcon = ({ className }: { className?: string }) => (
-  <svg 
-    role="img" 
-    viewBox="0 0 24 24" 
-    xmlns="http://www.w3.org/2000/svg" 
+  <svg
+    role="img"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
     className={className}
     fill="currentColor"
   >
@@ -40,9 +40,9 @@ const InteractiveSandbox = () => {
     }
   };
   const styles = [
-    { 
-      id: 'nanobananapro', 
-      name: 'Nano Banana Pro', 
+    {
+      id: 'nanobananapro',
+      name: 'Nano Banana Pro',
       subtitle: 'Engine Premium 4K Ultra HD',
       prompt: 'Menggunakan AI model Pro untuk detail super tajam dan pencahayaan layaknya studio profesional.',
       icon: <Banana className="w-4 h-4 text-amber-400" />,
@@ -50,19 +50,19 @@ const InteractiveSandbox = () => {
       afterImage: '/mystic-after.jpg',
       tag: 'ULTRA HD'
     },
-    { 
-      id: 'nanobanana2', 
-      name: 'Nano Banana 2', 
+    {
+      id: 'nanobanana2',
+      name: 'Nano Banana 2',
       subtitle: 'Cepat & Resolusi Tinggi',
       prompt: 'Menggunakan AI engine standar yang sangat cepat untuk kebutuhan gambar sosial media sehari-hari.',
-      icon: <Banana className="w-4 h-4 text-cyan-400" />,
+      icon: <Banana className="w-4 h-4 text-sky-400" />,
       beforeImage: '/mystic-before.jpg',
       afterImage: '/mystic-after.jpg',
       tag: 'CEPAT'
     },
-    { 
-      id: 'gptimage', 
-      name: 'OpenAI GPT-Image', 
+    {
+      id: 'gptimage',
+      name: 'OpenAI GPT-Image',
       subtitle: 'Standar Industri Terkini',
       prompt: 'Menggunakan model tercanggih dari OpenAI (GPT-Image 1.5) untuk hasil paling fotorealistik dan akurat.',
       icon: <OpenAIIcon className="w-4 h-4 text-emerald-400" />,
@@ -73,29 +73,25 @@ const InteractiveSandbox = () => {
   ];
 
   const [activeStyle, setActiveStyle] = useState(styles[0]);
-  
+
   // Animation State
-  const revealProgress = useMotionValue(50); // initial 50% split
+  const revealProgress = useMotionValue(50);
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (isHovered) return;
-
-    // Cinematic loop animation: 10% -> 90% -> 90% -> 10%
     const controls = animate(revealProgress, [10, 90, 90, 10, 10], {
       duration: 7,
       times: [0, 0.4, 0.5, 0.9, 1],
       repeat: Infinity,
       ease: "easeInOut"
     });
-
     return () => controls.stop();
   }, [isHovered, revealProgress, activeStyle]);
 
   const handleStyleClick = (style: typeof styles[0]) => {
     if (style.id === activeStyle.id) return;
     setActiveStyle(style);
-    // Smooth transition reveal to show off the new style
     setIsHovered(true);
     animate(revealProgress, 90, { duration: 0.8, ease: "easeOut" }).then(() => {
       setTimeout(() => setIsHovered(false), 800);
@@ -113,7 +109,6 @@ const InteractiveSandbox = () => {
   const handlePointerEnter = () => setIsHovered(true);
   const handlePointerLeave = () => setIsHovered(false);
 
-  // Derived values for clipPath and handle placement
   const clipPathValue = useTransform(revealProgress, (val) => `inset(0 0 0 ${val}%)`);
   const lineLeftValue = useTransform(revealProgress, (val) => `${val}%`);
 
@@ -122,42 +117,42 @@ const InteractiveSandbox = () => {
       icon: Smartphone,
       title: "Foto Kamera HP",
       desc: "Foto biasa dengan pencahayaan minim & background seadanya",
-      color: "border-slate-700 bg-slate-900/60 text-slate-400"
+      color: "border-surface-border bg-black/40 text-text-muted"
     },
     {
       icon: Cpu,
       title: "AI Neural Studio Engine",
       desc: "Rekonstruksi background & pencahayaan tanpa mengaburkan produk",
-      color: "border-cyan-500/40 bg-cyan-950/40 text-cyan-400"
+      color: "border-secondary/40 bg-secondary/10 text-secondary"
     },
     {
       icon: ShieldCheck,
       title: "Hasil 4K Autentik",
       desc: "Kualitas foto studio komersial dengan garansi produk asli 100%",
-      color: "border-emerald-500/40 bg-emerald-950/40 text-emerald-400"
+      color: "border-primary/40 bg-primary/10 text-primary"
     }
   ];
 
   return (
     <div className="relative overflow-hidden text-text">
       {/* Glow Backdrops */}
-      <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.06)_0%,transparent_70%)] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(2,132,199,0.06)_0%,transparent_70%)] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(212,69,42,0.04)_0%,transparent_70%)] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(61,139,125,0.04)_0%,transparent_70%)] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          
+
           {/* Left Side Content */}
           <div className="lg:col-span-5 flex flex-col justify-center">
             {/* Top Pill */}
-            <div className="inline-flex items-center self-start gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-surface-border text-xs font-semibold text-primary mb-6 shadow-sm">
+            <div className="inline-flex items-center self-start gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-surface-border text-xs font-semibold text-primary mb-6">
               <Wand2 className="w-3.5 h-3.5" />
               <span>INTERACTIVE AI SANDBOX</span>
             </div>
 
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-6 text-text leading-tight">
+            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-text leading-tight">
               Masuk Kualitas HP,<br />
-              <span className="bg-gradient-to-r from-primary via-sky-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary via-amber-400 to-secondary bg-clip-text text-transparent">
                 Keluar Kualitas Studio.
               </span>
             </h2>
@@ -167,14 +162,14 @@ const InteractiveSandbox = () => {
               {steps.map((step, idx) => {
                 const IconComp = step.icon;
                 return (
-                  <div key={idx} className="flex items-center gap-3.5 p-3.5 rounded-2xl glass-card hover:border-primary/40 transition-all shadow-sm">
+                  <div key={idx} className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-surface/40 border border-surface-border hover:border-primary/30 transition-all">
                     <div className={`p-2.5 rounded-xl border shrink-0 ${step.color}`}>
                       <IconComp className="w-5 h-5" />
                     </div>
                     <div>
                       <h3 className="font-display text-sm font-bold text-text flex items-center gap-2">
                         {step.title}
-                        {idx === 2 && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                        {idx === 2 && <CheckCircle2 className="w-4 h-4 text-primary" />}
                       </h3>
                       <p className="text-xs text-text-muted leading-relaxed">{step.desc}</p>
                     </div>
@@ -182,12 +177,12 @@ const InteractiveSandbox = () => {
                 );
               })}
             </div>
-            
+
             {/* Style Selector Section */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-secondary" />
                   ENGINE RUNNING BY:
                 </span>
               </div>
@@ -201,23 +196,23 @@ const InteractiveSandbox = () => {
                       onClick={() => handleStyleClick(style)}
                       className={`flex items-center justify-between w-full sm:w-auto p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                         isActive
-                          ? 'bg-gradient-to-r from-cyan-950/80 to-slate-900 border-cyan-500/60 shadow-[0_0_20px_rgba(6,182,212,0.2)]'
-                          : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 text-slate-400'
+                          ? 'bg-secondary/10 border-secondary/50'
+                          : 'bg-surface/40 border-surface-border hover:border-surface-border text-text-muted'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className={`p-2 rounded-xl border ${isActive ? 'bg-cyan-500/20 border-cyan-500/40' : 'bg-slate-800 border-slate-700'}`}>
+                        <div className={`p-2 rounded-xl border ${isActive ? 'bg-secondary/20 border-secondary/40' : 'bg-black/20 border-surface-border'}`}>
                           {style.icon}
                         </div>
                         <div>
-                          <div className={`text-xs font-bold ${isActive ? 'text-cyan-300' : 'text-slate-200'}`}>
+                          <div className={`text-xs font-bold ${isActive ? 'text-secondary' : 'text-text'}`}>
                             {style.name}
                           </div>
-                          <div className="text-[10px] text-slate-400">{style.subtitle}</div>
+                          <div className="text-[10px] text-text-muted">{style.subtitle}</div>
                         </div>
                       </div>
                       {isActive && (
-                        <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping ml-4" />
+                        <span className="w-2 h-2 rounded-full bg-secondary animate-ping ml-4" />
                       )}
                     </button>
                   );
@@ -228,50 +223,50 @@ const InteractiveSandbox = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <SignedOut>
-                <button 
+                <button
                   onClick={handleOpenAuth}
-                  className="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2.5 shadow-[0_0_25px_rgba(6,182,212,0.3)] hover:scale-105 active:scale-95 cursor-pointer"
+                  className="w-full sm:w-auto px-7 py-3.5 bg-primary hover:bg-primary-dark text-white rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2.5 shadow-[0_4px_20px_rgba(212,69,42,0.3)] hover:scale-[1.02] active:scale-95 cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4 text-cyan-200 fill-cyan-200" />
+                  <Sparkles className="w-4 h-4" />
                   Coba Sekarang
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </SignedOut>
               <SignedIn>
-                <Link to="/studio" className="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2.5 shadow-[0_0_25px_rgba(6,182,212,0.3)] hover:scale-105 active:scale-95 cursor-pointer">
-                  <Sparkles className="w-4 h-4 text-cyan-200 fill-cyan-200" />
+                <Link to="/studio" className="w-full sm:w-auto px-7 py-3.5 bg-primary hover:bg-primary-dark text-white rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2.5 shadow-[0_4px_20px_rgba(212,69,42,0.3)] hover:scale-[1.02] active:scale-95 cursor-pointer">
+                  <Sparkles className="w-4 h-4" />
                   Masuk Studio
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </SignedIn>
-              <span className="text-xs text-slate-400 font-mono">⚡ Dapat 3 foto gratis!</span>
+              <span className="text-xs text-text-muted font-mono">⚡ Dapat 3 foto gratis!</span>
             </div>
           </div>
 
           {/* Right Side Card (Interactive Before/After AI Sandbox) */}
-          <div className="lg:col-span-7 glass-card rounded-3xl p-5 md:p-6 shadow-sm relative group">
+          <div className="lg:col-span-7 bg-surface/40 border border-surface-border rounded-3xl p-5 md:p-6 relative group">
             {/* Corner Glow */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-[radial-gradient(circle,rgba(79,70,229,0.06)_0%,transparent_70%)] rounded-full transition-all pointer-events-none" />
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[radial-gradient(circle,rgba(212,69,42,0.06)_0%,transparent_70%)] rounded-full transition-all pointer-events-none" />
 
             {/* Prompt Console Bar */}
-            <div className="flex items-center justify-between mb-3 text-xs font-mono text-slate-400">
+            <div className="flex items-center justify-between mb-3 text-xs font-mono text-text-muted">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
                 PROMPT COMMAND TERMINAL:
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-300">
+              <span className="text-[10px] px-2 py-0.5 rounded bg-secondary/10 border border-secondary/30 text-secondary">
                 {activeStyle.tag}
               </span>
             </div>
-            
-            <div className="bg-slate-950/90 rounded-xl p-3.5 border border-slate-800 mb-4 font-mono text-xs text-slate-300 leading-relaxed shadow-inner">
-              <span className="text-cyan-400 font-bold">&gt; </span>
-              <span className="text-slate-200">"{activeStyle.prompt}"</span>
+
+            <div className="bg-black/50 rounded-xl p-3.5 border border-surface-border mb-4 font-mono text-xs text-text leading-relaxed shadow-inner">
+              <span className="text-secondary font-bold">&gt; </span>
+              <span className="text-text">"{activeStyle.prompt}"</span>
             </div>
-            
+
             {/* Interactive Before/After Image Slider */}
-            <div 
-              className="rounded-2xl overflow-hidden relative bg-slate-950 isolate border border-slate-800 cursor-ew-resize select-none touch-pan-y shadow-2xl"
+            <div
+              className="rounded-2xl overflow-hidden relative bg-black isolate border border-surface-border cursor-ew-resize select-none touch-pan-y shadow-2xl"
               onPointerEnter={handlePointerEnter}
               onPointerLeave={handlePointerLeave}
               onPointerDown={handlePointerEnter}
@@ -303,39 +298,39 @@ const InteractiveSandbox = () => {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </motion.div>
-              
+
               {/* Layer 3: Laser Slider Handle Line */}
-              <motion.div 
-                className="absolute top-0 bottom-0 w-[3px] bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.9)] z-20 pointer-events-none"
+              <motion.div
+                className="absolute top-0 bottom-0 w-[3px] bg-secondary shadow-[0_0_15px_rgba(61,139,125,0.7)] z-20 pointer-events-none"
                 style={{ left: lineLeftValue }}
               >
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-12 bg-slate-900/90 backdrop-blur-md rounded-full shadow-2xl flex items-center justify-center border border-cyan-400/60">
-                  <svg className="w-5 h-5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-12 bg-black/90 backdrop-blur-md rounded-full shadow-2xl flex items-center justify-center border border-secondary/60">
+                  <svg className="w-5 h-5 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l-4 3 4 3M16 9l4 3-4 3"/>
                   </svg>
                 </div>
               </motion.div>
-              
+
               {/* Layer 4: Badges */}
               <div className="absolute top-4 left-4 z-30 pointer-events-none">
-                <div className="px-3 py-1.5 bg-slate-950/85 backdrop-blur-md text-slate-300 text-[10px] font-mono font-bold rounded-lg shadow-md tracking-wider flex items-center gap-1.5 border border-slate-800">
+                <div className="px-3 py-1.5 bg-black/85 backdrop-blur-md text-text-muted text-[10px] font-mono font-bold rounded-lg shadow-md tracking-wider flex items-center gap-1.5 border border-surface-border">
                   <span className="w-2 h-2 rounded-full bg-amber-400"></span>
                   📷 RAW HP INPUT
                 </div>
               </div>
 
               <div className="absolute top-4 right-4 z-30 pointer-events-none">
-                <div className="px-3 py-1.5 bg-slate-950/85 backdrop-blur-md text-cyan-300 text-[10px] font-mono font-bold rounded-lg shadow-md tracking-wider flex items-center gap-1.5 border border-cyan-500/40">
-                  <Sparkles className="w-3 h-3 text-cyan-400 fill-cyan-400" />
+                <div className="px-3 py-1.5 bg-black/85 backdrop-blur-md text-secondary text-[10px] font-mono font-bold rounded-lg shadow-md tracking-wider flex items-center gap-1.5 border border-secondary/40">
+                  <Sparkles className="w-3 h-3 text-secondary" />
                   ✨ AI 4K RENDER
                 </div>
               </div>
 
               {/* Bottom Real-time AI Status Indicator */}
-              <div className="absolute bottom-4 inset-x-4 z-30 pointer-events-none flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-950/80 backdrop-blur-md border border-slate-800 text-[10px] font-mono text-slate-400">
+              <div className="absolute bottom-4 inset-x-4 z-30 pointer-events-none flex items-center justify-between px-3 py-1.5 rounded-lg bg-black/80 backdrop-blur-md border border-surface-border text-[10px] font-mono text-text-muted">
                 <span>GESER UNTUK MEMBANDINGKAN</span>
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span className="text-secondary flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
                   AUTHENTICITY: 100%
                 </span>
               </div>
@@ -349,4 +344,3 @@ const InteractiveSandbox = () => {
 };
 
 export default InteractiveSandbox;
-

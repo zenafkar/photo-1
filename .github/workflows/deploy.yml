@@ -112,7 +112,9 @@ jobs:
               val=$(echo "$val" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
               if [ -n "$val" ]; then
                 if grep -q "^${key}=" .env; then
-                  sed -i "s|^${key}=.*|${key}=\"${val}\"|" .env
+                  # Escape & \ and | for sed replacement (DATABASE_URL contains &)
+                  escaped_val=$(echo "$val" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g' -e 's/|/\\|/g')
+                  sed -i "s|^${key}=.*|${key}=\"${escaped_val}\"|" .env
                 else
                   echo "${key}=\"${val}\"" >> .env
                 fi

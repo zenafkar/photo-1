@@ -189,6 +189,16 @@ ${storageDetails}
           const { remediationTools } = await import('./tools/remediationTools.js');
           const res = await remediationTools.restartPM2Process('backend-api');
           bot?.sendMessage(message.chat.id, `✅ <b>Action Completed:</b> ${res.message}`, { parse_mode: 'HTML' });
+        } else if (action.includes('GIT_PUSH')) {
+          bot?.sendMessage(message.chat.id, "⚡ <b>Action Executing:</b> Auto git push to master...", { parse_mode: 'HTML' });
+          const { remediationTools } = await import('./tools/remediationTools.js');
+          const res = await remediationTools.autoPushToMaster("Auto fix via Telegram (approved)");
+          bot?.sendMessage(message.chat.id, `✅ <b>Action Completed:</b> ${res.message}`, { parse_mode: 'HTML' });
+        } else if (action.includes('GITHUB_ISSUE')) {
+          bot?.sendMessage(message.chat.id, "⚡ <b>Action Executing:</b> Creating GitHub issue...", { parse_mode: 'HTML' });
+          const { remediationTools } = await import('./tools/remediationTools.js');
+          const res = await remediationTools.createGitHubIssue(action, "Issue created via Telegram approval.");
+          bot?.sendMessage(message.chat.id, `✅ <b>Action Completed:</b> ${res.message}`, { parse_mode: 'HTML' });
         } else {
           bot?.sendMessage(message.chat.id, `✅ <b>Action Approved:</b> ${action}`, { parse_mode: 'HTML' });
         }

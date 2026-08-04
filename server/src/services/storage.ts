@@ -15,10 +15,15 @@ if (!fs.existsSync(UPLOADS_DIR)) {
  */
 export async function saveRemoteImageLocally(remoteUrl: string, req?: any): Promise<string> {
   try {
-    // SSRF guard: only fetch from HTTPS URLs
-    const { isAllowedUrl } = await import("./urlSafety.js");
+    // SSRF guard: DNS-resolve + IP range check before fetching
+    const { isAllowedUrl, isAllowedUrlDeep } = await import("./urlSafety.js");
     if (!isAllowedUrl(remoteUrl)) {
       console.warn(`[Storage] Blocked unsafe remote URL: ${remoteUrl.slice(0, 100)}`);
+      return remoteUrl;
+    }
+    // Deep check: resolve hostname and verify resolved IPs are not private
+    if (!(await isAllowedUrlDeep(remoteUrl))) {
+      console.warn(`[Storage] DNS-resolved IP is private/loopback, blocking: ${remoteUrl.slice(0, 100)}`);
       return remoteUrl;
     }
 

@@ -241,6 +241,7 @@ router.post("/", async (req: Request, res: Response) => {
       console.error("AI generation failed after credit deduction:", aiError);
 
       // ── Refund credits on AI failure ──
+      let refunded = false;
       try {
         await prisma.$transaction(async (tx) => {
           // Refund the spent credits
@@ -269,23 +270,25 @@ router.post("/", async (req: Request, res: Response) => {
             where: { id: deductionResult.generation.id },
             data: { status: "failed" },
           });
-
-          // Clean up files if any were saved
-          if (localOriginalUrl) {
-            await deleteLocalImage(localOriginalUrl);
-          }
-          if (localProcessedUrl) {
-            await deleteLocalImage(localProcessedUrl);
-          }
         });
+        refunded = true;
+
+        // Clean up saved files (outside transaction — file ops shouldn't roll back DB)
+        if (localOriginalUrl) {
+          try { await deleteLocalImage(localOriginalUrl); } catch {}
+        }
+        if (localProcessedUrl) {
+          try { await deleteLocalImage(localProcessedUrl); } catch {}
+        }
       } catch (refundError) {
         console.error("CRITICAL: Failed to refund credits after AI failure:", refundError);
-        // Don't throw — we still want to return the error response
       }
 
       return res.status(500).json({
         success: false,
-        message: "Gagal menghasilkan gambar. Kredit telah dikembalikan. Mohon coba lagi.",
+        message: refunded
+          ? "Gagal menghasilkan gambar. Kredit telah dikembalikan. Mohon coba lagi."
+          : "Gagal menghasilkan gambar dan gagal mengembalikan kredit. Mohon hubungi support.",
       });
     }
   } catch (error: any) {

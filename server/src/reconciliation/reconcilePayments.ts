@@ -61,8 +61,13 @@ export async function reconcilePayments(): Promise<void> {
     for (const order of orders) {
       try {
         // Skip orders that never got an invoice (Xendit creation failed)
+        // Still increment reconcileCount so escalation can fire after 8 attempts
         if (!order.xenditInvoiceId) {
           console.warn(`[Reconciliation] Skipping ${order.externalId}: no xenditInvoiceId assigned`);
+          await prisma.paymentOrder.update({
+            where: { id: order.id },
+            data: { reconcileCount: { increment: 1 }, lastReconcileAt: new Date() },
+          });
           continue;
         }
 
@@ -113,25 +118,26 @@ export async function reconcilePayments(): Promise<void> {
             console.log(`[Reconciliation] Settled: ${order.externalId}`);
           }
         } else if (xStatus === "EXPIRED") {
-          await prisma.paymentOrder.update({
-            where: { id: order.id },
+          // CAS guard: don't overwrite a settled order
+          const updated = await prisma.paymentOrder.updateMany({
+            where: { id: order.id, status: { in: ["pending", "creating"] } },
             data: { status: "expired", expiredAt: new Date() },
           });
-          expired++;
+          if (updated.count > 0) expired++;
         } else if (xStatus === "FAILED") {
-          await prisma.paymentOrder.update({
-            where: { id: order.id },
+          const updated = await prisma.paymentOrder.updateMany({
+            where: { id: order.id, status: { in: ["pending", "creating"] } },
             data: { status: "failed" },
           });
-          failed++;
+          if (updated.count > 0) failed++;
         } else if (xStatus === "PENDING") {
           // If created >24h ago, soft-expire server-side
           if (order.createdAt < new Date(Date.now() - 24 * 60 * 60_000)) {
-            await prisma.paymentOrder.update({
-              where: { id: order.id },
+            const updated = await prisma.paymentOrder.updateMany({
+              where: { id: order.id, status: { in: ["pending", "creating"] } },
               data: { status: "expired", expiredAt: new Date() },
             });
-            expired++;
+            if (updated.count > 0) expired++;
           }
         }
 

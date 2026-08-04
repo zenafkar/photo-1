@@ -20,12 +20,17 @@ export function TopUpModal({ isOpen, onClose, defaultPackageId }: TopUpModalProp
   const [modalState, setModalState] = useState<ModalState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Stable idempotency key per purchase intent — regenerates only on package change.
-  // Prevents duplicate invoices if the user retries after a network timeout.
+  // Idempotency key per purchase intent — regenerates on modal open AND package change.
+  // Prevents duplicate invoices on retry, but allows repeat purchases after close.
   const idempotencyKeyRef = useRef(crypto.randomUUID());
   useEffect(() => {
     idempotencyKeyRef.current = crypto.randomUUID();
   }, [selectedPackage]);
+  useEffect(() => {
+    if (isOpen) {
+      idempotencyKeyRef.current = crypto.randomUUID();
+    }
+  }, [isOpen]);
 
   // Sync selectedPackage when modal opens or defaultPackageId changes
   useEffect(() => {

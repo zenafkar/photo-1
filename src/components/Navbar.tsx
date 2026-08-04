@@ -122,7 +122,7 @@ const Navbar = () => {
   return (
     <>
     <nav
-      className={`fixed w-full z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${
+      className={`fixed w-full z-[60] transition-all duration-300 pt-[env(safe-area-inset-top)] ${
         isScrolled
           ? 'bg-background/90 backdrop-blur-lg border-b border-surface-border py-2'
           : 'bg-transparent py-3'
@@ -227,9 +227,9 @@ const Navbar = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2 }}
-              style={{ pointerEvents: isOpen ? 'auto' : 'none', top: 'calc(3.5rem + env(safe-area-inset-top))' }}
-              className="fixed inset-0 z-40 bg-background lg:hidden overflow-y-auto overscroll-contain">
-          <div className="px-4 pt-6 pb-8 space-y-1">
+              style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
+              className="fixed inset-0 z-50 min-h-[100dvh] bg-background lg:hidden overflow-y-auto overscroll-contain">
+          <div className="px-4 pb-8 space-y-1" style={{ paddingTop: 'calc(3.5rem + env(safe-area-inset-top))' }}>
             {navLinks.map((link, i) => (
               <a
                 key={link.href}

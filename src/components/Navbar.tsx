@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Menu, X, Sparkles } from 'lucide-react';
 import { UserButton, useAuth, useClerk } from '@clerk/clerk-react';
@@ -77,6 +77,40 @@ const Navbar = () => {
     }
   }, [isOpen]);
 
+  // Refs for focus management
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
+  const firstMenuItemRef = useRef<HTMLAnchorElement>(null);
+
+  // Close menu on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
+  // Focus first menu item when menu opens, return focus to hamburger on close
+  useEffect(() => {
+    if (isOpen) {
+      // Small delay so the portal + AnimatePresence have mounted the DOM
+      requestAnimationFrame(() => firstMenuItemRef.current?.focus());
+    } else {
+      hamburgerRef.current?.focus();
+    }
+  }, [isOpen]);
+
+  // Close menu if viewport resizes to desktop (prevents frozen scroll-lock)
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1024px)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setIsOpen(false);
+    };
+    mql.addEventListener('change', handleChange);
+    return () => mql.removeEventListener('change', handleChange);
+  }, []);
+
   const navLinks = [
     { href: '#cara-kerja', label: 'Cara Kerja' },
     { href: '#fitur', label: 'Fitur' },
@@ -88,7 +122,7 @@ const Navbar = () => {
   return (
     <>
     <nav
-      className={`fixed w-full z-50 transition-all duration-300 ${
+      className={`fixed w-full z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${
         isScrolled
           ? 'bg-background/90 backdrop-blur-lg border-b border-surface-border py-2'
           : 'bg-transparent py-3'
@@ -165,9 +199,11 @@ const Navbar = () => {
               </button>
             ) : null}
             <button
+              ref={hamburgerRef}
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-xl text-text hover:text-primary bg-surface/60 border border-surface-border hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-colors min-w-[44px] min-h-[44px]"
               aria-label={isOpen ? 'Tutup menu' : 'Buka menu'}
+              aria-expanded={isOpen}
             >
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -184,6 +220,9 @@ const Navbar = () => {
           {isOpen && (
             <motion.div
               key="mobile-menu"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu navigasi"
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
@@ -191,9 +230,10 @@ const Navbar = () => {
               style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
               className="fixed inset-0 top-[3.5rem] z-40 bg-background lg:hidden overflow-y-auto overscroll-contain">
           <div className="px-4 pt-6 pb-8 space-y-1">
-            {navLinks.map((link) => (
+            {navLinks.map((link, i) => (
               <a
                 key={link.href}
+                ref={i === 0 ? firstMenuItemRef : undefined}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
                 className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface transition-colors min-h-[52px] font-sans"

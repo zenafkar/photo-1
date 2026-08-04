@@ -151,7 +151,7 @@ const Navbar = () => {
 
       {/* Mobile Full-Screen Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 top-[56px] z-40 bg-background lg:hidden overflow-y-auto">
+        <div className="fixed inset-0 top-[4.5rem] z-40 bg-background lg:hidden overflow-y-auto">
           <div className="px-4 pt-6 pb-8 space-y-1">
             {navLinks.map((link) => (
               <a

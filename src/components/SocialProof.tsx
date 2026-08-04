@@ -44,12 +44,17 @@ const SocialProof = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeDot, setActiveDot] = useState(0);
 
   const checkScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
     setCanScrollLeft(el.scrollLeft > 10);
     setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+    // Track which card is most visible
+    const cardWidth = el.clientWidth * 0.85; // approximate card width on mobile
+    const idx = Math.round(el.scrollLeft / (cardWidth + 16)); // 16px gap
+    setActiveDot(Math.min(idx, testimonials.length - 1));
   };
 
   useEffect(() => {
@@ -170,7 +175,7 @@ const SocialProof = () => {
           {/* Dots indicator (mobile) */}
           <div className="flex justify-center gap-1.5 mt-4 md:hidden">
             {testimonials.map((_, i) => (
-              <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-primary' : 'bg-surface-border'}`} />
+              <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i === activeDot ? 'bg-primary' : 'bg-surface-border'}`} />
             ))}
           </div>
         </div>

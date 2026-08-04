@@ -6,9 +6,9 @@ import PromptFeatureHighlight from './PromptFeatureHighlight';
 import MarketplacePresets from './MarketplacePresets';
 
 const tabs = [
-  { id: 'engines', label: 'AI Engines', icon: Sliders, desc: 'Bandingkan hasil AI' },
-  { id: 'prompt', label: 'Smart Prompt', icon: Wand2, desc: 'AI rakit prompt otomatis' },
-  { id: 'export', label: 'Marketplace Export', icon: Share2, desc: 'Auto-resize semua platform' },
+  { id: 'engines', label: 'AI Engines', shortLabel: 'Engines', icon: Sliders, desc: 'Bandingkan hasil AI' },
+  { id: 'prompt', label: 'Smart Prompt', shortLabel: 'Prompt', icon: Wand2, desc: 'AI rakit prompt otomatis' },
+  { id: 'export', label: 'Marketplace Export', shortLabel: 'Export', icon: Share2, desc: 'Auto-resize semua platform' },
 ];
 
 const FeatureShowcase = () => {
@@ -49,6 +49,7 @@ const FeatureShowcase = () => {
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : ''}`} />
                   <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden text-xs">{tab.shortLabel}</span>
                 </button>
               );
             })}

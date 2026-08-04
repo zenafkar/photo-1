@@ -105,16 +105,14 @@ const FAQ = () => {
           ))}
         </div>
 
-        {/* WhatsApp CTA */}
+        {/* Contact CTA */}
         <div className="mt-12 text-center">
           <p className="text-text-muted text-sm mb-3">Masih ragu? Tanya kami langsung.</p>
           <a
-            href="https://wa.me/6281234567890"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="mailto:hello@zenstudio.my.id"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary/10 border border-secondary/20 text-secondary font-semibold hover:bg-secondary/20 transition-colors text-sm"
           >
-            💬 Chat via WhatsApp
+            ✉️ hello@zenstudio.my.id
           </a>
         </div>
       </div>

@@ -64,7 +64,7 @@ export default function ZoomableImage({ src, onClose }: ZoomableImageProps) {
 
         {/* Floating Controls */}
         <div 
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md p-2 rounded-2xl border border-white/10 shadow-2xl"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-surface/90 backdrop-blur-md p-2 rounded-2xl border border-surface-border shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           <button onClick={handleZoomOut} className="p-3 hover:bg-white/10 text-white rounded-xl transition-all" title="Zoom Out">
@@ -88,7 +88,7 @@ export default function ZoomableImage({ src, onClose }: ZoomableImageProps) {
 
         {/* Close Button */}
         <button 
-          className="absolute top-6 right-6 p-3 bg-slate-900/50 hover:bg-red-500 hover:text-white text-white/70 rounded-full transition-colors backdrop-blur-md shadow-lg"
+          className="absolute top-6 right-6 p-3 bg-surface/80 hover:bg-primary text-text-muted hover:text-white rounded-full transition-colors backdrop-blur-md shadow-lg border border-surface-border hover:border-primary"
           onClick={onClose}
         >
           <X className="w-6 h-6" />

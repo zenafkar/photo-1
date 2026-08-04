@@ -12,9 +12,11 @@ const PricingSection = lazy(() => import('../components/PricingSection'));
 const FAQ = lazy(() => import('../components/FAQ'));
 const Footer = lazy(() => import('../components/Footer'));
 
-// Light placeholder for lazy sections
+// Placeholder for lazy sections — matches typical section height to reduce CLS
 const SectionPlaceholder = () => (
-  <div className="w-full h-32 bg-surface/20" />
+  <div className="w-full py-16 md:py-24 flex items-center justify-center">
+    <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+  </div>
 );
 
 export default function LandingPage() {

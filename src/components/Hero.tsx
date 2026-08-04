@@ -236,7 +236,7 @@ const Hero = () => {
 
               {/* Marketplace Tags — cleaner */}
               <div className="flex flex-wrap justify-center lg:justify-start items-center gap-2 mb-6 sm:mb-8">
-                <span className="text-xs text-text-muted font-medium mr-1">Untuk:</span>
+                <span className="text-xs text-text-muted font-medium mr-1">Dimaksimalkan untuk:</span>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#FF5722]/10 border border-[#FF5722]/20 text-[#FF5722] text-xs font-semibold">
                   <ShopeeIcon className="w-3.5 h-3.5" />
                   Shopee

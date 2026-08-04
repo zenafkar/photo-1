@@ -67,19 +67,19 @@ const SocialProof = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-stone-50 border-t border-stone-200 relative overflow-hidden">
+    <section className="py-16 md:py-24 bg-background border-t border-surface-border relative overflow-hidden text-text">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-700 mb-5 mx-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-surface-border text-xs font-semibold text-primary mb-5 mx-auto">
             <Award className="w-3.5 h-3.5" />
             <span>DIPERCAYA 10.000+ UMKM</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-stone-900 mb-4 tracking-tight">
+          <h2 className="font-display text-3xl md:text-5xl font-extrabold text-text mb-4 tracking-tight">
             Kenapa UMKM Pilih ZenStudio?
           </h2>
-          <p className="text-lg text-stone-500 max-w-2xl mx-auto">
-            Bukan cuma AI generator biasa — ZenStudio <strong className="text-stone-700">satu-satunya</strong> yang menjamin produk Anda tetap 100% asli.
+          <p className="text-lg text-text-muted max-w-2xl mx-auto">
+            Bukan cuma AI generator biasa — ZenStudio <strong className="text-text">satu-satunya</strong> yang menjamin produk Anda tetap 100% asli.
           </p>
         </div>
 
@@ -88,13 +88,13 @@ const SocialProof = () => {
           {trustBadges.map((badge, i) => {
             const Icon = badge.icon;
             return (
-              <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-stone-200 shadow-sm">
-                <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 shrink-0">
+              <div key={i} className="flex items-center gap-3 p-4 rounded-2xl glass-card hover:border-primary/40 transition-colors shadow-sm">
+                <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
                   <Icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-stone-900">{badge.label}</div>
-                  <div className="text-xs text-stone-500">{badge.desc}</div>
+                  <div className="text-sm font-bold text-text">{badge.label}</div>
+                  <div className="text-xs text-text-muted">{badge.desc}</div>
                 </div>
               </div>
             );
@@ -108,8 +108,8 @@ const SocialProof = () => {
               <Star key={s} className="w-6 h-6 fill-amber-400 text-amber-400" />
             ))}
           </div>
-          <div className="text-lg font-extrabold text-stone-900">4.9 dari 5</div>
-          <div className="text-sm text-stone-500">Berdasarkan 500+ ulasan pengguna</div>
+          <div className="text-lg font-extrabold text-text">4.9 dari 5</div>
+          <div className="text-sm text-text-muted">Berdasarkan 500+ ulasan pengguna</div>
         </div>
 
         {/* Testimonials Carousel */}
@@ -142,7 +142,7 @@ const SocialProof = () => {
             {testimonials.map((t, i) => (
               <div
                 key={i}
-                className="snap-start shrink-0 w-[85vw] max-w-[380px] md:w-[350px] bg-white rounded-2xl border border-stone-200 p-6 flex flex-col shadow-sm hover:shadow-md hover:border-indigo-200 transition-all"
+                className="snap-start shrink-0 w-[85vw] max-w-[380px] md:w-[350px] glass-card rounded-2xl p-6 flex flex-col shadow-sm hover:shadow-md hover:border-primary/40 transition-all"
               >
                 {/* Stars */}
                 <div className="flex gap-0.5 mb-4">
@@ -151,15 +151,15 @@ const SocialProof = () => {
                   ))}
                 </div>
                 {/* Quote */}
-                <p className="text-sm text-stone-600 mb-6 flex-grow leading-relaxed">"{t.content}"</p>
+                <p className="text-sm text-text-muted mb-6 flex-grow leading-relaxed">"{t.content}"</p>
                 {/* Author */}
                 <div className="flex items-center gap-3 mt-auto">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center font-bold text-white text-sm shadow-sm">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center font-bold text-white text-sm shadow-[0_0_10px_rgba(79,70,229,0.5)]">
                     {t.avatar}
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-stone-900">{t.name}</div>
-                    <div className="text-xs text-stone-500">{t.role}</div>
+                    <div className="text-sm font-bold text-text">{t.name}</div>
+                    <div className="text-xs text-text-muted">{t.role}</div>
                   </div>
                 </div>
               </div>
@@ -169,7 +169,7 @@ const SocialProof = () => {
           {/* Dots indicator (mobile) */}
           <div className="flex justify-center gap-1.5 mt-4 md:hidden">
             {testimonials.map((_, i) => (
-              <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-indigo-600' : 'bg-stone-300'}`} />
+              <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-primary' : 'bg-surface-border'}`} />
             ))}
           </div>
         </div>

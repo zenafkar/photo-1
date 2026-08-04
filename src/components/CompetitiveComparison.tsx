@@ -12,37 +12,37 @@ const features = [
 
 const CompetitiveComparison = () => {
   return (
-    <section className="py-16 md:py-24 bg-slate-950 border-t border-slate-800/80 relative overflow-hidden text-slate-200">
+    <section className="py-16 md:py-24 bg-background border-t border-surface-border relative overflow-hidden text-text">
       {/* Glow Effects */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-[radial-gradient(circle,rgba(8,145,178,0.15)_0%,transparent_70%)] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-[radial-gradient(circle,rgba(79,70,229,0.15)_0%,transparent_70%)] rounded-full pointer-events-none" />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/80 border border-indigo-500/30 text-xs font-mono text-indigo-300 mb-6 backdrop-blur-md">
-            <ShieldAlert className="w-3.5 h-3.5 text-indigo-400" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-mono text-primary mb-6 backdrop-blur-md">
+            <ShieldAlert className="w-3.5 h-3.5 text-primary" />
             <span>INDUSTRY BENCHMARK</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Kenapa Memilih ZenStudio?</h2>
+          <h2 className="font-display text-3xl md:text-5xl font-black text-text mb-6 tracking-tight">Kenapa Memilih ZenStudio?</h2>
           
-          <p className="text-lg text-slate-400 font-medium text-center max-w-2xl mx-auto">
+          <p className="text-lg text-text-muted font-medium text-center max-w-2xl mx-auto">
             Lihat sendiri perbedaannya. ZenStudio menyulap foto seadanya menjadi standar studio profesional dengan <span className="text-cyan-400 font-bold">100% perlindungan bentuk produk</span>.
           </p>
         </div>
 
-        <div className="mb-16 rounded-3xl p-4 md:p-6 bg-slate-900/80 backdrop-blur-xl border border-slate-800 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+        <div className="mb-16 rounded-3xl p-4 md:p-6 glass-card shadow-[0_0_40px_rgba(0,0,0,0.5)]">
           <BeforeAfterSlider 
             beforeImage="/earfun-before.jpg" 
             afterImage="/earfun-after.jpg" 
           />
         </div>
         
-        <div className="bg-slate-900/60 backdrop-blur-xl rounded-[32px] shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-slate-800/80 max-w-4xl mx-auto overflow-hidden">
+        <div className="glass-card rounded-[32px] shadow-[0_0_50px_rgba(0,0,0,0.5)] max-w-4xl mx-auto overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px] text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/50">
-                  <th className="p-4 md:p-6 text-slate-400 font-semibold w-[45%]">
+                <tr className="border-b border-surface-border bg-black/20">
+                  <th className="p-4 md:p-6 text-text-muted font-semibold w-[45%]">
                     Parameter Perbandingan
                   </th>
                 <th className="p-4 md:p-6 text-center bg-indigo-950/40 border-l border-r border-indigo-500/20 relative">

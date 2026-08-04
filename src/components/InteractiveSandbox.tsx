@@ -139,10 +139,10 @@ const InteractiveSandbox = () => {
   ];
 
   return (
-    <div className="relative overflow-hidden text-stone-900">
+    <div className="relative overflow-hidden text-text">
       {/* Glow Backdrops */}
-      <div className="absolute top-1/2 left-0 w-96 h-96 bg-[radial-gradient(circle,rgba(79,70,229,0.04)_0%,transparent_70%)] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[radial-gradient(circle,rgba(2,132,199,0.04)_0%,transparent_70%)] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.06)_0%,transparent_70%)] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(2,132,199,0.06)_0%,transparent_70%)] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
@@ -150,14 +150,14 @@ const InteractiveSandbox = () => {
           {/* Left Side Content */}
           <div className="lg:col-span-5 flex flex-col justify-center">
             {/* Top Pill */}
-            <div className="inline-flex items-center self-start gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-semibold text-indigo-700 mb-6">
+            <div className="inline-flex items-center self-start gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-surface-border text-xs font-semibold text-primary mb-6 shadow-sm">
               <Wand2 className="w-3.5 h-3.5" />
               <span>INTERACTIVE AI SANDBOX</span>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-6 text-stone-900 leading-tight">
+            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-6 text-text leading-tight">
               Masuk Kualitas HP,<br />
-              <span className="bg-gradient-to-r from-indigo-600 via-sky-500 to-emerald-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary via-sky-400 to-emerald-400 bg-clip-text text-transparent">
                 Keluar Kualitas Studio.
               </span>
             </h2>
@@ -167,16 +167,16 @@ const InteractiveSandbox = () => {
               {steps.map((step, idx) => {
                 const IconComp = step.icon;
                 return (
-                  <div key={idx} className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white border border-stone-200 hover:border-indigo-200 transition-all shadow-sm">
+                  <div key={idx} className="flex items-center gap-3.5 p-3.5 rounded-2xl glass-card hover:border-primary/40 transition-all shadow-sm">
                     <div className={`p-2.5 rounded-xl border shrink-0 ${step.color}`}>
                       <IconComp className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-stone-800 flex items-center gap-2">
+                      <h3 className="font-display text-sm font-bold text-text flex items-center gap-2">
                         {step.title}
                         {idx === 2 && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
                       </h3>
-                      <p className="text-xs text-stone-500 leading-relaxed">{step.desc}</p>
+                      <p className="text-xs text-text-muted leading-relaxed">{step.desc}</p>
                     </div>
                   </div>
                 );
@@ -249,9 +249,9 @@ const InteractiveSandbox = () => {
           </div>
 
           {/* Right Side Card (Interactive Before/After AI Sandbox) */}
-          <div className="lg:col-span-7 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-stone-200 relative group">
+          <div className="lg:col-span-7 glass-card rounded-3xl p-5 md:p-6 shadow-sm relative group">
             {/* Corner Glow */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-[radial-gradient(circle,rgba(79,70,229,0.04)_0%,transparent_70%)] rounded-full transition-all pointer-events-none" />
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[radial-gradient(circle,rgba(79,70,229,0.06)_0%,transparent_70%)] rounded-full transition-all pointer-events-none" />
 
             {/* Prompt Console Bar */}
             <div className="flex items-center justify-between mb-3 text-xs font-mono text-slate-400">

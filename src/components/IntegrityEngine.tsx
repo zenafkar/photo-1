@@ -74,10 +74,10 @@ const IntegrityEngine = () => {
   ];
 
   return (
-    <section ref={sectionRef} id="integrity" className="py-16 md:py-24 relative overflow-hidden bg-gradient-to-b from-stone-50 to-white border-t border-stone-200">
+    <section ref={sectionRef} id="integrity" className="py-16 md:py-24 relative overflow-hidden bg-background border-t border-surface-border text-text">
       {/* Background with soft glow */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(79,70,229,0.04)_0%,transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(79,70,229,0.06)_0%,transparent_70%)]" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -87,18 +87,18 @@ const IntegrityEngine = () => {
             initial={{ opacity: 0, y: -10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-950/70 border border-blue-500/30 rounded-full mb-6 backdrop-blur-md shadow-lg shadow-blue-500/10"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-surface-border rounded-full mb-6 shadow-sm"
           >
             <Cpu className="w-4 h-4 text-cyan-400 animate-pulse" />
             <span className="text-xs uppercase tracking-widest font-mono text-cyan-300">Pixel Protection Tech</span>
           </motion.div>
 
-          <h2 className="text-3xl md:text-5xl font-black text-stone-900 mb-6 tracking-tight">
+          <h2 className="font-display text-3xl md:text-5xl font-black text-text mb-6 tracking-tight">
             Ubah Latar Bebas. <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">Tapi Jangan Sentuh Produk Saya.</span>
+            <span className="bg-gradient-to-r from-rose-400 via-pink-400 to-purple-400 bg-clip-text text-transparent drop-shadow-sm">Tapi Jangan Sentuh Produk Saya.</span>
           </h2>
-          <p className="text-base md:text-xl text-stone-600 max-w-3xl mx-auto font-normal leading-relaxed">
-            Sering kesal karena AI merusak bentuk botol atau melengkungkan logo? Kami mengerti. <strong className="text-indigo-600 font-semibold">ZenStudio melindungi bentuk, warna, dan tulisan asli produk Anda 100%.</strong>
+          <p className="text-base md:text-xl text-text-muted max-w-3xl mx-auto font-normal leading-relaxed">
+            Sering kesal karena AI merusak bentuk botol atau melengkungkan logo? Kami mengerti. <strong className="text-primary font-semibold">ZenStudio melindungi bentuk, warna, dan tulisan asli produk Anda 100%.</strong>
           </p>
         </div>
 
@@ -108,10 +108,10 @@ const IntegrityEngine = () => {
           {/* Left Side: Interactive Feature Cards */}
           <div className="flex-1 w-full space-y-4">
             <div className="mb-6 lg:mb-8 text-center lg:text-left">
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/80 border border-slate-600 rounded-full text-xs font-mono text-slate-300 mb-4 shadow-inner">
-                <MousePointer2 className="w-3.5 h-3.5" /> Auto-Pilot Aktif (Sentuh/Hover untuk Jeda)
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-surface-border rounded-full text-xs font-mono text-text-muted mb-4 shadow-sm">
+                <MousePointer2 className="w-3.5 h-3.5 text-primary" /> Auto-Pilot Aktif (Sentuh/Hover untuk Jeda)
               </span>
-              <h3 className="text-2xl font-bold text-white mb-2">Anatomi Proteksi AI</h3>
+              <h3 className="font-display text-2xl font-bold text-text mb-2">Anatomi Proteksi AI</h3>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
@@ -126,16 +126,16 @@ const IntegrityEngine = () => {
                     onTouchStart={() => { setActiveFeature(f.id); setIsAutoPlaying(false); }}
                     onTouchEnd={() => setIsAutoPlaying(true)}
                     className={`p-5 rounded-2xl border transition-all duration-300 cursor-crosshair flex items-start gap-4 
-                      ${isActive ? f.activeColor : 'bg-white border-stone-200 hover:border-indigo-200 hover:bg-indigo-50/30'}`}
+                      ${isActive ? f.activeColor : 'glass-card hover:border-primary/40'}`}
                   >
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${f.color} border shrink-0 transition-transform ${isActive ? 'scale-110' : ''}`}>
                       <Icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className={`font-bold mb-1.5 transition-colors ${isActive ? 'text-indigo-700' : 'text-stone-700'}`}>
+                      <h4 className={`font-display font-bold mb-1.5 transition-colors ${isActive ? 'text-primary' : 'text-text'}`}>
                         {f.title}
                       </h4>
-                      <p className={`text-sm leading-relaxed transition-colors ${isActive ? 'text-stone-600' : 'text-stone-500'}`}>
+                      <p className={`text-sm leading-relaxed transition-colors ${isActive ? 'text-text-muted/90' : 'text-text-muted'}`}>
                         {f.desc}
                       </p>
                     </div>
@@ -147,10 +147,10 @@ const IntegrityEngine = () => {
 
           {/* Right Side: Visual Scanner Simulator */}
           <div className="flex-1 w-full max-w-lg lg:max-w-none mx-auto relative perspective-1000">
-            <div className="relative aspect-[4/5] sm:aspect-square md:aspect-video lg:aspect-square bg-white backdrop-blur-xl rounded-[2.5rem] border border-stone-200 overflow-hidden shadow-lg flex items-center justify-center p-8 group">
+            <div className="relative aspect-[4/5] sm:aspect-square md:aspect-video lg:aspect-square glass-card rounded-[2.5rem] overflow-hidden flex items-center justify-center p-8 group">
               {/* Subtle Background Patterns */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.04)_0%,transparent_70%)]" />
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#e7e5e4_1px,transparent_1px),linear-gradient(to_bottom,#e7e5e4_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-30" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.08)_0%,transparent_70%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-50" />
               
               {/* Real Product Image Visualizer */}
               <div className="relative w-full max-w-[280px] aspect-[3/4] mx-auto z-10 transition-all duration-500 rounded-3xl overflow-hidden shadow-2xl border border-slate-700/50">
@@ -222,9 +222,9 @@ const IntegrityEngine = () => {
               </div>
 
               {/* Status Overlay UI */}
-              <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row justify-between items-center px-5 py-3 bg-white/90 backdrop-blur-md rounded-2xl border border-stone-200 shadow-md gap-2">
-                <span className="text-xs font-semibold text-stone-500 tracking-wider">STATUS:</span>
-                <span className="text-xs font-semibold text-indigo-600 font-bold flex items-center gap-2 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
+              <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row justify-between items-center px-5 py-3 glass-card rounded-2xl gap-2 z-50">
+                <span className="text-xs font-semibold text-text-muted tracking-wider">STATUS:</span>
+                <span className="text-xs font-bold text-primary flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full border border-primary/20 shadow-sm">
                   <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
                   {activeFeature === 'logo' && 'OCR LOCK ENGAGED'}
                   {activeFeature === 'shape' && 'GEOMETRY PRESERVED'}
@@ -238,20 +238,20 @@ const IntegrityEngine = () => {
         </div>
 
         {/* Live Authenticity Score Validation (Humanized Labels) */}
-        <div ref={ringsRef} className="bg-white backdrop-blur-xl rounded-[2.5rem] p-6 md:p-10 max-w-6xl mx-auto border border-stone-200 shadow-sm relative overflow-hidden">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#e7e5e4_1px,transparent_1px),linear-gradient(to_bottom,#e7e5e4_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20 pointer-events-none" />
+        <div ref={ringsRef} className="glass-card rounded-[2.5rem] p-6 md:p-10 max-w-6xl mx-auto relative overflow-hidden">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
 
-          <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4 border-b border-stone-200 pb-6 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4 border-b border-surface-border pb-6 relative z-10">
             <div className="flex items-center gap-4 text-center md:text-left">
-              <div className="p-3 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-600 hidden sm:block">
+              <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary hidden sm:block">
                 <Zap className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="font-bold text-xl text-stone-900 mb-1">Skor Keaslian Produk</h4>
-                <p className="text-sm text-stone-500">Verifikasi piksel otomatis oleh Computer Vision</p>
+                <h4 className="font-display font-bold text-xl text-text mb-1">Skor Keaslian Produk</h4>
+                <p className="text-sm text-text-muted">Verifikasi piksel otomatis oleh Computer Vision</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-full text-xs font-semibold text-emerald-700">
+            <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-full text-xs font-semibold text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
               100% AMAN DIGUNAKAN
             </div>
@@ -276,10 +276,10 @@ const ScoreRing = ({ label, value, scrollYProgress, color = "#60A5FA" }: { label
   const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [circumference, targetOffset]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-5 rounded-3xl bg-stone-50 border border-stone-200 hover:border-indigo-200 hover:bg-white transition-all duration-300">
+    <div className="flex flex-col items-center justify-center p-5 rounded-3xl glass-card hover:border-primary/40 transition-all duration-300">
       <div className="relative w-24 h-24 mb-4">
-        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="#E7E5E4" strokeWidth="8" />
+        <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" className="text-surface-border" strokeWidth="8" />
           <motion.circle 
             cx="50" cy="50" r="45" 
             fill="none" 
@@ -287,15 +287,15 @@ const ScoreRing = ({ label, value, scrollYProgress, color = "#60A5FA" }: { label
             strokeWidth="8" 
             strokeLinecap="round"
             strokeDasharray={circumference} 
-            style={{ strokeDashoffset }} 
+            style={{ strokeDashoffset, filter: `drop-shadow(0 0 8px ${color})` }} 
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-black text-stone-900 tracking-tighter">{value}%</span>
-          <span className="text-[10px] font-bold text-emerald-600 tracking-widest mt-0.5">LULUS</span>
+          <span className="font-display text-2xl font-black text-text tracking-tighter">{value}%</span>
+          <span className="text-[10px] font-bold text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.5)] tracking-widest mt-0.5">LULUS</span>
         </div>
       </div>
-      <span className="text-stone-600 font-semibold text-sm text-center leading-tight">{label}</span>
+      <span className="text-text-muted font-semibold text-sm text-center leading-tight">{label}</span>
     </div>
   );
 };

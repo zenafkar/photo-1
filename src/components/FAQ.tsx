@@ -48,16 +48,16 @@ const FAQ = () => {
   const flatIndex = (catIdx: number, itemIdx: number) => `${catIdx}-${itemIdx}`;
 
   return (
-    <section id="faq" className="py-16 md:py-24 bg-white border-t border-stone-200">
+    <section id="faq" className="py-16 md:py-24 bg-background border-t border-surface-border text-text">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-semibold text-indigo-700 mb-5 mx-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-surface-border text-xs font-semibold text-primary mb-5 mx-auto">
             <HelpCircle className="w-3.5 h-3.5" />
             <span>FAQ</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-stone-900 mb-4 tracking-tight">Pertanyaan Sering Diajukan</h2>
-          <p className="text-lg text-stone-500 max-w-2xl mx-auto">
+          <h2 className="font-display text-3xl md:text-5xl font-extrabold text-text mb-4 tracking-tight">Pertanyaan Sering Diajukan</h2>
+          <p className="text-lg text-text-muted max-w-2xl mx-auto">
             Segala hal yang perlu Anda ketahui tentang ZenStudio.
           </p>
         </div>
@@ -66,7 +66,7 @@ const FAQ = () => {
         <div className="space-y-8">
           {faqs.map((category, catIdx) => (
             <div key={catIdx}>
-              <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-3 px-1">{category.category}</h3>
+              <h3 className="text-sm font-bold text-primary uppercase tracking-wider mb-3 px-1">{category.category}</h3>
               <div className="space-y-3">
                 {category.items.map((faq, itemIdx) => {
                   const idx = flatIndex(catIdx, itemIdx);
@@ -75,25 +75,25 @@ const FAQ = () => {
                   return (
                     <div
                       key={idx}
-                      className={`border rounded-2xl overflow-hidden transition-all duration-200 bg-white ${
-                        isOpen ? 'border-indigo-300 shadow-[0_4px_20px_rgba(79,70,229,0.06)]' : 'border-stone-200 hover:border-stone-300'
+                      className={`border rounded-2xl overflow-hidden transition-all duration-200 glass-card ${
+                        isOpen ? 'border-primary/50 shadow-[0_0_15px_rgba(79,70,229,0.15)]' : 'hover:border-primary/30'
                       }`}
                     >
                       <button
                         onClick={() => setOpenIndex(isOpen ? null : idx)}
-                        className="w-full p-5 sm:p-6 text-left flex justify-between items-center gap-4 hover:bg-stone-50/50 transition-colors focus:outline-none group min-h-[56px]"
+                        className="w-full p-5 sm:p-6 text-left flex justify-between items-center gap-4 hover:bg-surface/50 transition-colors focus:outline-none group min-h-[56px]"
                       >
-                        <span className={`text-base sm:text-lg font-semibold transition-colors ${isOpen ? 'text-indigo-700' : 'text-stone-800 group-hover:text-indigo-600'}`}>
+                        <span className={`text-base sm:text-lg font-semibold transition-colors ${isOpen ? 'text-primary' : 'text-text group-hover:text-primary/80'}`}>
                           {faq.question}
                         </span>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                          isOpen ? 'bg-indigo-100 text-indigo-600' : 'bg-stone-100 text-stone-400 group-hover:bg-stone-200'
+                          isOpen ? 'bg-primary/20 text-primary' : 'bg-surface border border-surface-border text-text-muted group-hover:bg-primary/10'
                         }`}>
                           <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                         </div>
                       </button>
                       {isOpen && (
-                        <div className="px-5 sm:px-6 pb-5 sm:pb-6 text-stone-600 leading-relaxed text-sm sm:text-base border-t border-stone-100 pt-4">
+                        <div className="px-5 sm:px-6 pb-5 sm:pb-6 text-text-muted leading-relaxed text-sm sm:text-base border-t border-surface-border pt-4">
                           {faq.answer}
                         </div>
                       )}
@@ -107,12 +107,12 @@ const FAQ = () => {
 
         {/* WhatsApp CTA */}
         <div className="mt-12 text-center">
-          <p className="text-stone-400 text-sm mb-3">Masih ragu? Tanya kami langsung.</p>
+          <p className="text-text-muted/70 text-sm mb-3">Masih ragu? Tanya kami langsung.</p>
           <a
             href="https://wa.me/6281234567890"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold hover:bg-emerald-100 transition-colors text-sm"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold hover:bg-emerald-500/20 transition-colors text-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]"
           >
             💬 Chat via WhatsApp
           </a>

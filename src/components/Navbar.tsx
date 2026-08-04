@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Menu, X, Sparkles } from 'lucide-react';
 import { UserButton, useAuth, useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
@@ -41,16 +42,39 @@ const Navbar = () => {
     }
   };
 
+  // rAF-throttled scroll listener
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Lock body scroll when mobile menu is open
+  // iOS-safe scroll lock — uses position:fixed on body instead of overflow:hidden
+  // because overflow toggle on a scrolled iOS page causes a documented viewport freeze
   useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    if (isOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      return () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        window.scrollTo(0, scrollY);
+      };
+    }
   }, [isOpen]);
 
   const navLinks = [
@@ -62,6 +86,7 @@ const Navbar = () => {
   ];
 
   return (
+    <>
     <nav
       className={`fixed w-full z-50 transition-all duration-300 ${
         isScrolled
@@ -150,15 +175,21 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Full-Screen Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 top-[4.5rem] z-40 bg-background lg:hidden overflow-y-auto">
+    </nav>
+      {/* Mobile Full-Screen Overlay — portaled to document.body so it's never a
+          descendant of the nav's backdrop-filter (which would become its CSS
+          containing block and break fixed positioning on scrolled iOS) */}
+      {createPortal(
+        <AnimatePresence mode="wait">
+          {isOpen && (
+            <motion.div
+              key="mobile-menu"
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+              style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
+              className="fixed inset-0 top-[4.5rem] z-40 bg-background lg:hidden overflow-y-auto">
           <div className="px-4 pt-6 pb-8 space-y-1">
             {navLinks.map((link) => (
               <a
@@ -219,8 +250,10 @@ const Navbar = () => {
           </div>
         </motion.div>
       )}
-      </AnimatePresence>
-    </nav>
+      </AnimatePresence>,
+      document.body
+    )}
+    </>
   );
 };
 

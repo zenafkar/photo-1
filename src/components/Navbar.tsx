@@ -227,8 +227,8 @@ const Navbar = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2 }}
-              style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
-              className="fixed inset-0 top-[3.5rem] z-40 bg-background lg:hidden overflow-y-auto overscroll-contain">
+              style={{ pointerEvents: isOpen ? 'auto' : 'none', top: 'calc(3.5rem + env(safe-area-inset-top))' }}
+              className="fixed inset-0 z-40 bg-background lg:hidden overflow-y-auto overscroll-contain">
           <div className="px-4 pt-6 pb-8 space-y-1">
             {navLinks.map((link, i) => (
               <a

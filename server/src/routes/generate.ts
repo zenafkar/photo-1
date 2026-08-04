@@ -171,9 +171,9 @@ router.post("/", async (req: Request, res: Response) => {
         if (existing) {
           // Clean up the original file we already saved (would otherwise leak)
           if (localOriginalUrl) {
-            deleteLocalImage(localOriginalUrl).catch((e) =>
-              console.warn("[Generate] Failed to clean up leaked original file:", e?.message)
-            );
+            try { await deleteLocalImage(localOriginalUrl); } catch (e: any) {
+              console.warn("[Generate] Failed to clean up leaked original file:", e?.message);
+            }
           }
 
           // Refund the credits we just deducted

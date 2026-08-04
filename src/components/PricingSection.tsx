@@ -1,4 +1,4 @@
-import { Sparkles, Zap, Image as ImageIcon, Layers, Aperture, Shield, Type, FastForward } from 'lucide-react';
+import { Sparkles, Zap, Image as ImageIcon, Layers, Aperture, Shield, FastForward, CreditCard } from 'lucide-react';
 import { SignedOut, SignedIn, useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 import { useTopUp } from '../context/TopUpContext';
@@ -19,137 +19,152 @@ const PricingSection = () => {
   };
 
   return (
-    <section id="harga" className="py-16 md:py-24 bg-slate-950 border-t border-slate-800/80 relative overflow-hidden text-slate-200">
-      {/* Glow Effects */}
-      <div className="absolute top-1/2 right-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(8,145,178,0.15)_0%,transparent_70%)] rounded-full pointer-events-none" />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-xs font-mono text-cyan-300 mb-6 backdrop-blur-md">
-            <Zap className="w-3.5 h-3.5 text-cyan-400" />
-            <span>PAY PER COMPUTE</span>
+    <section id="harga" className="py-16 md:py-24 bg-white border-t border-stone-200 relative overflow-hidden text-stone-800">
+      {/* Subtle glow */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(79,70,229,0.04)_0%,transparent_70%)] rounded-full pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Header */}
+        <div className="text-center mb-12 md:mb-16">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-semibold text-indigo-700 mb-5">
+            <CreditCard className="w-3.5 h-3.5" />
+            <span>KREDIT, BUKAN LANGGANAN</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Top Up AI Credits Sesuai Kebutuhan</h2>
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto font-medium">Beli kredit saat Anda butuh. Lebih hemat untuk UMKM, tanpa komitmen bulanan.</p>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-stone-900 mb-4 tracking-tight">
+            Top Up Sesuai Kebutuhan
+          </h2>
+          <p className="text-lg text-stone-500 max-w-2xl mx-auto">
+            <strong className="text-stone-700">1 kredit = 1 foto.</strong> Beli kredit sekali, pakai kapan saja. Tanpa komitmen bulanan — lebih hemat untuk UMKM.
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {/* Pricing Cards — single column on mobile, 3-col on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
+
           {/* Free Tier */}
-          <div className="bg-slate-900/80 backdrop-blur-md rounded-[32px] p-8 lg:p-10 border border-slate-700/50 flex flex-col shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:border-slate-500/50 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-all">
-            <h3 className="text-2xl font-extrabold text-slate-100 mb-2">Gratis</h3>
-            <p className="text-slate-400 mb-6 font-medium text-sm">Cocok untuk mencoba dan jualan santai.</p>
-            <div className="mb-8">
-              <span className="text-4xl font-extrabold text-white">Trial</span>
+          <div className="bg-white rounded-[28px] p-6 sm:p-8 border border-stone-200 flex flex-col shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
+            <h3 className="text-xl font-extrabold text-stone-900 mb-1">Gratis</h3>
+            <p className="text-stone-500 text-sm mb-5">Cocok untuk mencoba dan jualan santai.</p>
+            <div className="mb-6">
+              <span className="text-4xl font-extrabold text-stone-900">3 Foto</span>
+              <span className="text-stone-400 text-sm ml-2">gratis</span>
             </div>
-            
-            <ul className="space-y-4 mb-10 flex-grow text-sm">
-              <li className="flex gap-3 text-slate-300 font-medium"><ImageIcon className="w-5 h-5 text-cyan-500 shrink-0" /> 3 Kredit Gratis di awal (untuk generate 3 foto)</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-500 shrink-0" /> Bebas Atur Tema & Suasana</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-500 shrink-0" /> Resolusi 1K / 2K</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Shield className="w-5 h-5 text-cyan-500 shrink-0" /> Tanpa Watermark</li>
+
+            <ul className="space-y-3 mb-8 flex-grow text-sm">
+              <li className="flex gap-3 text-stone-600"><ImageIcon className="w-5 h-5 text-indigo-500 shrink-0" /> 3 kredit gratis saat daftar</li>
+              <li className="flex gap-3 text-stone-600"><Layers className="w-5 h-5 text-indigo-500 shrink-0" /> Bebas atur tema & suasana</li>
+              <li className="flex gap-3 text-stone-600"><Aperture className="w-5 h-5 text-indigo-500 shrink-0" /> Resolusi 1K / 2K</li>
+              <li className="flex gap-3 text-stone-600"><Shield className="w-5 h-5 text-indigo-500 shrink-0" /> Tanpa watermark</li>
             </ul>
-            
+
             <SignedOut>
-              <button 
-                onClick={handleOpenAuth}
-                className="w-full py-3.5 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 font-bold hover:bg-slate-800 transition-colors cursor-pointer"
-              >
+              <button onClick={handleOpenAuth} className="w-full py-3.5 rounded-xl border-2 border-stone-200 hover:border-indigo-300 text-stone-700 font-bold hover:bg-indigo-50 transition-all cursor-pointer min-h-[48px]">
                 Mulai Gratis
               </button>
             </SignedOut>
             <SignedIn>
-              <Link to="/studio" className="w-full py-3.5 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 font-bold flex justify-center hover:bg-slate-800 transition-colors">
+              <Link to="/studio" className="w-full py-3.5 rounded-xl border-2 border-stone-200 hover:border-indigo-300 text-stone-700 font-bold flex justify-center hover:bg-indigo-50 transition-all min-h-[48px]">
                 Mulai Gratis
               </Link>
             </SignedIn>
           </div>
 
-          {/* Basic Tier */}
-          <div className="bg-slate-900/80 backdrop-blur-md rounded-[32px] p-8 lg:p-10 border border-slate-700/50 flex flex-col shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:border-cyan-500/30 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all">
-            <h3 className="text-2xl font-extrabold text-slate-100 mb-2">Starter</h3>
-            <p className="text-slate-400 mb-6 font-medium text-sm">Untuk UMKM yang ingin hasil profesional.</p>
-            <div className="mb-8 flex flex-col gap-1">
+          {/* Starter Tier */}
+          <div className="bg-white rounded-[28px] p-6 sm:p-8 border border-stone-200 flex flex-col shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
+            <h3 className="text-xl font-extrabold text-stone-900 mb-1">Starter</h3>
+            <p className="text-stone-500 text-sm mb-5">Untuk UMKM yang ingin hasil profesional.</p>
+            <div className="mb-6">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold text-white">Rp 75.000</span>
+                <span className="text-4xl font-extrabold text-stone-900">Rp 75K</span>
               </div>
-              <span className="text-cyan-400 font-bold text-sm bg-cyan-950/50 border border-cyan-500/30 inline-flex px-3 py-1 rounded-full w-fit mt-2">
-                Hingga 10x Generate Foto
-              </span>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <span className="text-indigo-700 font-bold text-sm bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
+                  10 Foto
+                </span>
+                <span className="text-stone-400 text-xs">≈ Rp 7.500/foto</span>
+              </div>
             </div>
-            
-            <ul className="space-y-4 mb-10 flex-grow text-sm">
-              <li className="flex gap-3 text-slate-200 font-medium"><Zap className="w-5 h-5 text-cyan-400 shrink-0" /> Sistem <strong className="text-cyan-300">10 Kredit</strong></li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Type className="w-5 h-5 text-cyan-500 shrink-0" /> Bebas Atur Tema & Suasana</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-500 shrink-0" /> Ekspor Resolusi 1K & 2K</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-500 shrink-0" /> Dukungan Resolusi 4K (2 Kredit)</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Shield className="w-5 h-5 text-cyan-500 shrink-0" /> Tanpa Watermark</li>
+
+            <ul className="space-y-3 mb-8 flex-grow text-sm">
+              <li className="flex gap-3 text-stone-700 font-medium"><Zap className="w-5 h-5 text-indigo-500 shrink-0" /> <strong>10 kredit</strong></li>
+              <li className="flex gap-3 text-stone-600">Bebas atur tema & suasana</li>
+              <li className="flex gap-3 text-stone-600">Resolusi 1K & 2K</li>
+              <li className="flex gap-3 text-stone-600">Dukungan 4K (2 kredit)</li>
+              <li className="flex gap-3 text-stone-600">Tanpa watermark</li>
             </ul>
-            
+
             <SignedOut>
-              <button 
-                onClick={handleOpenAuth}
-                className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold transition-all shadow-md cursor-pointer"
-              >
+              <button onClick={handleOpenAuth} className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all shadow-[0_2px_10px_rgba(79,70,229,0.2)] hover:shadow-[0_4px_15px_rgba(79,70,229,0.3)] cursor-pointer min-h-[48px]">
                 Beli Paket
               </button>
             </SignedOut>
             <SignedIn>
-              <button
-                onClick={() => openTopUp("starter")}
-                className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold flex justify-center transition-all shadow-md cursor-pointer"
-              >
+              <button onClick={() => openTopUp("starter")} className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex justify-center transition-all shadow-[0_2px_10px_rgba(79,70,229,0.2)] hover:shadow-[0_4px_15px_rgba(79,70,229,0.3)] cursor-pointer min-h-[48px]">
                 Beli Paket
               </button>
             </SignedIn>
           </div>
 
-          {/* Premium Tier */}
-          <div className="bg-slate-900/90 backdrop-blur-xl rounded-[32px] p-8 lg:p-10 border border-cyan-500/50 relative flex flex-col transform md:-translate-y-4 shadow-[0_0_50px_rgba(6,182,212,0.2)]">
-            <div className="absolute top-0 right-8 transform -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-indigo-500 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-100" /> PALING POPULER
+          {/* Pro Tier (Featured) */}
+          <div className="bg-white rounded-[28px] p-6 sm:p-8 border-2 border-indigo-500 relative flex flex-col shadow-[0_8px_30px_rgba(79,70,229,0.1)] md:-translate-y-2">
+            {/* Popular badge */}
+            <div className="absolute top-0 right-6 sm:right-8 transform -translate-y-1/2 bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-[0_2px_10px_rgba(79,70,229,0.3)] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> PALING HEMAT
             </div>
-            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 mb-2">Pro</h3>
-            <p className="text-slate-400 mb-6 font-medium text-sm">Untuk online shop dengan posting rutin.</p>
-            <div className="mb-8 flex flex-col gap-1">
+            <h3 className="text-xl font-extrabold text-stone-900 mb-1">Pro</h3>
+            <p className="text-stone-500 text-sm mb-5">Untuk online shop dengan posting rutin.</p>
+            <div className="mb-6">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold text-white">Rp 215.000</span>
+                <span className="text-4xl font-extrabold text-stone-900">Rp 215K</span>
               </div>
-              <span className="text-emerald-400 font-bold text-sm bg-emerald-950/50 border border-emerald-500/30 inline-flex px-3 py-1 rounded-full w-fit mt-2">
-                Hingga 30x Generate Foto
-              </span>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <span className="text-emerald-700 font-bold text-sm bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                  30 Foto
+                </span>
+                <span className="text-stone-400 text-xs">≈ Rp 7.200/foto</span>
+              </div>
             </div>
-            
-            <ul className="space-y-4 mb-10 flex-grow text-sm">
-              <li className="flex gap-3 text-slate-100 font-medium"><Zap className="w-5 h-5 text-cyan-400 shrink-0 drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]" /> Sistem <strong className="text-cyan-300">30 Kredit</strong></li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Type className="w-5 h-5 text-cyan-400 shrink-0" /> Bebas Atur Tema & Suasana</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Aperture className="w-5 h-5 text-cyan-400 shrink-0" /> Ekspor Resolusi 1K & 2K</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Layers className="w-5 h-5 text-cyan-400 shrink-0" /> Dukungan Resolusi Ultra 4K</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><FastForward className="w-5 h-5 text-cyan-400 shrink-0" /> Priority Server (Lebih cepat)</li>
-              <li className="flex gap-3 text-slate-300 font-medium"><Shield className="w-5 h-5 text-cyan-400 shrink-0" /> Tanpa Watermark</li>
+
+            <ul className="space-y-3 mb-8 flex-grow text-sm">
+              <li className="flex gap-3 text-stone-700 font-medium"><Zap className="w-5 h-5 text-indigo-500 shrink-0" /> <strong>30 kredit</strong></li>
+              <li className="flex gap-3 text-stone-600">Bebas atur tema & suasana</li>
+              <li className="flex gap-3 text-stone-600">Resolusi 1K & 2K</li>
+              <li className="flex gap-3 text-stone-600">Dukungan Ultra 4K</li>
+              <li className="flex gap-3 text-stone-600"><FastForward className="w-5 h-5 text-indigo-500 shrink-0" /> Priority server (lebih cepat)</li>
+              <li className="flex gap-3 text-stone-600">Tanpa watermark</li>
             </ul>
-            
+
             <SignedOut>
-              <button 
-                onClick={handleOpenAuth}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:-translate-y-0.5 border border-cyan-400/50 cursor-pointer"
-              >
-                Beli Paket
+              <button onClick={handleOpenAuth} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold transition-all shadow-[0_4px_20px_rgba(79,70,229,0.3)] hover:shadow-[0_6px_25px_rgba(79,70,229,0.4)] cursor-pointer min-h-[48px]">
+                Beli Paket Pro
               </button>
             </SignedOut>
             <SignedIn>
-              <button
-                onClick={() => openTopUp("pro")}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold flex justify-center transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:-translate-y-0.5 border border-cyan-400/50 cursor-pointer"
-              >
-                Beli Paket
+              <button onClick={() => openTopUp("pro")} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold flex justify-center transition-all shadow-[0_4px_20px_rgba(79,70,229,0.3)] hover:shadow-[0_6px_25px_rgba(79,70,229,0.4)] cursor-pointer min-h-[48px]">
+                Beli Paket Pro
               </button>
             </SignedIn>
+          </div>
+        </div>
+
+        {/* Payment methods + CTA note */}
+        <div className="mt-12 text-center">
+          <p className="text-sm text-stone-400 mb-3">Pembayaran mudah via</p>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-50 border border-stone-200 text-xs font-medium text-stone-600">
+              <img src="/icons/xendit.svg" alt="" className="w-4 h-4" /> QRIS
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-50 border border-stone-200 text-xs font-medium text-stone-600">
+              📱 GoPay / OVO / Dana
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-50 border border-stone-200 text-xs font-medium text-stone-600">
+              🏦 Transfer Bank
+            </span>
           </div>
         </div>
       </div>
     </section>
   );
 };
-
 
 export default PricingSection;

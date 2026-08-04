@@ -29,9 +29,9 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#020617" />
+    <meta name="theme-color" content="#FAFAF9" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <!-- SEO: Primary Meta Tags -->
     <title>ZenStudio | Professional Product Photos. Authentic Products.</title>
@@ -63,7 +63,11 @@
     <link rel="dns-prefetch" href="https://replicate.delivery">
     <link rel="dns-prefetch" href="https://cdn.simpleicons.org">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Preload critical above-fold hero images for fast LCP -->
+    <link rel="preload" as="image" href="/mystic-before.jpg" fetchpriority="high">
+    <link rel="preload" as="image" href="/mystic-after.jpg">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   </head>
   <body class="bg-background text-text font-sans antialiased selection:bg-primary/30 selection:text-white">
     <div id="root"></div>

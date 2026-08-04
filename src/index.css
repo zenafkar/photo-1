@@ -7,9 +7,9 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-background text-text antialiased;
-    overscroll-behavior-y: none; /* Mencegah bounce effect di mobile */
-    -webkit-tap-highlight-color: transparent; /* Remove grey tap highlight on iOS */
+    @apply bg-white text-stone-900 antialiased;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -28,14 +28,14 @@
     animation: text-shimmer 3s linear infinite;
   }
 
-  /* Color Psychology Authenticity Loop Gradient */
+  /* Color Psychology Authenticity Loop Gradient — now for light backgrounds */
   .text-animated-authenticity {
     background: linear-gradient(
-      90deg, 
-      #38bdf8 0%, 
-      #34d399 33%, 
-      #818cf8 66%, 
-      #38bdf8 100%
+      90deg,
+      #4F46E5 0%,
+      #059669 33%,
+      #7C3AED 66%,
+      #4F46E5 100%
     );
     background-size: 300% 100%;
     -webkit-background-clip: text;
@@ -100,16 +100,16 @@
   100% { transform: translateX(120%) skewX(-15deg); }
 }
 
-@keyframes border-glow-rotate {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+/* Shimmer: horizontal sweep for prompt generation effect — used by PromptFeatureHighlight */
+@keyframes shimmer {
+  0%   { transform: translateX(-150%) skewX(-20deg); }
+  100% { transform: translateX(100%) skewX(-20deg); }
+}
+
+/* Scan: vertical scanning line for marketplace preset cards — used by MarketplacePresets */
+@keyframes scan {
+  0%, 100% { top: 0; }
+  50%      { top: 100%; }
 }
 
 /* ── Accessibility: respect OS-level motion preferences ── */

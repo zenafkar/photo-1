@@ -9,14 +9,10 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const { isLoaded, isSignedIn } = useAuth();
   const { openSignIn, openSignUp } = useClerk();
-
   const [isAuthTimeout, setIsAuthTimeout] = useState(false);
 
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsAuthTimeout(true);
-    }, 2000);
+    const timer = setTimeout(() => setIsAuthTimeout(true), 2000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -45,65 +41,65 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
   return (
-    <nav 
-      className={`fixed w-full z-50 transition-all duration-500 ${
-        isScrolled 
-          ? 'bg-slate-950/85 backdrop-blur-xl border-b border-cyan-500/20 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.8)]' 
-          : 'bg-transparent py-5'
+    <nav
+      className={`fixed w-full z-50 transition-all duration-300 ${
+        isScrolled
+          ? 'bg-white/90 backdrop-blur-lg border-b border-stone-200/80 py-2 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
+          : 'bg-transparent py-3'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-between h-12 lg:h-14">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-2.5 group">
-            <ZenLogo className="w-9 h-9 group-hover:scale-105 transition-transform shadow-md" />
-            <span className="text-xl font-black text-white tracking-tight group-hover:text-cyan-300 transition-colors">
+          <a href="#" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+            <ZenLogo className="w-8 h-8 sm:w-9 sm:h-9 group-hover:scale-105 transition-transform" />
+            <span className={`text-lg sm:text-xl font-extrabold tracking-tight transition-colors ${isScrolled ? 'text-stone-900' : 'text-stone-900'}`}>
               ZenStudio
             </span>
           </a>
-          
+
           {/* Desktop Nav Links */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-1 px-4 py-1.5 rounded-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-md shadow-inner">
-              <a href="#fitur" className="px-4 py-1.5 rounded-full text-slate-300 hover:text-cyan-300 hover:bg-slate-800/60 transition-all text-sm font-medium">
+          <div className="hidden lg:block">
+            <div className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-stone-100/80 border border-stone-200/60">
+              <a href="#cara-kerja" className="px-4 py-1.5 rounded-full text-stone-600 hover:text-indigo-600 hover:bg-white transition-all text-sm font-medium">
+                Cara Kerja
+              </a>
+              <a href="#fitur" className="px-4 py-1.5 rounded-full text-stone-600 hover:text-indigo-600 hover:bg-white transition-all text-sm font-medium">
                 Fitur
               </a>
-              <a href="#integrity" className="px-4 py-1.5 rounded-full text-slate-300 hover:text-cyan-300 hover:bg-slate-800/60 transition-all text-sm font-medium">
-                Integrity Engine
-              </a>
-              <a href="#harga" className="px-4 py-1.5 rounded-full text-slate-300 hover:text-cyan-300 hover:bg-slate-800/60 transition-all text-sm font-medium">
+              <a href="#harga" className="px-4 py-1.5 rounded-full text-stone-600 hover:text-indigo-600 hover:bg-white transition-all text-sm font-medium">
                 Harga
               </a>
-              <a href="#faq" className="px-4 py-1.5 rounded-full text-slate-300 hover:text-cyan-300 hover:bg-slate-800/60 transition-all text-sm font-medium">
+              <a href="#faq" className="px-4 py-1.5 rounded-full text-stone-600 hover:text-indigo-600 hover:bg-white transition-all text-sm font-medium">
                 FAQ
               </a>
             </div>
           </div>
-          
+
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-3">
             {!ready ? (
-              <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
             ) : isSignedIn ? (
               <>
-                <Link to="/studio" className="text-slate-300 hover:text-cyan-300 font-semibold text-sm transition-colors">
+                <Link to="/studio" className="text-stone-600 hover:text-indigo-600 font-semibold text-sm transition-colors">
                   Studio
                 </Link>
                 <UserButton afterSignOutUrl="/">
                   <UserButton.MenuItems>
-                    <UserButton.Link
-                      label="Studio Dashboard"
-                      labelIcon={<Sparkles size={15} />}
-                      href="/studio"
-                    />
+                    <UserButton.Link label="Studio Dashboard" labelIcon={<Sparkles size={15} />} href="/studio" />
                     <UserButton.Action label="manageAccount" />
                     <UserButton.Action label="signOut" />
                   </UserButton.MenuItems>
@@ -111,128 +107,135 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <button 
+                <button
                   onClick={handleOpenSignIn}
-                  className="text-slate-300 hover:text-cyan-300 font-semibold text-sm transition-colors px-3 py-1.5"
+                  className="text-stone-600 hover:text-indigo-600 font-semibold text-sm transition-colors px-3 py-2"
                 >
                   Masuk
                 </button>
-                <button 
+                <button
                   onClick={handleOpenSignUp}
-                  className="bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] hover:scale-105 active:scale-95 flex items-center gap-2 border border-cyan-400/30"
+                  className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-[0_2px_10px_rgba(79,70,229,0.25)] hover:shadow-[0_4px_15px_rgba(79,70,229,0.35)] hover:scale-[1.02] active:scale-95 flex items-center gap-2"
                 >
-                  <Sparkles className="w-4 h-4 text-cyan-200 fill-cyan-200" />
+                  <Sparkles className="w-4 h-4 text-indigo-200" />
                   Coba Gratis
                 </button>
               </>
             )}
           </div>
-          
+
           {/* Mobile Toggle Button */}
-          <div className="-mr-2 flex md:hidden">
+          <div className="flex items-center gap-2 lg:hidden">
+            {!ready ? null : !isSignedIn ? (
+              <button
+                onClick={handleOpenSignUp}
+                className="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm flex items-center gap-1"
+              >
+                <Sparkles className="w-3 h-3" />
+                3 Foto Gratis
+              </button>
+            ) : null}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-xl text-slate-300 hover:text-cyan-300 hover:bg-slate-900 border border-slate-800 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-xl text-stone-600 hover:text-indigo-600 hover:bg-stone-100 border border-stone-200 focus:outline-none min-w-[40px] min-h-[40px]"
+              aria-label={isOpen ? 'Tutup menu' : 'Buka menu'}
             >
-              {isOpen ? <X className="h-6 w-6 text-cyan-400" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Full-Screen Overlay */}
       {isOpen && (
-        <div className="md:hidden bg-slate-950/95 border-b border-cyan-500/20 backdrop-blur-2xl shadow-2xl">
-          <div className="px-4 pt-3 pb-6 space-y-2">
-            <a 
-              href="#fitur" 
-              onClick={() => setIsOpen(false)} 
-              className="block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+        <div className="fixed inset-0 top-[56px] z-40 bg-white lg:hidden overflow-y-auto">
+          <div className="px-4 pt-6 pb-8 space-y-1">
+            <a
+              href="#cara-kerja"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-stone-800 hover:text-indigo-600 hover:bg-indigo-50 transition-colors min-h-[52px]"
             >
-              Fitur
+              🚀 Cara Kerja
             </a>
-            <a 
-              href="#integrity" 
-              onClick={() => setIsOpen(false)} 
-              className="block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+            <a
+              href="#fitur"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-stone-800 hover:text-indigo-600 hover:bg-indigo-50 transition-colors min-h-[52px]"
             >
-              Integrity Engine
+              ✨ Fitur
             </a>
-            <a 
-              href="#harga" 
-              onClick={() => setIsOpen(false)} 
-              className="block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+            <a
+              href="#integrity"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-stone-800 hover:text-indigo-600 hover:bg-indigo-50 transition-colors min-h-[52px]"
             >
-              Harga
+              🛡️ Integrity Engine
             </a>
-            <a 
-              href="#faq" 
-              onClick={() => setIsOpen(false)} 
-              className="block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
+            <a
+              href="#harga"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-stone-800 hover:text-indigo-600 hover:bg-indigo-50 transition-colors min-h-[52px]"
             >
-              FAQ
+              💰 Harga
             </a>
-            
-            {!ready ? (
-              <div className="pt-4 flex justify-center items-center py-4 border-t border-slate-800/80">
-                <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : isSignedIn ? (
-              <div className="pt-3 border-t border-slate-800/80 space-y-3">
-                <Link 
-                  to="/studio" 
-                  onClick={() => setIsOpen(false)} 
-                  className="w-full bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 text-white px-4 py-3 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-lg shadow-cyan-500/20"
-                >
-                  <Sparkles className="w-4 h-4 text-cyan-200" />
-                  Masuk Studio
-                </Link>
-                <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900/80 rounded-xl border border-slate-800">
-                  <span className="text-sm font-medium text-slate-300">Profil & Akun</span>
-                  <UserButton afterSignOutUrl="/">
-                    <UserButton.MenuItems>
-                      <UserButton.Link
-                        label="Studio Dashboard"
-                        labelIcon={<Sparkles size={15} />}
-                        href="/studio"
-                      />
-                      <UserButton.Action label="manageAccount" />
-                      <UserButton.Action label="signOut" />
-                    </UserButton.MenuItems>
-                  </UserButton>
+            <a
+              href="#faq"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-stone-800 hover:text-indigo-600 hover:bg-indigo-50 transition-colors min-h-[52px]"
+            >
+              ❓ FAQ
+            </a>
+
+            {/* Mobile Auth Section */}
+            <div className="pt-6 mt-4 border-t border-stone-200 space-y-3">
+              {!ready ? (
+                <div className="flex justify-center py-4">
+                  <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
-              </div>
-            ) : (
-              <div className="pt-3 border-t border-slate-800/80 space-y-2">
-                <button 
-                  onClick={() => {
-                    setIsOpen(false);
-                    handleOpenSignIn();
-                  }} 
-                  className="w-full text-left block px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:text-cyan-300 hover:bg-slate-900"
-                >
-                  Masuk
-                </button>
-                <button 
-                  onClick={() => {
-                    setIsOpen(false);
-                    handleOpenSignUp();
-                  }} 
-                  className="w-full bg-gradient-to-r from-indigo-500 via-blue-600 to-cyan-500 text-white px-4 py-3 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-lg shadow-cyan-500/20"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Coba Gratis
-                </button>
-              </div>
-            )}
+              ) : isSignedIn ? (
+                <div className="space-y-3">
+                  <Link
+                    to="/studio"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 text-white px-4 py-4 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-[0_4px_15px_rgba(79,70,229,0.25)] min-h-[52px]"
+                  >
+                    <Sparkles className="w-5 h-5 text-indigo-200" />
+                    Masuk Studio
+                  </Link>
+                  <div className="flex items-center justify-between px-4 py-3 bg-stone-50 rounded-xl border border-stone-200">
+                    <span className="text-sm font-medium text-stone-700">Profil & Akun</span>
+                    <UserButton afterSignOutUrl="/">
+                      <UserButton.MenuItems>
+                        <UserButton.Link label="Studio Dashboard" labelIcon={<Sparkles size={15} />} href="/studio" />
+                        <UserButton.Action label="manageAccount" />
+                        <UserButton.Action label="signOut" />
+                      </UserButton.MenuItems>
+                    </UserButton>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <button
+                    onClick={() => { setIsOpen(false); handleOpenSignIn(); }}
+                    className="w-full px-4 py-4 rounded-xl text-base font-semibold text-stone-700 hover:text-indigo-600 hover:bg-indigo-50 transition-colors text-left min-h-[52px]"
+                  >
+                    Masuk
+                  </button>
+                  <button
+                    onClick={() => { setIsOpen(false); handleOpenSignUp(); }}
+                    className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 text-white px-4 py-4 rounded-xl text-base font-bold flex items-center gap-2 justify-center shadow-[0_4px_15px_rgba(79,70,229,0.25)] min-h-[52px]"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    Coba Gratis — 3 Foto
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
-
     </nav>
   );
 };
 
 export default Navbar;
-
-

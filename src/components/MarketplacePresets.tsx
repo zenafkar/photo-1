@@ -1,39 +1,24 @@
 import { Share2, ArrowRight } from 'lucide-react';
+import { ShopeeIcon, TokopediaIcon, TikTokIcon, InstagramIcon } from './MarketplaceIcons';
 
 const ShopeeTokopediaIcon = () => (
   <div className="flex items-center justify-center gap-3">
-    <img 
-      src="https://cdn.simpleicons.org/shopee/EE4D2D" 
-      alt="Shopee" 
-      className="w-12 h-12 md:w-14 md:h-14 object-contain drop-shadow-[0_0_15px_rgba(238,77,45,0.5)] transition-transform group-hover:scale-110" 
-    />
-    <img 
-      src="https://cdn.worldvectorlogo.com/logos/tokopedia.svg" 
-      alt="Tokopedia" 
-      className="w-12 h-12 md:w-14 md:h-14 object-contain drop-shadow-[0_0_15px_rgba(0,170,91,0.5)] transition-transform group-hover:scale-110" 
-    />
+    <ShopeeIcon className="w-12 h-12 md:w-14 md:h-14 drop-shadow-[0_0_15px_rgba(238,77,45,0.5)] transition-transform group-hover:scale-110" />
+    <TokopediaIcon className="w-12 h-12 md:w-14 md:h-14 drop-shadow-[0_0_15px_rgba(0,170,91,0.5)] transition-transform group-hover:scale-110" />
   </div>
 );
 
-const TikTokIcon = () => (
-  <img 
-    src="https://cdn.simpleicons.org/tiktok/ffffff" 
-    alt="TikTok" 
-    className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] transition-transform group-hover:scale-110" 
-  />
+const TikTokBrandIcon = () => (
+  <TikTokIcon className="w-14 h-14 md:w-16 md:h-16 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] transition-transform group-hover:scale-110" />
 );
 
 const InstagramBrandIcon = () => (
-  <img 
-    src="https://cdn.simpleicons.org/instagram/E4405F" 
-    alt="Instagram" 
-    className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(228,64,95,0.5)] transition-transform group-hover:scale-110" 
-  />
+  <InstagramIcon className="w-14 h-14 md:w-16 md:h-16 drop-shadow-[0_0_15px_rgba(228,64,95,0.5)] transition-transform group-hover:scale-110" />
 );
 
 const presets = [
   { name: 'Shopee / Tokopedia', aspect: '1:1', w: 220, h: 220, icon: ShopeeTokopediaIcon },
-  { name: 'TikTok Shop / IG Story', aspect: '9:16', w: 150, h: 260, icon: TikTokIcon },
+  { name: 'TikTok Shop / IG Story', aspect: '9:16', w: 150, h: 260, icon: TikTokBrandIcon },
   { name: 'Instagram Feed', aspect: '4:5', w: 180, h: 225, icon: InstagramBrandIcon },
 ];
 

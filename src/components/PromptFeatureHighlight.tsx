@@ -131,14 +131,6 @@ export default function PromptFeatureHighlight() {
                 <div className="w-full py-3.5 bg-slate-900 text-slate-300 text-center rounded-xl font-bold text-sm">
                   Mulai Generate Foto
                 </div>
-                
-                {/* Custom CSS for Shimmer inside JSX */}
-                <style dangerouslySetInnerHTML={{__html: `
-                  @keyframes shimmer {
-                    0% { transform: translateX(-150%) skewX(-20deg); }
-                    100% { transform: translateX(100%) skewX(-20deg); }
-                  }
-                `}} />
               </div>
             </div>
             

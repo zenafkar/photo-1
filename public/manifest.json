@@ -1,20 +1,25 @@
 {
   "short_name": "ZenStudio",
-  "name": "ZenStudio: Professional AI Product Photos",
+  "name": "ZenStudio: AI Foto Produk Profesional untuk UMKM",
   "icons": [
     {
       "src": "/favicon.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
       "src": "/favicon.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#020617",
-  "background_color": "#020617"
+  "theme_color": "#FAFAF9",
+  "background_color": "#FFFFFF",
+  "description": "Ubah foto HP jadi foto produk studio profesional. AI jaga bentuk asli produk 100%. Untuk Shopee, Tokopedia, TikTok Shop, Instagram.",
+  "lang": "id",
+  "categories": ["photo", "business", "utilities"]
 }

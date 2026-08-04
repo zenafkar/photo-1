@@ -18,7 +18,7 @@ const Footer = () => {
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
               <ZenLogo className="w-8 h-8" />
-              <span className="font-display text-xl font-bold text-text tracking-tight">ZenStudio</span>
+              <span className="font-sans text-xl font-bold text-text tracking-tight">ZenStudio</span>
             </div>
             <p className="text-sm text-text-muted leading-relaxed mb-5 max-w-xs">
               Tingkatkan konversi dengan foto produk kelas dunia dalam hitungan detik. Tanpa studio, tanpa fotografer.
@@ -38,7 +38,7 @@ const Footer = () => {
 
           {/* Produk */}
           <div>
-            <h3 className="font-display font-bold text-text mb-4">Produk</h3>
+            <h3 className="font-sans font-bold text-text mb-4">Produk</h3>
             <ul className="space-y-3">
               <li><a href="#fitur" className="text-text-muted hover:text-primary text-sm transition-colors">AI Studio</a></li>
               <li><a href="#integrity" className="text-text-muted hover:text-primary text-sm transition-colors">Integrity Engine™</a></li>
@@ -49,7 +49,7 @@ const Footer = () => {
 
           {/* Perusahaan */}
           <div>
-            <h3 className="font-display font-bold text-text mb-4">Perusahaan</h3>
+            <h3 className="font-sans font-bold text-text mb-4">Perusahaan</h3>
             <ul className="space-y-3">
               <li><a href="#" className="text-text-muted hover:text-primary text-sm transition-colors">Tentang Kami</a></li>
               <li><a href="#" className="text-text-muted hover:text-primary text-sm transition-colors">Kontak</a></li>
@@ -59,7 +59,7 @@ const Footer = () => {
 
           {/* Legal */}
           <div>
-            <h3 className="font-display font-bold text-text mb-4">Legal</h3>
+            <h3 className="font-sans font-bold text-text mb-4">Legal</h3>
             <ul className="space-y-3">
               <li><a href="#" className="text-text-muted hover:text-primary text-sm transition-colors">Syarat & Ketentuan</a></li>
               <li><a href="#" className="text-text-muted hover:text-primary text-sm transition-colors">Kebijakan Privasi</a></li>

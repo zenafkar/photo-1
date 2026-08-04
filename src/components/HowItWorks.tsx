@@ -69,9 +69,6 @@ const HowItWorks = () => {
 
   return (
     <section id="cara-kerja" className="py-16 md:py-24 bg-background relative overflow-hidden">
-      {/* Subtle warm glow */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(212,69,42,0.04)_0%,transparent_70%)] rounded-full pointer-events-none" />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-14 md:mb-20">
@@ -100,15 +97,15 @@ const HowItWorks = () => {
                 transition={{ duration: 0.5, delay: i * 0.15 }}
                 className="snap-start shrink-0 w-[85vw] max-w-[360px] md:w-auto md:max-w-none flex flex-col items-center text-center p-6 sm:p-8 rounded-2xl bg-surface/40 border border-surface-border hover:border-primary/30 transition-colors"
               >
-                {/* Step number — editorial, Cormorant Garamond */}
-                <div className="font-display text-4xl font-bold text-primary/25 mb-3 leading-none">
-                  {String(i + 1).padStart(2, '0')}
+                {/* Step number — restrained */}
+                <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 text-primary font-sans font-bold text-sm flex items-center justify-center mb-4">
+                  {i + 1}
                 </div>
                 {/* Icon */}
                 <div className={`p-4 rounded-2xl border ${step.color} mb-5 ${step.iconGlow}`}>
                   <IconComp className="w-7 h-7" />
                 </div>
-                <h3 className="font-display text-lg font-bold text-text mb-2">{step.title}</h3>
+                <h3 className="font-sans text-lg font-bold text-text mb-2">{step.title}</h3>
                 <p className="text-sm text-text-muted leading-relaxed">{step.desc}</p>
               </motion.div>
             );

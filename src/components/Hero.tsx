@@ -219,7 +219,7 @@ const Hero = () => {
 
             {/* Main Headline — Cormorant Garamond, editorial */}
             <StaggerItem>
-              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-text mb-4 sm:mb-6 leading-[1.15]">
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-semibold tracking-tight text-text mb-4 sm:mb-6 leading-[1.15]">
                 Foto Produk Studio,<br />
                 <span className="text-primary italic">
                   Tanpa Studio.
@@ -336,7 +336,7 @@ const Hero = () => {
                   <div className={`p-2.5 rounded-xl border ${item.color} shrink-0 inline-flex mb-3`}>
                     <IconComp className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <h3 className="text-sm sm:text-base font-bold text-text group-hover:text-primary transition-colors mb-1">
+                  <h3 className="font-sans text-sm sm:text-base font-bold text-text group-hover:text-primary transition-colors mb-1">
                     {item.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-text-muted leading-relaxed">

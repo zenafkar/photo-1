@@ -20,9 +20,6 @@ const PricingSection = () => {
 
   return (
     <section id="harga" className="py-16 md:py-24 bg-background relative overflow-hidden text-text">
-      {/* Subtle warm glow */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(212,69,42,0.04)_0%,transparent_70%)] rounded-full pointer-events-none" />
-
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
@@ -43,7 +40,7 @@ const PricingSection = () => {
 
           {/* Free Tier */}
           <div className="bg-surface/40 border border-surface-border rounded-[28px] p-6 sm:p-8 flex flex-col hover:border-primary/30 transition-all">
-            <h3 className="font-display text-xl font-bold text-text mb-1">Gratis</h3>
+            <h3 className="font-sans text-xl font-bold text-text mb-1">Gratis</h3>
             <p className="text-text-muted text-sm mb-5">Cocok untuk mencoba dan jualan santai.</p>
             <div className="mb-6">
               <span className="font-display text-4xl font-bold text-text">3 Foto</span>
@@ -71,7 +68,7 @@ const PricingSection = () => {
 
           {/* Starter Tier */}
           <div className="bg-surface/40 border border-surface-border rounded-[28px] p-6 sm:p-8 flex flex-col hover:border-primary/30 transition-all">
-            <h3 className="font-display text-xl font-bold text-text mb-1">Starter</h3>
+            <h3 className="font-sans text-xl font-bold text-text mb-1">Starter</h3>
             <p className="text-text-muted text-sm mb-5">Untuk UMKM yang ingin hasil profesional.</p>
             <div className="mb-6">
               <div className="flex items-baseline gap-2">
@@ -111,7 +108,7 @@ const PricingSection = () => {
             <div className="absolute top-0 right-6 sm:right-8 transform -translate-y-1/2 bg-primary px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-[0_4px_12px_rgba(212,69,42,0.3)] flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" /> PALING HEMAT
             </div>
-            <h3 className="font-display text-xl font-bold text-text mb-1">Pro</h3>
+            <h3 className="font-sans text-xl font-bold text-text mb-1">Pro</h3>
             <p className="text-text-muted text-sm mb-5">Untuk online shop dengan posting rutin.</p>
             <div className="mb-6">
               <div className="flex items-baseline gap-2">

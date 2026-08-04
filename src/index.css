@@ -15,11 +15,11 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-surface/40 backdrop-blur-xl border border-surface-border shadow-2xl;
+    @apply bg-surface/40 border border-surface-border;
   }
-  
+
   .glass-card-hover {
-    @apply transition-all duration-300 hover:bg-surface/60 hover:border-primary/50 hover:shadow-primary/20;
+    @apply transition-all duration-300 hover:bg-surface/60 hover:border-primary/50;
   }
   
   .text-gradient {

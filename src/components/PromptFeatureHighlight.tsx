@@ -33,9 +33,6 @@ export default function PromptFeatureHighlight() {
 
   return (
     <section className="py-20 bg-background border-y border-surface-border overflow-hidden relative">
-      {/* Background elements */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(ellipse_at_top_right,rgba(212,69,42,0.06),transparent_50%)] pointer-events-none"></div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <ScrollReveal>
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">

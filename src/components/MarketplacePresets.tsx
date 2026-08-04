@@ -25,9 +25,6 @@ const presets = [
 const MarketplacePresets = () => {
   return (
     <section className="py-16 md:py-24 bg-background border-t border-surface-border relative overflow-hidden text-text">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(212,69,42,0.04)_0%,transparent_70%)] rounded-full pointer-events-none" />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-xs font-mono text-secondary mb-6">
@@ -64,7 +61,7 @@ const MarketplacePresets = () => {
                 {/* Scanning line animation on hover */}
                 <div className="absolute top-0 left-0 w-full h-[2px] bg-primary shadow-[0_0_10px_rgba(212,69,42,0.6)] opacity-0 group-hover:opacity-100 group-hover:animate-[scan_2s_ease-in-out_infinite]" />
               </div>
-              <h4 className="text-text font-bold text-lg mb-2 group-hover:text-primary transition-colors font-display">{preset.name}</h4>
+              <h4 className="text-text font-bold text-lg mb-2 group-hover:text-primary transition-colors font-sans">{preset.name}</h4>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-mono font-bold text-primary bg-primary/10 border border-primary/20 px-4 py-1.5 rounded-full">
                   {preset.aspect}

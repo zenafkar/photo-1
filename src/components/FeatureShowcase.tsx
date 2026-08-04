@@ -16,9 +16,6 @@ const FeatureShowcase = () => {
 
   return (
     <section id="fitur" className="py-16 md:py-24 bg-background border-t border-surface-border relative overflow-hidden text-text">
-      {/* Background glow */}
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(212,69,42,0.04)_0%,transparent_70%)] rounded-full pointer-events-none" />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-10 md:mb-14">

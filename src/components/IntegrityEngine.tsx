@@ -74,11 +74,6 @@ const IntegrityEngine = () => {
 
   return (
     <section ref={sectionRef} id="integrity" className="py-16 md:py-24 relative overflow-hidden bg-background border-t border-surface-border text-text">
-      {/* Background with soft warm glow */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,69,42,0.04)_0%,transparent_70%)]" />
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
@@ -135,7 +130,7 @@ const IntegrityEngine = () => {
                       <Icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className={`font-display font-bold mb-1.5 transition-colors ${isActive ? 'text-primary' : 'text-text'}`}>
+                      <h4 className={`font-sans font-bold mb-1.5 transition-colors ${isActive ? 'text-primary' : 'text-text'}`}>
                         {f.title}
                       </h4>
                       <p className={`text-sm leading-relaxed transition-colors ${isActive ? 'text-text-muted/90' : 'text-text-muted'}`}>

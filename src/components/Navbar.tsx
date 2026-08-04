@@ -230,8 +230,29 @@ const Navbar = () => {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2 }}
               style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
-              className="fixed inset-0 z-50 min-h-[100dvh] bg-background lg:hidden overflow-y-auto overscroll-contain">
-          <div className="px-4 pb-8 space-y-1" style={{ paddingTop: 'calc(3.5rem + env(safe-area-inset-top))' }}>
+              className="fixed inset-0 z-[70] min-h-[100dvh] bg-background lg:hidden overflow-y-auto overscroll-contain">
+
+          {/* Embedded header so close button is always visible */}
+          <div
+            className="sticky top-0 z-10 bg-background px-4 flex items-center justify-between h-12"
+            style={{ paddingTop: 'env(safe-area-inset-top)' }}
+          >
+            <a href="#" onClick={() => setIsOpen(false)} className="flex items-center gap-2 group shrink-0" aria-label="ZenStudio — Beranda">
+              <ZenLogo className="w-8 h-8 sm:w-9 sm:h-9" />
+              <span className="font-sans text-lg xs:text-xl sm:text-2xl font-bold tracking-tight text-text">
+                ZenStudio
+              </span>
+            </a>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="inline-flex items-center justify-center p-2 rounded-xl text-text hover:text-primary bg-surface/60 border border-surface-border hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-colors min-w-[44px] min-h-[44px]"
+              aria-label="Tutup menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="px-4 pb-8 pt-4 space-y-1">
             {navLinks.map((link, i) => (
               <a
                 key={link.href}

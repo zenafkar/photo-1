@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X, Sparkles } from 'lucide-react';
 import { UserButton, useAuth, useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ZenLogo } from './ZenLogo';
 
 const Navbar = () => {
@@ -52,6 +53,16 @@ const Navbar = () => {
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
+  // Handle history back button to close mobile menu
+  useEffect(() => {
+    if (isOpen) {
+      window.history.pushState({ menuOpen: true }, '');
+      const handlePopState = () => { setIsOpen(false); };
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
+  }, [isOpen]);
+
   const navLinks = [
     { href: '#cara-kerja', label: 'Cara Kerja' },
     { href: '#fitur', label: 'Fitur' },
@@ -73,7 +84,7 @@ const Navbar = () => {
           {/* Logo */}
           <a href="#" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
             <ZenLogo className="w-8 h-8 sm:w-9 sm:h-9 group-hover:scale-105 transition-transform" />
-            <span className="font-sans text-xl sm:text-2xl font-bold tracking-tight text-text">
+            <span className="font-sans text-lg xs:text-xl sm:text-2xl font-bold tracking-tight text-text">
               ZenStudio
             </span>
           </a>
@@ -132,7 +143,7 @@ const Navbar = () => {
             {!ready ? null : !isSignedIn ? (
               <button
                 onClick={handleOpenSignUp}
-                className="bg-primary text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-[0_1px_8px_rgba(212,69,42,0.2)]"
+                className="bg-primary text-white px-3 py-1.5 rounded-full text-xs font-bold hidden xs:inline-flex items-center gap-1 shadow-[0_1px_8px_rgba(212,69,42,0.2)] min-h-[36px]"
               >
                 <Sparkles className="w-3 h-3" />
                 3 Foto Gratis
@@ -140,7 +151,7 @@ const Navbar = () => {
             ) : null}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-xl text-text-muted hover:text-primary border border-transparent hover:border-surface-border focus:outline-none min-w-[40px] min-h-[40px]"
+              className="inline-flex items-center justify-center p-2 rounded-xl text-text-muted hover:text-primary border border-transparent hover:border-surface-border focus:outline-none min-w-[44px] min-h-[44px]"
               aria-label={isOpen ? 'Tutup menu' : 'Buka menu'}
             >
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -150,8 +161,14 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Full-Screen Overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 top-[4.5rem] z-40 bg-background lg:hidden overflow-y-auto">
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 top-[4.5rem] z-40 bg-background lg:hidden overflow-y-auto">
           <div className="px-4 pt-6 pb-8 space-y-1">
             {navLinks.map((link) => (
               <a
@@ -210,8 +227,9 @@ const Navbar = () => {
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </nav>
   );
 };

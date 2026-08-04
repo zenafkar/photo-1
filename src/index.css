@@ -5,6 +5,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    touch-action: manipulation;
   }
   body {
     @apply bg-background text-text antialiased;

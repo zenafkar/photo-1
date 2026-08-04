@@ -108,11 +108,12 @@ const HeroInteractiveDemo = () => {
         <AnimatePresence>
           {step === 1 && (
             <motion.div
-              className="absolute left-0 right-0 h-[2px] bg-primary z-20 shadow-[0_0_15px_rgba(212,69,42,0.7)]"
-              initial={{ top: "0%", opacity: 0 }}
-              animate={{ top: ["0%", "100%"], opacity: [0, 1, 1, 0] }}
+              className="absolute top-0 left-0 right-0 h-[2px] bg-primary z-20 shadow-[0_0_15px_rgba(212,69,42,0.7)]"
+              initial={{ y: 0, opacity: 0 }}
+              animate={{ y: [0, 420, 420], opacity: [0, 1, 1, 0] }}
               exit={{ opacity: 0 }}
               transition={{ duration: 2, ease: "linear", repeat: Infinity }}
+              style={{ willChange: 'transform' }}
             >
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-24 bg-gradient-to-b from-transparent to-primary/20" />
             </motion.div>
@@ -128,7 +129,7 @@ const HeroInteractiveDemo = () => {
 
         {/* CTA Overlay when idle */}
         {step === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-20 backdrop-blur-[2px]">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 active:opacity-100 transition-opacity z-20">
             <span className="bg-primary text-white font-bold px-5 py-2.5 rounded-full text-sm shadow-[0_0_20px_rgba(212,69,42,0.4)]">
               Klik untuk Generate
             </span>

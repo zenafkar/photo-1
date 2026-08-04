@@ -39,16 +39,16 @@ const MarketplacePresets = () => {
           {presets.map((preset) => (
             <div key={preset.name} className="flex flex-col items-center group cursor-pointer">
               <div
-                className="bg-surface/40 border border-surface-border rounded-[24px] relative overflow-hidden flex items-center justify-center mb-6 group-hover:border-primary/50 group-hover:shadow-[0_0_40px_rgba(212,69,42,0.12)] transition-all duration-500 group-hover:-translate-y-2"
+                className="bg-surface/40 border border-surface-border rounded-[24px] relative overflow-hidden flex items-center justify-center mb-6 group-hover:border-primary/50 group-active:border-primary/50 group-hover:shadow-[0_0_40px_rgba(212,69,42,0.12)] group-active:shadow-[0_0_40px_rgba(212,69,42,0.12)] transition-all duration-500 group-hover:-translate-y-2 group-active:-translate-y-2"
                 style={{ width: preset.w, height: preset.h }}
               >
-                <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-secondary/5 to-transparent opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-500" />
 
                 {/* Grid background */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:10px_10px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-30" />
 
                 {/* Optimized Badge inside card */}
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20">
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-500 z-20">
                   <span className="text-[9px] font-mono font-bold bg-secondary/10 text-secondary border border-secondary/50 px-2 py-0.5 rounded">
                     OPTIMIZED
                   </span>
@@ -59,14 +59,14 @@ const MarketplacePresets = () => {
                 </div>
 
                 {/* Scanning line animation on hover */}
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-primary shadow-[0_0_10px_rgba(212,69,42,0.6)] opacity-0 group-hover:opacity-100 group-hover:animate-[scan_2s_ease-in-out_infinite]" />
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-primary shadow-[0_0_10px_rgba(212,69,42,0.6)] opacity-0 group-hover:opacity-100 group-active:opacity-100 group-hover:animate-[scan_2s_ease-in-out_infinite] group-active:animate-[scan_2s_ease-in-out_infinite]" />
               </div>
               <h4 className="text-text font-bold text-lg mb-2 group-hover:text-primary transition-colors font-sans">{preset.name}</h4>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-mono font-bold text-primary bg-primary/10 border border-primary/20 px-4 py-1.5 rounded-full">
                   {preset.aspect}
                 </span>
-                <span className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300">
+                <span className="opacity-0 group-hover:opacity-100 group-active:opacity-100 -translate-x-2 group-hover:translate-x-0 group-active:translate-x-0 transition-all duration-300">
                   <ArrowRight className="w-4 h-4 text-primary" />
                 </span>
               </div>

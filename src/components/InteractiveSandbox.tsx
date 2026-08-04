@@ -300,7 +300,7 @@ const InteractiveSandbox = () => {
                 className="absolute top-0 bottom-0 w-[3px] bg-secondary shadow-[0_0_15px_rgba(61,139,125,0.7)] z-20 pointer-events-none"
                 style={{ left: lineLeftValue }}
               >
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-12 bg-black/90 backdrop-blur-md rounded-full shadow-2xl flex items-center justify-center border border-secondary/60">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-12 bg-black/90 rounded-full shadow-2xl flex items-center justify-center border border-secondary/60">
                   <svg className="w-5 h-5 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l-4 3 4 3M16 9l4 3-4 3"/>
                   </svg>
@@ -309,21 +309,21 @@ const InteractiveSandbox = () => {
 
               {/* Layer 4: Badges */}
               <div className="absolute top-4 left-4 z-30 pointer-events-none">
-                <div className="px-3 py-1.5 bg-black/85 backdrop-blur-md text-text-muted text-[10px] font-mono font-bold rounded-lg shadow-md tracking-wider flex items-center gap-1.5 border border-surface-border">
+                <div className="px-3 py-1.5 bg-black/85 text-text-muted text-[10px] font-mono font-bold rounded-lg shadow-md tracking-wider flex items-center gap-1.5 border border-surface-border">
                   <span className="w-2 h-2 rounded-full bg-amber-400"></span>
                   📷 RAW HP INPUT
                 </div>
               </div>
 
               <div className="absolute top-4 right-4 z-30 pointer-events-none">
-                <div className="px-3 py-1.5 bg-black/85 backdrop-blur-md text-secondary text-[10px] font-mono font-bold rounded-lg shadow-md tracking-wider flex items-center gap-1.5 border border-secondary/40">
+                <div className="px-3 py-1.5 bg-black/85 text-secondary text-[10px] font-mono font-bold rounded-lg shadow-md tracking-wider flex items-center gap-1.5 border border-secondary/40">
                   <Sparkles className="w-3 h-3 text-secondary" />
                   ✨ AI 4K RENDER
                 </div>
               </div>
 
               {/* Bottom Real-time AI Status Indicator */}
-              <div className="absolute bottom-4 inset-x-4 z-30 pointer-events-none flex items-center justify-between px-3 py-1.5 rounded-lg bg-black/80 backdrop-blur-md border border-surface-border text-[10px] font-mono text-text-muted">
+              <div className="absolute bottom-4 inset-x-4 z-30 pointer-events-none flex items-center justify-between px-3 py-1.5 rounded-lg bg-black/80 border border-surface-border text-[10px] font-mono text-text-muted">
                 <span>GESER UNTUK MEMBANDINGKAN</span>
                 <span className="text-secondary flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-secondary" />

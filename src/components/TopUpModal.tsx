@@ -27,6 +27,14 @@ export function TopUpModal({ isOpen, onClose, defaultPackageId }: TopUpModalProp
     idempotencyKeyRef.current = crypto.randomUUID();
   }, [selectedPackage]);
 
+  // Lock body scroll while modal is open (prevents iOS background scroll)
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const selectedPkg = PACKAGES[selectedPackage];
@@ -85,8 +93,8 @@ export function TopUpModal({ isOpen, onClose, defaultPackageId }: TopUpModalProp
   const isProcessing = modalState === "creating" || modalState === "redirecting";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-slate-950/75 backdrop-blur-md">
+      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl w-full max-w-lg max-h-[88vh] max-h-[92dvh] shadow-2xl overflow-hidden flex flex-col">
 
         {/* Header — matching PromptGeneratorModal gradient pattern */}
         <div className="px-4 py-3.5 sm:px-6 sm:py-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-slate-800 text-white flex items-center justify-between gap-3 relative overflow-hidden flex-shrink-0">
@@ -122,7 +130,7 @@ export function TopUpModal({ isOpen, onClose, defaultPackageId }: TopUpModalProp
         </div>
 
         {/* Body */}
-        <div className="p-5 sm:p-6 flex flex-col gap-5">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 flex flex-col gap-5">
           {/* Error state */}
           {modalState === "error" && (
             <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">

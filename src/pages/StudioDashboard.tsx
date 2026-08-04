@@ -728,7 +728,7 @@ export default function StudioDashboard() {
                         <select 
                           value={aspectRatio} 
                           onChange={(e) => setAspectRatio(e.target.value)}
-                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium text-slate-700"
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-base md:text-sm font-medium text-slate-700"
                         >
                           <option value="1:1">1:1 (Square - Tokopedia, Shopee, IG Feed)</option>
                           <option value="9:16">9:16 (Vertical - TikTok, IG Reels, Shorts)</option>
@@ -769,7 +769,7 @@ export default function StudioDashboard() {
                               return updated;
                             });
                           }}
-                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium text-slate-700"
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-base md:text-sm font-medium text-slate-700"
                         >
                           <option value="1k">1K (Standard - 1024px)</option>
                           <option value="2k">2K (High - 2048px)</option>
@@ -785,7 +785,7 @@ export default function StudioDashboard() {
                         <select 
                           value={outputFormat} 
                           onChange={(e) => setOutputFormat(e.target.value)}
-                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium text-slate-700"
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-base md:text-sm font-medium text-slate-700"
                         >
                           <option value="jpg">JPG (Disarankan)</option>
                           <option value="png">PNG</option>
@@ -885,10 +885,11 @@ export default function StudioDashboard() {
                       {generationHistory.map((item, idx) => (
                         <div key={item.id || idx} className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                           {item.processedUrl ? (
-                            <img 
-                              src={item.processedUrl} 
-                              alt="Generated Studio Result" 
-                              className="w-full h-full object-cover cursor-pointer transition-transform hover:scale-105" 
+                            <img
+                              src={item.processedUrl}
+                              alt="Generated Studio Result"
+                              loading="lazy"
+                              className="w-full h-full object-cover cursor-pointer transition-transform hover:scale-105"
                               onClick={() => setSelectedImage(item.processedUrl)}
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=1000&q=80";
@@ -934,8 +935,8 @@ export default function StudioDashboard() {
 
         {/* Delete Confirmation Modal */}
         {imageToDelete && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 p-4">
-            <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+            <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-5 border-4 border-red-100">
                 <AlertTriangle className="w-8 h-8" />
               </div>

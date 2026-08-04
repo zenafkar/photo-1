@@ -41,7 +41,7 @@ const FeatureShowcase = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all ${
                     isActive
                       ? 'bg-background text-primary border border-surface-border'
                       : 'text-text-muted hover:text-text'

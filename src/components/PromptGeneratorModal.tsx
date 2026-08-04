@@ -417,7 +417,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
               stiffness: 300,
               mass: 0.8,
             }}
-            className="relative z-10 w-full md:max-w-lg lg:max-w-2xl max-h-[92dvh] md:max-h-[88vh] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            className="relative z-10 w-full md:max-w-lg lg:max-w-2xl max-h-[88vh] max-h-[92dvh] md:max-h-[88vh] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col"
           >
             {/* ── Drag Handle (mobile only) ── */}
             <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
@@ -571,7 +571,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                       value={customProduct}
                       onChange={(e) => setCustomProduct(e.target.value)}
                       placeholder="Contoh: Botol Serum, Sepatu Sneakers..."
-                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[14px] font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     />
                     <div className="flex flex-wrap gap-2">
                       {QUICK_SUGGESTIONS.map((sug) => (
@@ -716,7 +716,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
             </div>
 
             {/* ── Footer ── */}
-            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 text-slate-500 text-[12px] flex items-center justify-between gap-2 shrink-0">
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 text-slate-500 text-[12px] flex items-center justify-between gap-2 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
               <span className="flex items-center gap-1.5 font-medium min-w-0 truncate">
                 <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
                 <span className="truncate">Gunakan prompt bahasa Inggris untuk hasil AI terbaik.</span>

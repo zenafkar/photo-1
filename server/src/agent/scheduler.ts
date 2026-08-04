@@ -6,6 +6,7 @@ import { reconcilePayments } from '../reconciliation/reconcilePayments.js';
 
 // DB keep-alive failure counter (reset on success)
 let dbFailCount = 0;
+let dbDownAlertSent = false; // prevent alert spam on every tick
 
 // Tier 2: 5-minute and 15-minute Heartbeat
 export function startScheduler() {
@@ -16,12 +17,14 @@ export function startScheduler() {
     try {
       await prisma.$queryRaw`SELECT 1`;
       dbFailCount = 0; // reset on success
+      dbDownAlertSent = false; // reset alert flag on recovery
     } catch (err) {
       dbFailCount++;
       console.error(`[Scheduler] DB keep-alive ping failed (${dbFailCount}/3):`, err);
 
-      // After 3 consecutive failures (~12 min), send Telegram alert
-      if (dbFailCount >= 3) {
+      // After 3 consecutive failures (~12 min), send Telegram alert ONCE
+      if (dbFailCount >= 3 && !dbDownAlertSent) {
+        dbDownAlertSent = true;
         await telegramBot.sendFullActionReport({
           time: new Date().toISOString(),
           component: "Neon PostgreSQL",

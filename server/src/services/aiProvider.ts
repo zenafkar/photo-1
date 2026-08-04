@@ -66,7 +66,12 @@ export class AIService {
         if (!response.ok) {
           const errText = await response.text();
           console.error("[Replicate Poll Error]", errText);
-          throw new Error(`Replicate Poll API Error: ${response.statusText}`);
+          // 4xx = permanent error (e.g., 404 stale prediction URL) — abort immediately
+          if (response.status >= 400 && response.status < 500) {
+            throw new Error(`Replicate Poll Permanent Error (${response.status}): aborting poll`);
+          }
+          // 5xx = transient — will be retried by the outer catch
+          throw new Error(`Replicate Poll Transient Error: ${response.statusText}`);
         }
 
         const data = await response.json();
@@ -87,9 +92,14 @@ export class AIService {
           throw new Error(data.error || `Replicate prediction ${data.status}`);
         }
       } catch (pollErr: any) {
-        if (pollErr.message && !pollErr.message.includes("Replicate Poll API Error")) {
+        // Permanent errors (4xx, prediction failed) — abort immediately
+        if (pollErr.message && (
+          pollErr.message.includes("Permanent Error") ||
+          !pollErr.message.includes("Replicate Poll")
+        )) {
           throw pollErr;
         }
+        // Transient errors (5xx, network) — retry after interval
         console.warn("[AI Polling Notice]", pollErr.message);
       }
     }

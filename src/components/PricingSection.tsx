@@ -2,6 +2,7 @@ import { Sparkles, Zap, Image as ImageIcon, Layers, Aperture, Shield, FastForwar
 import { SignedOut, SignedIn, useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 import { useTopUp } from '../context/TopUpContext';
+import { PACKAGES, formatRupiah } from '../lib/packages';
 
 const PricingSection = () => {
   const { openSignIn, openSignUp } = useClerk();
@@ -72,18 +73,18 @@ const PricingSection = () => {
             <p className="text-text-muted text-sm mb-5">Untuk UMKM yang ingin hasil profesional.</p>
             <div className="mb-6">
               <div className="flex items-baseline gap-2">
-                <span className="font-display text-4xl font-bold text-text">Rp 75K</span>
+                <span className="font-display text-4xl font-bold text-text">{formatRupiah(PACKAGES.starter.price)}</span>
               </div>
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <span className="text-primary font-bold text-sm bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
-                  10 Foto
+                  {PACKAGES.starter.credits} Foto
                 </span>
-                <span className="text-text-muted text-xs">≈ Rp 7.500/foto</span>
+                <span className="text-text-muted text-xs">≈ Rp {(PACKAGES.starter.price / PACKAGES.starter.credits).toLocaleString("id-ID")}/foto</span>
               </div>
             </div>
 
             <ul className="space-y-3 mb-8 flex-grow text-sm">
-              <li className="flex gap-3 text-text font-medium"><Zap className="w-5 h-5 text-primary shrink-0" /> <strong>10 kredit</strong></li>
+              <li className="flex gap-3 text-text font-medium"><Zap className="w-5 h-5 text-primary shrink-0" /> <strong>{PACKAGES.starter.credits} kredit</strong></li>
               <li className="flex gap-3 text-text-muted">Bebas atur tema & suasana</li>
               <li className="flex gap-3 text-text-muted">Resolusi 1K & 2K</li>
               <li className="flex gap-3 text-text-muted">Dukungan 4K (2 kredit)</li>
@@ -112,18 +113,18 @@ const PricingSection = () => {
             <p className="text-text-muted text-sm mb-5">Untuk online shop dengan posting rutin.</p>
             <div className="mb-6">
               <div className="flex items-baseline gap-2">
-                <span className="font-display text-4xl font-bold text-text">Rp 215K</span>
+                <span className="font-display text-4xl font-bold text-text">{formatRupiah(PACKAGES.pro.price)}</span>
               </div>
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <span className="text-secondary font-bold text-sm bg-secondary/10 border border-secondary/20 px-3 py-1 rounded-full">
-                  30 Foto
+                   {PACKAGES.pro.credits} Foto
                 </span>
-                <span className="text-text-muted text-xs">≈ Rp 7.200/foto</span>
+                <span className="text-text-muted text-xs">≈ Rp {(PACKAGES.pro.price / PACKAGES.pro.credits).toLocaleString("id-ID")}/foto</span>
               </div>
             </div>
 
             <ul className="space-y-3 mb-8 flex-grow text-sm">
-              <li className="flex gap-3 text-text font-medium"><Zap className="w-5 h-5 text-primary shrink-0" /> <strong>30 kredit</strong></li>
+              <li className="flex gap-3 text-text font-medium"><Zap className="w-5 h-5 text-primary shrink-0" /> <strong>{PACKAGES.pro.credits} kredit</strong></li>
               <li className="flex gap-3 text-text-muted">Bebas atur tema & suasana</li>
               <li className="flex gap-3 text-text-muted">Resolusi 1K & 2K</li>
               <li className="flex gap-3 text-text-muted">Dukungan Ultra 4K</li>

@@ -31,7 +31,18 @@ const DiagnosisSchema = z.object({
 });
 
 // Dedup tracker: max 1 agent invocation per anomaly fingerprint per 5 minutes
+const COOLDOWN_MS = 5 * 60 * 1000;
 const anomalyCooldowns = new Map<string, number>();
+
+/** Purge expired entries from the cooldown map (prevents memory leak) */
+function purgeCooldowns() {
+  const now = Date.now();
+  for (const [key, timestamp] of anomalyCooldowns) {
+    if (now - timestamp > COOLDOWN_MS) {
+      anomalyCooldowns.delete(key);
+    }
+  }
+}
 
 // SRE Agent Prompt — hardened against prompt injection from telemetry payloads
 const SRE_PROMPT = `
@@ -112,6 +123,7 @@ export async function handleAnomaly(payload: any) {
     // Only set cooldown after successful diagnosis — failures (Gemini down,
     // schema reject) should not suppress retries.
     anomalyCooldowns.set(fingerprint, Date.now());
+    purgeCooldowns(); // prevent unbounded memory growth
 
     // Execute Action based on validated diagnosis
     let actionStatus = 'PENDING';

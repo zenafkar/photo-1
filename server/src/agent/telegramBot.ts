@@ -28,6 +28,14 @@ export let bot: TelegramBot | null = null;
 if (token) {
   try {
     bot = new TelegramBot(token, { polling: true });
+
+    // Prevent unhandled errors from crashing the server
+    bot.on("error", (err) => {
+      console.error("[Telegram] Bot error (non-fatal):", err?.message || err);
+    });
+    bot.on("polling_error", (err) => {
+      console.error("[Telegram] Polling error:", err?.message || err);
+    });
     
     // Command Handler for /help — admin only (prevents info disclosure)
     bot.onText(/^\/help$|^\/start$/, (msg) => {
@@ -149,19 +157,10 @@ ${storageDetails}
         return;
       }
 
-      const data = callbackQuery.data; // e.g. "APPROVE_PM2_MANUAL_RESTART", "REJECT_..."
+      const data = callbackQuery.data; // e.g. "APPROVE_PM2_MANUAL_RESTART", "APPROVE_CREDIT_ADD_...", "REJECT_..."
 
-      if (data?.startsWith('APPROVE_')) {
-        const action = data.replace('APPROVE_', '');
-        if (action.includes('RESTART') || action.includes('PM2')) {
-          bot?.sendMessage(message.chat.id, "⚡ <b>Action Executing:</b> Restarting PM2 process...", { parse_mode: 'HTML' });
-          const { remediationTools } = await import('./tools/remediationTools.js');
-          const res = await remediationTools.restartPM2Process('backend-api');
-          bot?.sendMessage(message.chat.id, `✅ <b>Action Completed:</b> ${res.message}`, { parse_mode: 'HTML' });
-        } else {
-          bot?.sendMessage(message.chat.id, `✅ <b>Action Approved:</b> ${action}`, { parse_mode: 'HTML' });
-        }
-      } else if (data?.startsWith("APPROVE_CREDIT_ADD_")) {
+      // Check APPROVE_CREDIT_ADD_ BEFORE the generic APPROVE_ (both share the prefix)
+      if (data?.startsWith("APPROVE_CREDIT_ADD_")) {
         const parts = data.replace("APPROVE_CREDIT_ADD_", "").split("_");
         const userId = parts.slice(0, -1).join("_"); // userId may contain underscores
         const amount = parseInt(parts[parts.length - 1], 10);
@@ -182,6 +181,16 @@ ${storageDetails}
           );
         } catch (err: any) {
           bot?.sendMessage(message.chat.id, `❌ Gagal grant: ${err?.message}`, { parse_mode: 'HTML' });
+        }
+      } else if (data?.startsWith('APPROVE_')) {
+        const action = data.replace('APPROVE_', '');
+        if (action.includes('RESTART') || action.includes('PM2')) {
+          bot?.sendMessage(message.chat.id, "⚡ <b>Action Executing:</b> Restarting PM2 process...", { parse_mode: 'HTML' });
+          const { remediationTools } = await import('./tools/remediationTools.js');
+          const res = await remediationTools.restartPM2Process('backend-api');
+          bot?.sendMessage(message.chat.id, `✅ <b>Action Completed:</b> ${res.message}`, { parse_mode: 'HTML' });
+        } else {
+          bot?.sendMessage(message.chat.id, `✅ <b>Action Approved:</b> ${action}`, { parse_mode: 'HTML' });
         }
       } else if (data?.startsWith('REJECT_')) {
         bot?.sendMessage(message.chat.id, "❌ <b>Action Rejected:</b> Operator menolak eksekusi ini.", { parse_mode: 'HTML' });
@@ -354,7 +363,7 @@ ${txns || "  (tidak ada transaksi)"}
             data: { status: "settled", settledAt: new Date(), paidAt: new Date() },
           });
           await creditOps.add(order.userId, order.credits, {
-            type: "reconcile_correction",
+            type: "purchase", // must match original idempotencyKey type to avoid conflict
             orderId: order.id,
             reason: `Manual fix via Telegram: ${externalId}`,
             idempotencyKey: order.idempotencyKey,

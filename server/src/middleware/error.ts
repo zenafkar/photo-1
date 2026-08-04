@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 
 export const errorHandler = (
-  err: Error,
+  err: Error & { status?: number; statusCode?: number },
   req: Request,
   res: Response,
   next: NextFunction
@@ -13,8 +13,11 @@ export const errorHandler = (
 
   console.error("[Error]:", err.stack);
 
+  // Respect status code set on the error (e.g., body-parser sets 400/413/415)
+  const status = err.status || err.statusCode || 500;
   const isDev = process.env.NODE_ENV === "development";
-  res.status(500).json({
+
+  res.status(status).json({
     success: false,
     message: isDev ? err.message : "Internal Server Error",
     // Never send stack traces to clients in production

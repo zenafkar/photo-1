@@ -7,12 +7,29 @@ import { creditOps } from "../services/credits";
  * Finds payment orders stuck in "creating" or "pending" states,
  * checks their actual status with Xendit, and corrects the local state.
  *
- * Uses a PostgreSQL advisory lock for single-instance safety under PM2.
+ * Uses an in-memory lock guard with a 14-minute timeout to prevent
+ * overlapping reconciliation runs (safe for single-process deployments).
+ * Replaces the previous pg_try_advisory_lock which leaked locks through
+ * Prisma's connection pool (each query may use a different session).
  */
+let reconciling = false;
+let reconcilingStartedAt = 0;
+
 export async function reconcilePayments(): Promise<void> {
-  // Single-instance guard (safe under PM2 cluster/multi-instance):
-  const [lockRow] = await prisma.$queryRaw<[{ locked: boolean }]>`SELECT pg_try_advisory_lock(72491) AS "locked"`;
-  if (!lockRow?.locked) return;
+  // Single-instance guard — prevent concurrent reconciliation runs
+  if (reconciling) {
+    // If the previous run has been going for >14 min, it's probably stuck — reset
+    if (Date.now() - reconcilingStartedAt > 14 * 60_000) {
+      console.warn("[Reconciliation] Previous run appears stuck (>14 min) — resetting lock");
+      reconciling = false;
+    } else {
+      console.log("[Reconciliation] Skipping — previous run still in progress");
+      return;
+    }
+  }
+
+  reconciling = true;
+  reconcilingStartedAt = Date.now();
 
   try {
     console.log("[Reconciliation] Starting payment reconciliation...");
@@ -156,6 +173,6 @@ export async function reconcilePayments(): Promise<void> {
   } catch (err: any) {
     console.error("[Reconciliation] Fatal error:", err?.message);
   } finally {
-    await prisma.$queryRaw`SELECT pg_advisory_unlock(72491)`;
+    reconciling = false;
   }
 }

@@ -194,9 +194,7 @@ export const creditOps = {
   },
 
   /**
-   * Refund (reverse deduction). Never goes below 0.
-   * If the user's balance is somehow less than the refund amount,
-   * only the available balance is refunded and the shortfall is logged.
+   * Refund (reverse deduction) — adds credits back to the user's balance.
    */
   async refund(
     userId: string,
@@ -230,32 +228,16 @@ export const creditOps = {
       const current = await tx.userCredit.findUnique({ where: { userId } });
       if (!current) throw new Error("Credit record not found.");
 
-      // Floor at zero
-      const effective = Math.min(amount, current.remainingCredits);
-      const partial = effective < amount;
-
-      // CAS: use updateMany with gte guard to prevent concurrent refunds from
-      // driving the balance negative (same atomic pattern as deduct()).
-      const result = await tx.userCredit.updateMany({
-        where: {
-          userId,
-          remainingCredits: { gte: effective },
-        },
+      // Add credits back to the balance — no flooring needed for a refund
+      await tx.userCredit.update({
+        where: { userId },
         data: {
-          remainingCredits: { decrement: effective },
+          remainingCredits: { increment: amount },
           version: { increment: 1 },
         },
       });
 
-      if (result.count === 0) {
-        // Balance changed concurrently — re-read and retry via withRetry
-        throw Object.assign(
-          new Error("Refund conflict — concurrent balance change detected."),
-          { code: "P2034" } // triggers withRetry
-        );
-      }
-
-      // Re-fetch actual balance after CAS
+      // Re-fetch actual balance after update
       const updated = await tx.userCredit.findUnique({ where: { userId } });
       if (!updated) throw new Error("Credit record disappeared during refund.");
 
@@ -264,18 +246,16 @@ export const creditOps = {
           userId,
           orderId: opts.orderId || null,
           type: opts.type,
-          amount: -effective,
+          amount: amount, // positive for refund
           balanceAfter: updated.remainingCredits,
-          reason: partial
-            ? `${opts.reason} (partial: ${effective}/${amount} — insufficient balance)`
-            : opts.reason,
+          reason: opts.reason,
           idempotencyKey: opts.idempotencyKey || null,
           operatorId: opts.operatorId || null,
-          metadata: { ...opts.metadata, partial, requestedAmount: amount, actualAmount: effective } as Prisma.InputJsonValue,
+          metadata: { ...opts.metadata, requestedAmount: amount } as Prisma.InputJsonValue,
         },
       });
 
-      return { remainingCredits: updated.remainingCredits, transactionId: txn.id, partial };
+      return { remainingCredits: updated.remainingCredits, transactionId: txn.id, partial: false };
     });
   },
 };

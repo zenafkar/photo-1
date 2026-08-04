@@ -169,6 +169,13 @@ router.post("/", async (req: Request, res: Response) => {
           where: { replicateId: predictionId, userId: user!.id }
         });
         if (existing) {
+          // Clean up the original file we already saved (would otherwise leak)
+          if (localOriginalUrl) {
+            deleteLocalImage(localOriginalUrl).catch((e) =>
+              console.warn("[Generate] Failed to clean up leaked original file:", e?.message)
+            );
+          }
+
           // Refund the credits we just deducted
           const refundResult = await prisma.$transaction(async (tx) => {
             await tx.userCredit.update({

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { getAuth } from "@clerk/express";
+import { verifyToken } from "@clerk/backend";
 import { prisma } from "../config/prisma";
 import { z } from "zod";
 import { createInvoice, getInvoice } from "../services/xendit";
@@ -40,16 +41,24 @@ async function ensureUserWithCredits(clerkId: string) {
 }
 
 /**
- * Extract Clerk userId from a session JWT (for EventSource which can't set headers).
- * Decodes the JWT payload without cryptographic verification — safe because:
- * 1. The token was issued by Clerk (our trusted auth provider)
- * 2. The SSE endpoint scopes orderId to the resolved userId
- * 3. A forged token can only access the attacker's own orders
+ * Verify a Clerk session JWT and extract the userId (for EventSource which can't set headers).
+ * Uses Clerk's cryptographic verification against the JWKS endpoint.
+ * Returns null if the token is invalid, expired, or tampered with.
  */
-function resolveToken(token: string): string | null {
+async function resolveToken(token: string): Promise<string | null> {
   try {
-    const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString());
-    return payload?.sub || null;
+    const secretKey = process.env.CLERK_SECRET_KEY;
+    if (!secretKey) {
+      console.error("[SSE] CLERK_SECRET_KEY not set — cannot verify token");
+      return null;
+    }
+    const verified = await verifyToken(token, {
+      secretKey,
+      authorizedParties: (process.env.CLERK_AUTHORIZED_PARTIES || "").split(",").filter(Boolean).length > 0
+        ? process.env.CLERK_AUTHORIZED_PARTIES!.split(",").filter(Boolean)
+        : undefined,
+    });
+    return verified?.sub || null;
   } catch {
     return null;
   }
@@ -276,14 +285,21 @@ router.get("/orders/:id", async (req: Request, res: Response) => {
 
             order.status = "settled";
           } else if (xStatus === "EXPIRED" || xStatus === "FAILED") {
-            await prisma.paymentOrder.update({
-              where: { id: order.id },
+            // CAS guard: don't overwrite a settled order (webhook may have settled concurrently)
+            const updated = await prisma.paymentOrder.updateMany({
+              where: {
+                id: order.id,
+                status: { in: ["pending", "creating"] },
+              },
               data: {
                 status: xStatus.toLowerCase(),
                 expiredAt: xStatus === "EXPIRED" ? new Date() : undefined,
               },
             });
-            order.status = xStatus.toLowerCase();
+            // If count is 0, order was settled by webhook — keep settled status
+            if (updated.count > 0) {
+              order.status = xStatus.toLowerCase();
+            }
           }
           // PENDING — no local update needed, return current state
         }
@@ -363,7 +379,7 @@ router.get("/events/:orderId", async (req: Request, res: Response) => {
   const token = (req.query.token as string) || null;
 
   const clerkId = token
-    ? resolveToken(token)
+    ? await resolveToken(token)
     : getAuth(req).userId;
 
   if (!clerkId) {

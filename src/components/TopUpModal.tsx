@@ -27,13 +27,24 @@ export function TopUpModal({ isOpen, onClose, defaultPackageId }: TopUpModalProp
     idempotencyKeyRef.current = crypto.randomUUID();
   }, [selectedPackage]);
 
-  // Lock body scroll while modal is open (prevents iOS background scroll)
+  // Sync selectedPackage when modal opens or defaultPackageId changes
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      return () => { document.body.style.overflow = ''; };
+    if (isOpen && defaultPackageId) {
+      setSelectedPackage(defaultPackageId as PackageId);
     }
-  }, [isOpen]);
+  }, [isOpen, defaultPackageId]);
+
+  // Lock body scroll + Escape key while modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -93,8 +104,8 @@ export function TopUpModal({ isOpen, onClose, defaultPackageId }: TopUpModalProp
   const isProcessing = modalState === "creating" || modalState === "redirecting";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-slate-950/75 backdrop-blur-md">
-      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl w-full max-w-lg max-h-[88vh] max-h-[92dvh] shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-slate-950/75 backdrop-blur-md" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl w-full max-w-lg max-h-[88vh] max-h-[92dvh] shadow-2xl overflow-hidden flex flex-col" role="dialog" aria-modal="true" aria-label="Top Up Credits">
 
         {/* Header — matching PromptGeneratorModal gradient pattern */}
         <div className="px-4 py-3.5 sm:px-6 sm:py-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-slate-800 text-white flex items-center justify-between gap-3 relative overflow-hidden flex-shrink-0">

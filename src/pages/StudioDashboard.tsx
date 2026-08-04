@@ -510,7 +510,7 @@ export default function StudioDashboard() {
                                 <Upload className="w-5 h-5 text-indigo-400" />
                               </div>
                               <p className="font-medium text-slate-700 mb-1">Upload a file</p>
-                              <p className="text-xs text-slate-500 mb-4">or drag and drop here (Max 5MB)</p>
+                              <p className="text-xs text-slate-500 mb-4">or drag and drop here (Max 10MB)</p>
                             </div>
                           )}
                         </div>
@@ -892,7 +892,7 @@ export default function StudioDashboard() {
                               className="w-full h-full object-cover cursor-pointer transition-transform hover:scale-105"
                               onClick={() => setSelectedImage(item.processedUrl)}
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=1000&q=80";
+                                (e.target as HTMLImageElement).style.display = 'none'; // Image load failed — hide broken image
                               }}
                             />
                           ) : (

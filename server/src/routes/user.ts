@@ -115,7 +115,7 @@ router.get("/me", async (req: Request, res: Response) => {
         },
         select: {
           remainingCredits: true,
-          planType: "free" as any
+          planType: true
         }
       });
       user.credits = newCredits;

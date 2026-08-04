@@ -21,7 +21,7 @@ const API_BASE_URL = getApiBaseUrl();
 export const useApiClient = () => {
   const { getToken } = useAuth();
 
-  const request = useCallback(async (endpoint: string, options: RequestInit = {}, isRetry = false): Promise<any> => {
+  const request = useCallback(async (endpoint: string, options: RequestInit = {}, isRetry = false, timeoutMs = 30_000): Promise<any> => {
     try {
       // Fetch a valid token with retry logic
       let token: string | null = null;
@@ -56,10 +56,14 @@ export const useApiClient = () => {
         ...(options.headers as Record<string, string> || {}),
       };
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
         headers,
-      });
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timeoutId));
 
       const contentType = response.headers.get("content-type") || "";
       const isJson = contentType.includes("application/json");
@@ -115,6 +119,9 @@ export const useApiClient = () => {
 
       // Normalize raw browser network error strings (e.g. TypeError: Failed to fetch)
       const message = error?.message || "";
+      if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
+        throw new Error("Permintaan timeout — server tidak merespon dalam waktu yang ditentukan. Silakan coba lagi.");
+      }
       if (message.includes("Failed to fetch") || message.includes("NetworkError") || error?.name === "TypeError") {
         throw new Error("Koneksi terputus atau waktu pemrosesan server melebihi batas (Timeout). Silakan periksa koneksi atau coba beberapa saat lagi.");
       }
@@ -136,7 +143,7 @@ export const useApiClient = () => {
       request("/generate", {
         method: "POST",
         body: JSON.stringify(payload),
-      }),
+      }, false, 180_000), // 3 min timeout for AI generation
     deleteGeneration: (id: string) =>
       request(`/generate/${id}`, {
         method: "DELETE",

@@ -97,7 +97,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-12 lg:h-14">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+          <a href="#" className="flex items-center gap-2 sm:gap-2.5 group shrink-0" aria-label="ZenStudio — Beranda">
             <ZenLogo className="w-8 h-8 sm:w-9 sm:h-9 group-hover:scale-105 transition-transform" />
             <span className="font-sans text-lg xs:text-xl sm:text-2xl font-bold tracking-tight text-text">
               ZenStudio
@@ -158,7 +158,7 @@ const Navbar = () => {
             {!ready ? null : !isSignedIn ? (
               <button
                 onClick={handleOpenSignUp}
-                className="bg-primary text-white px-3 py-1.5 rounded-full text-xs font-bold hidden xs:inline-flex items-center gap-1 shadow-[0_1px_8px_rgba(212,69,42,0.2)] min-h-[36px]"
+                className="bg-primary text-white px-3 py-2.5 rounded-full text-xs font-bold hidden xs:inline-flex items-center gap-1 shadow-[0_1px_8px_rgba(212,69,42,0.2)] min-h-[44px]"
               >
                 <Sparkles className="w-3 h-3" />
                 3 Foto Gratis
@@ -166,7 +166,7 @@ const Navbar = () => {
             ) : null}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-xl text-text-muted hover:text-primary border border-transparent hover:border-surface-border focus:outline-none min-w-[44px] min-h-[44px]"
+              className="inline-flex items-center justify-center p-2 rounded-xl text-text hover:text-primary bg-surface/60 border border-surface-border hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-colors min-w-[44px] min-h-[44px]"
               aria-label={isOpen ? 'Tutup menu' : 'Buka menu'}
             >
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -189,14 +189,14 @@ const Navbar = () => {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2 }}
               style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
-              className="fixed inset-0 top-[4.5rem] z-40 bg-background lg:hidden overflow-y-auto">
+              className="fixed inset-0 top-[3.5rem] z-40 bg-background lg:hidden overflow-y-auto overscroll-contain">
           <div className="px-4 pt-6 pb-8 space-y-1">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface transition-colors min-h-[52px] font-display"
+                className="flex items-center px-4 py-4 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface transition-colors min-h-[52px] font-sans"
               >
                 {link.label}
               </a>

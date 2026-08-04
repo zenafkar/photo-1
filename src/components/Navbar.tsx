@@ -53,16 +53,6 @@ const Navbar = () => {
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  // Handle history back button to close mobile menu
-  useEffect(() => {
-    if (isOpen) {
-      window.history.pushState({ menuOpen: true }, '');
-      const handlePopState = () => { setIsOpen(false); };
-      window.addEventListener('popstate', handlePopState);
-      return () => window.removeEventListener('popstate', handlePopState);
-    }
-  }, [isOpen]);
-
   const navLinks = [
     { href: '#cara-kerja', label: 'Cara Kerja' },
     { href: '#fitur', label: 'Fitur' },

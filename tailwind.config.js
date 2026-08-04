@@ -10,29 +10,21 @@ export default {
         'xs': '475px',
       },
       colors: {
-        background: '#FAFAF9',
-        surface: '#FFFFFF',
-        'surface-border': '#E7E5E4',
+        background: '#0A0A0A',
+        surface: '#121212',
+        'surface-border': '#27272A', // zinc-800
         primary: '#4F46E5',
         'primary-dark': '#4338CA',
-        secondary: '#0284C7',
-        text: '#1C1917',
-        'text-muted': '#57534E',
-        // Warm accent tokens for the new light theme
-        warm: {
-          50: '#FFFBEB',
-          100: '#FEF3C7',
-          500: '#F59E0B',
-          600: '#D97706',
-        },
-        ink: '#1C1917',
-        muted: '#57534E',
-        page: '#FAFAF9',
-        card: '#FFFFFF',
-        line: '#E7E5E4',
+        secondary: '#0EA5E9',
+        text: '#FAFAFA', // zinc-50
+        'text-muted': '#A1A1AA', // zinc-400
+        page: '#0A0A0A',
+        card: '#121212',
+        line: '#27272A',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
+        display: ['Outfit', 'sans-serif'],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))'

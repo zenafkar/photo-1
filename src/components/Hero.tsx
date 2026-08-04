@@ -19,6 +19,7 @@ import { ShopeeIcon, TokopediaIcon, TikTokIcon, InstagramIcon } from './Marketpl
 const HeroInteractiveDemo = () => {
   const [step, setStep] = useState<0 | 1 | 2>(0);
   const [interacted, setInteracted] = useState(false);
+  const [activeSet, setActiveSet] = useState<0|1>(0); // 0: mystic, 1: fanta
 
   useEffect(() => {
     if (interacted) return;
@@ -36,6 +37,7 @@ const HeroInteractiveDemo = () => {
     setInteracted(true);
     if (step === 2 || step === 1) {
       setStep(0);
+      setActiveSet(prev => prev === 0 ? 1 : 0);
       setTimeout(() => setStep(1), 300);
       setTimeout(() => setStep(2), 2300);
     } else {
@@ -44,37 +46,53 @@ const HeroInteractiveDemo = () => {
     }
   };
 
+  const images = [
+    { before: '/mystic-before.jpg', after: '/mystic-after.jpg' },
+    { before: '/fanta-before.jpg', after: '/fanta-after.jpg' }
+  ];
+
   return (
-    <div className="relative w-full max-w-[440px] mx-auto lg:ml-auto bg-white/90 backdrop-blur-xl rounded-3xl border border-stone-200/80 p-4 sm:p-5 shadow-[0_8px_30px_rgba(0,0,0,0.06)] overflow-hidden group">
+    <div className="relative w-full max-w-[440px] mx-auto lg:ml-auto glass-card rounded-3xl p-4 sm:p-5 overflow-hidden group">
       {/* Subtle glow inside demo */}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-[radial-gradient(circle,rgba(79,70,229,0.06)_0%,transparent_70%)] pointer-events-none rounded-full" />
+      <div className="absolute top-0 right-0 w-48 h-48 bg-[radial-gradient(circle,rgba(79,70,229,0.15)_0%,transparent_70%)] pointer-events-none rounded-full" />
 
       {/* Top bar */}
       <div className="flex items-center justify-between mb-4 sm:mb-5 relative z-10">
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-stone-200 flex items-center justify-center border border-stone-300">
-            <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-red-400/80"></span>
+          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-surface-border flex items-center justify-center border border-zinc-700">
+            <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-red-500"></span>
           </span>
-          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-stone-200 flex items-center justify-center border border-stone-300">
-            <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-amber-400/80"></span>
+          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-surface-border flex items-center justify-center border border-zinc-700">
+            <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-amber-500"></span>
           </span>
-          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-stone-200 flex items-center justify-center border border-stone-300">
-            <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-emerald-400/80"></span>
+          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-surface-border flex items-center justify-center border border-zinc-700">
+            <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-emerald-500"></span>
           </span>
         </div>
-        <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+        <span className="text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           LIVE PREVIEW
         </span>
       </div>
 
       {/* Image Area */}
       <div
-        className="relative aspect-square sm:aspect-[4/5] lg:aspect-square rounded-2xl overflow-hidden bg-stone-100 mb-4 sm:mb-5 border border-stone-200/80 isolate cursor-pointer shadow-inner"
+        className="relative aspect-square sm:aspect-[4/5] lg:aspect-square rounded-2xl overflow-hidden bg-black mb-4 sm:mb-5 border border-surface-border isolate cursor-pointer shadow-inner"
         onClick={handleGenerateClick}
       >
         {/* Before Image */}
-        <img src="/mystic-before.jpg" alt="Foto produk mentah" width={440} height={550} className="absolute inset-0 w-full h-full object-cover" />
+        <AnimatePresence mode="wait">
+          <motion.img 
+            key={`before-${activeSet}`}
+            src={images[activeSet].before} 
+            alt="Foto produk mentah" 
+            width={440} height={550} 
+            className="absolute inset-0 w-full h-full object-cover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+        </AnimatePresence>
 
         {/* After Image */}
         <motion.div
@@ -83,36 +101,36 @@ const HeroInteractiveDemo = () => {
           animate={{ opacity: step === 2 ? 1 : 0 }}
           transition={{ duration: 0.8 }}
         >
-          <img src="/mystic-after.jpg" alt="Hasil foto studio AI" width={440} height={550} loading="lazy" className="w-full h-full object-cover" />
+          <img src={images[activeSet].after} alt="Hasil foto studio AI" width={440} height={550} loading="lazy" className="w-full h-full object-cover" />
         </motion.div>
 
-        {/* Scanning Line — only when hovering/interacting */}
+        {/* Scanning Line */}
         <AnimatePresence>
-          {step === 1 && interacted && (
+          {step === 1 && (
             <motion.div
-              className="absolute top-0 left-0 right-0 h-[2px] bg-indigo-500 z-20"
+              className="absolute top-0 left-0 right-0 h-[2px] bg-primary z-20 shadow-[0_0_15px_rgba(79,70,229,0.8)]"
               initial={{ y: 0, opacity: 0 }}
               animate={{ y: ["0vh", "55vh", "55vh"], opacity: [0, 1, 1, 0] }}
               exit={{ opacity: 0 }}
               transition={{ duration: 2, ease: "linear", repeat: Infinity }}
               style={{ willChange: 'transform' }}
             >
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-16 bg-gradient-to-b from-transparent to-indigo-500/10" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-24 bg-gradient-to-b from-transparent to-primary/20" />
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Overlay Badges */}
         <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-30">
-          <span className={`text-xs font-semibold px-3 py-1.5 rounded-lg backdrop-blur-md transition-all shadow-sm border ${step === 2 ? 'bg-indigo-600 text-white border-indigo-400' : 'bg-white/90 text-stone-700 border-stone-200'}`}>
+          <span className={`text-xs font-bold px-3 py-1.5 rounded-lg backdrop-blur-md transition-all shadow-lg border ${step === 2 ? 'bg-primary text-white border-primary-dark' : 'bg-black/60 text-text border-zinc-700'}`}>
             {step === 2 ? '✨ 4K STUDIO RENDER' : '📷 RAW CAMERA'}
           </span>
         </div>
 
         {/* CTA Overlay when idle */}
         {step === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center bg-stone-900/30 opacity-0 group-hover:opacity-100 transition-opacity z-20 backdrop-blur-[2px]">
-            <span className="bg-indigo-600 text-white font-bold px-4 py-2 rounded-full text-sm shadow-lg">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-20 backdrop-blur-[2px]">
+            <span className="bg-primary text-white font-bold px-5 py-2.5 rounded-full text-sm shadow-[0_0_20px_rgba(79,70,229,0.4)]">
               Klik untuk Generate
             </span>
           </div>
@@ -121,17 +139,17 @@ const HeroInteractiveDemo = () => {
 
       {/* Prompt Controls */}
       <div className="flex gap-2 sm:gap-3">
-        <div className="flex-1 bg-stone-50 border border-stone-200 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs text-stone-500 flex items-center overflow-hidden shadow-inner">
-          <span className="text-indigo-500 font-bold mr-2">&gt;</span>
-          <span className="truncate text-stone-700">
+        <div className="flex-1 bg-black/50 border border-surface-border rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs text-text-muted flex items-center overflow-hidden shadow-inner font-mono">
+          <span className="text-primary font-bold mr-2">&gt;</span>
+          <span className="truncate text-text">
             {step === 0 ? "Menunggu input prompt..." : step === 1 ? "Generating studio lighting..." : "Cinematic studio lighting, 4K, photorealistic"}
           </span>
-          {step === 1 && <span className="w-1.5 h-4 bg-indigo-500 ml-1 animate-pulse shrink-0" />}
+          {step === 1 && <span className="w-1.5 h-4 bg-primary ml-1 animate-pulse shrink-0" />}
         </div>
         <button
           onClick={handleGenerateClick}
           disabled={step === 1}
-          className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:from-stone-300 disabled:to-stone-400 disabled:text-stone-500 text-white font-bold px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-[0_2px_12px_rgba(79,70,229,0.25)] min-w-[100px] sm:min-w-[120px]"
+          className="bg-primary hover:bg-primary-dark disabled:bg-surface-border disabled:text-text-muted text-white font-bold px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(79,70,229,0.3)] hover:shadow-[0_6px_25px_rgba(79,70,229,0.5)] min-w-[100px] sm:min-w-[120px]"
         >
           {step === 1 ? <Cpu className="w-4 h-4 animate-spin text-indigo-200" /> : <Sparkles className="w-4 h-4 text-indigo-200" />}
           {step === 1 ? 'Proses' : 'Generate'}
@@ -148,25 +166,25 @@ const Hero = () => {
       icon: ShieldCheck,
       title: "100% Brand Shield",
       desc: "Bentuk asli & logo terjaga",
-      color: "bg-indigo-50 text-indigo-600 border-indigo-200"
+      color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
     },
     {
       icon: ImageIcon,
       title: "4K Ultra HD",
       desc: "Kualitas studio komersial",
-      color: "bg-sky-50 text-sky-600 border-sky-200"
+      color: "bg-sky-500/10 text-sky-400 border-sky-500/20"
     },
     {
       icon: Zap,
       title: "Lightning AI",
       desc: "Selesai dalam 30 detik",
-      color: "bg-amber-50 text-amber-600 border-amber-200"
+      color: "bg-amber-500/10 text-amber-400 border-amber-500/20"
     },
     {
       icon: Wand2,
       title: "Smart Prompt",
       desc: "AI rakit teks untuk Anda",
-      color: "bg-emerald-50 text-emerald-600 border-emerald-200"
+      color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
     }
   ];
 
@@ -178,11 +196,11 @@ const Hero = () => {
   ];
 
   return (
-    <div className="relative pt-20 pb-12 sm:pt-28 sm:pb-20 lg:pt-36 lg:pb-28 overflow-hidden bg-gradient-to-b from-indigo-50/80 via-white to-sky-50/40 text-stone-900 isolate">
+    <div className="relative pt-20 pb-12 sm:pt-28 sm:pb-20 lg:pt-36 lg:pb-28 overflow-hidden bg-background text-text isolate">
       {/* Soft background glows */}
       <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(79,70,229,0.08)_0%,transparent_60%)] rounded-full" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(2,132,199,0.06)_0%,transparent_60%)] rounded-full" />
+        <div className="absolute -top-[200px] -left-[200px] w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(79,70,229,0.15)_0%,transparent_60%)] rounded-full blur-3xl opacity-60" />
+        <div className="absolute bottom-0 -right-[200px] w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(14,165,233,0.1)_0%,transparent_60%)] rounded-full blur-3xl opacity-50" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -193,17 +211,17 @@ const Hero = () => {
           <StaggerContainer className="text-center lg:text-left">
             {/* Top Badge */}
             <StaggerItem>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-xs sm:text-sm font-semibold text-indigo-700 mb-5 sm:mb-6">
-                <ShieldCheck className="w-3.5 h-3.5 text-indigo-500" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-surface-border text-xs sm:text-sm font-semibold text-text-muted mb-5 sm:mb-6 shadow-sm">
+                <ShieldCheck className="w-3.5 h-3.5 text-primary" />
                 <span>Product Integrity Guarantee™</span>
               </div>
             </StaggerItem>
 
             {/* Main Headline */}
             <StaggerItem>
-              <h1 className="text-3.5xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-stone-900 mb-4 sm:mb-6 leading-[1.1]">
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-text mb-4 sm:mb-6 leading-[1.1]">
                 Foto Produk Studio,<br />
-                <span className="text-animated-authenticity">
+                <span className="text-gradient">
                   Tanpa Studio.
                 </span>
               </h1>
@@ -211,26 +229,26 @@ const Hero = () => {
 
             {/* Subtitle */}
             <StaggerItem>
-              <p className="text-base sm:text-lg text-stone-600 max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed">
-                AI kami ubah foto HP biasa jadi foto produk profesional — background bebas diubah, <strong className="text-stone-900">bentuk & warna asli produk dijamin 100% aman</strong>. Siap upload ke Shopee, Tokopedia, TikTok Shop.
+              <p className="text-base sm:text-lg text-text-muted max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed">
+                AI kami ubah foto HP biasa jadi foto produk profesional — background bebas diubah, <strong className="text-text">bentuk & warna asli produk dijamin 100% aman</strong>. Siap upload ke e-commerce.
               </p>
 
               {/* Marketplace Tags */}
               <div className="flex flex-wrap justify-center lg:justify-start items-center gap-2 mb-6 sm:mb-8">
-                <span className="text-xs text-stone-400 font-medium mr-1">Untuk:</span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-50 border border-orange-200 text-orange-700 text-xs font-semibold">
+                <span className="text-xs text-text-muted/70 font-medium mr-1">Untuk:</span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#FF5722]/10 border border-[#FF5722]/20 text-[#FF5722] text-xs font-semibold">
                   <ShopeeIcon className="w-3.5 h-3.5" />
                   Shopee
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-stone-100 border border-stone-200 text-stone-700 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#000000] border border-zinc-700 text-white text-xs font-semibold">
                   <TikTokIcon className="w-3.5 h-3.5" />
                   TikTok Shop
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#42B549]/10 border border-[#42B549]/20 text-[#42B549] text-xs font-semibold">
                   <TokopediaIcon className="w-3.5 h-3.5" />
                   Tokopedia
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-fuchsia-50 border border-fuchsia-200 text-fuchsia-700 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#E1306C]/10 border border-[#E1306C]/20 text-[#E1306C] text-xs font-semibold">
                   <InstagramIcon className="w-3.5 h-3.5" />
                   Instagram
                 </span>
@@ -250,10 +268,10 @@ const Hero = () => {
                           openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
                         }
                       } catch (e) {
-                        console.error("Auth modal error:", e);
+                         console.error("Auth modal error:", e);
                       }
                     }}
-                    className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-2xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2.5 shadow-[0_4px_20px_rgba(79,70,229,0.3)] hover:shadow-[0_6px_25px_rgba(79,70,229,0.4)] hover:scale-[1.02] active:scale-95 cursor-pointer min-h-[52px]"
+                    className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2.5 shadow-[0_4px_25px_rgba(79,70,229,0.4)] hover:shadow-[0_6px_35px_rgba(79,70,229,0.6)] hover:scale-[1.02] active:scale-95 cursor-pointer min-h-[52px]"
                   >
                     <Sparkles className="w-5 h-5 text-indigo-200" />
                     Coba Gratis — 3 Foto
@@ -261,7 +279,7 @@ const Hero = () => {
                   </button>
                 </SignedOut>
                 <SignedIn>
-                  <Link to="/studio" className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-2xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2.5 shadow-[0_4px_20px_rgba(79,70,229,0.3)] hover:shadow-[0_6px_25px_rgba(79,70,229,0.4)] hover:scale-[1.02] active:scale-95 cursor-pointer min-h-[52px]">
+                  <Link to="/studio" className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2.5 shadow-[0_4px_25px_rgba(79,70,229,0.4)] hover:shadow-[0_6px_35px_rgba(79,70,229,0.6)] hover:scale-[1.02] active:scale-95 cursor-pointer min-h-[52px]">
                     <Sparkles className="w-5 h-5 text-indigo-200" />
                     Masuk Studio
                     <ArrowRight className="w-5 h-5" />
@@ -290,13 +308,13 @@ const Hero = () => {
             {trustItems.map((item, i) => {
               const Icon = item.icon;
               return (
-                <div key={i} className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-stone-200 shadow-sm">
-                  <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 shrink-0">
+                <div key={i} className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl glass-card">
+                  <div className="p-2 rounded-xl bg-surface border border-surface-border text-primary shrink-0">
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-stone-900">{item.label}</div>
-                    <div className="text-xs text-stone-500">{item.sub}</div>
+                    <div className="text-sm font-bold text-text">{item.label}</div>
+                    <div className="text-xs text-text-muted">{item.sub}</div>
                   </div>
                 </div>
               );
@@ -312,15 +330,15 @@ const Hero = () => {
                   key={index}
                   whileHover={{ y: -4, scale: 1.01 }}
                   transition={{ type: "spring", stiffness: 300 }}
-                  className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200 hover:border-indigo-300 hover:shadow-[0_4px_20px_rgba(79,70,229,0.08)] text-left transition-all relative overflow-hidden group"
+                  className="p-4 sm:p-5 rounded-2xl glass-card glass-card-hover text-left relative overflow-hidden group cursor-default"
                 >
                   <div className={`p-2.5 rounded-xl border ${item.color} shrink-0 inline-flex mb-3`}>
                     <IconComp className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <h3 className="text-sm sm:text-base font-bold text-stone-900 group-hover:text-indigo-700 transition-colors mb-1">
+                  <h3 className="text-sm sm:text-base font-bold text-text group-hover:text-primary transition-colors mb-1">
                     {item.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-stone-500 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
                     {item.desc}
                   </p>
                 </motion.div>

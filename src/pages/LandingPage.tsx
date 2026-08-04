@@ -19,7 +19,7 @@ const SectionPlaceholder = () => (
 
 export default function LandingPage() {
   return (
-    <div className="min-h-[100dvh] bg-white selection:bg-indigo-100 selection:text-indigo-700 text-stone-900 antialiased overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-background selection:bg-primary/30 selection:text-primary-light text-text antialiased overflow-x-hidden">
       <Navbar />
       <main>
         {/* Above-fold: sync-loaded for instant first paint */}

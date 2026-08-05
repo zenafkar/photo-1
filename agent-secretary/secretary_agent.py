@@ -6,7 +6,7 @@ import shutil
 import hashlib
 import secrets
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import deque
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -14,6 +14,11 @@ from fastapi import FastAPI, HTTPException, Query, Header, BackgroundTasks
 from pydantic import BaseModel
 import uvicorn
 import requests
+
+# ==========================================
+# TIMEZONE: WIB (UTC+7)
+# ==========================================
+WIB = timezone(timedelta(hours=7))
 
 # ==========================================
 # KONFIGURASI KUNCI (PRD v1.5.0)
@@ -114,7 +119,7 @@ def make_shadow_backup(rel_path, lines):
     if lines is None:
         return
     safe_name = rel_path.replace(os.sep, "_")
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(WIB).strftime("%Y%m%d_%H%M%S")
     backup_filename = f"{timestamp}__{safe_name}"
     backup_path = os.path.join(BACKUP_DIR, backup_filename)
 
@@ -352,7 +357,7 @@ class UltimateSecretaryHandler(FileSystemEventHandler):
         self.last_event_time[rel_path] = now
 
         entry = {
-            "waktu": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "waktu": datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"),
             "aksi": event_type,
             "target": rel_path,
             "jenis": "folder" if is_dir else "file"
@@ -439,7 +444,7 @@ def get_terakhir(limit: int = Query(default=10, le=100)):
 def filter_notulensi(menit: int = None, kata_kunci: str = None):
     hasil = list(history)
     if menit:
-        batas = datetime.now() - timedelta(minutes=menit)
+        batas = datetime.now(WIB) - timedelta(minutes=menit)
         hasil = [e for e in hasil if datetime.strptime(e["waktu"], "%Y-%m-%d %H:%M:%S") >= batas]
     if kata_kunci:
         hasil = [e for e in hasil if kata_kunci.lower() in e["target"].lower()]
@@ -486,7 +491,7 @@ def execute_rollback(req: RollbackRequest, authorization: str = Header(default="
 
         # Catat Log Rollback
         rollback_entry = {
-            "waktu": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "waktu": datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"),
             "aksi": "rollback",
             "target": req.target_file,
             "jenis": "file",

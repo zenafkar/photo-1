@@ -16,3 +16,8 @@ vite.config.d.ts
 .cache/
 Notulensi.json
 agent_log.txt
+__pycache__/
+*.pyc
+
+# Deprecated local agent config (superseded by global ~/.config/opencode)
+Agent Smart/

@@ -46,38 +46,43 @@ Check `.opencode/usage_tracker.json` before recommending any model:
 
 If a model reaches or exceeds 90% of its limit, **LOCK IT PREVENTATIVELY** for new heavy tasks and automatically route to the next available model in the hierarchy.
 
-### 2B. AUTO-RESET / SELF-HEALING WINDOW ROTATION
+### 2B. MANUAL TIME-REMAINING SYNC (OpenCode Go /go page)
 
-The `usage_tracker.json` file contains `window_starts` timestamps for each counter window. Before checking thresholds, you MUST verify whether any window has expired and reset its counters automatically.
+The `usage_tracker.json` file contains a `manual_resets` block whose values are pasted directly from the OpenCode Go dashboard (`https://opencode.ai/workspace/<id>/go`). These strings are the source of truth for when each counter window resets.
 
-**Window Rotation Rules:**
-- **5-Hour Window:** If `(current_time - window_starts.5hr) >= 5 hours` → Reset ALL models' `requests_5hr` to 0, then set `window_starts.5hr = current_time`
-- **Weekly Window:** If `(current_time - window_starts.weekly) >= 7 days` → Reset ALL models' `requests_weekly` to 0, then set `window_starts.weekly = current_time`
-- **Monthly Window:** If `(current_time - window_starts.monthly) >= 30 days` → Reset ALL models' `requests_monthly` to 0, then set `window_starts.monthly = current_time`
+```json
+"manual_resets": {
+  "rolling_5hr": "3 hours 49 minutes",
+  "weekly": "4 days 13 hours",
+  "monthly": "30 days 22 hours"
+}
+```
 
-**Execution:**
-1. Read `window_starts` from `usage_tracker.json`
-2. Compare each timestamp with the current time (from system env)
-3. Reset expired windows and update timestamps
-4. Write the updated file back
-5. Proceed to threshold check with clean counters
+**How it works:**
+- The `smart-router` plugin parses each `"Xd Xh"` / `"Xh Xmin"` string on load and converts it to `next_reset = now + duration`, stored under `windows`.
+- On plugin load and before every counter increment, the plugin counts down live from `next_reset` and logs e.g. `5hr 3h 48min | weekly 4d 12h | monthly 30d 21h`.
+- When `now >= next_reset` for a window, the plugin resets that window's counters to 0 and **clears** the manual entry (so it never goes stale).
 
-This ensures counters never accumulate beyond their intended window, preventing premature model locks.
+**When you get fresh readings from `/go`:**
+1. Open `https://opencode.ai/workspace/<id>/go`
+2. Copy the three "resets in ..." strings into `manual_resets` in `.opencode/usage_tracker.json` (overwrite existing values)
+3. The plugin recomputes `next_reset` on next load (it only re-syncs when the string changes)
+
+Window semantics follow the OpenCode Go plan:
+- **Rolling 5hr:** anchored to last usage; resets 5 hours after the last usage update
+- **Weekly:** resets at the next Monday 00:00 UTC boundary
+- **Monthly:** resets on the subscription-day anniversary each month
 
 ---
 
 ### 3. STRICT EXECUTION WORKFLOW
 
 #### STEP 0: AUTO-RESET WINDOW CHECK (SELF-HEALING)
-Before any threshold evaluation, perform window rotation:
-1. Read `.opencode/usage_tracker.json` including `window_starts` timestamps.
-2. For each window (5hr, weekly, monthly), check if the window has expired:
-   - 5hr: expired if ≥5 hours since `window_starts.5hr`
-   - weekly: expired if ≥7 days since `window_starts.weekly`
-   - monthly: expired if ≥30 days since `window_starts.monthly`
-3. If expired: reset ALL models' corresponding counter to 0, update the `window_starts` timestamp to now.
-4. Write updated `usage_tracker.json` back to file.
-5. Proceed to STEP 1 with clean, accurate counters.
+Before any threshold evaluation, verify window state. The `smart-router` plugin already maintains this automatically — you only need to confirm the `windows` timestamps are present:
+1. Read `.opencode/usage_tracker.json` and check the `windows` block (contains `next_reset` per window).
+2. Read the `manual_resets` block — if present, these strings are the current source of truth from the `/go` page; the plugin will have converted them to `next_reset` timestamps.
+3. If any window has no `next_reset` yet, the plugin falls back to fixed defaults (5h / 7d / 30d) from first use.
+4. Proceed to STEP 1 with clean, accurate counters.
 
 #### STEP 1: PRE-FLIGHT EVALUATION & MODEL LOCK CHECK
 1. Analyze prompt payload size and task complexity (1–10).
@@ -98,7 +103,7 @@ Before any threshold evaluation, perform window rotation:
 
 #### STEP 2: USER INPUT EVALUATION
 - **If User Types 'Y' or 'Yes':**
-  Update `.opencode/usage_tracker.json` count (increment counters for chosen model, update `last_updated` and `window_starts` timestamps) and execute code task immediately.
+  The `smart-router` plugin automatically increments `.opencode/usage_tracker.json` (requests_5hr, requests_weekly, requests_monthly) on each assistant message, so no manual counter update is needed — proceed to execute code task immediately.
 - **If User Types Another Model ID (e.g., `opencode-go/deepseek-v4-flash` or "pake Qwen aja"):**
   **DO NOT EXECUTE CODE YET.** Proceed to STEP 3.
 
@@ -114,4 +119,4 @@ Model telah diubah sesuai permintaan Anda menjadi: `[Requested Model ID]`
 ---
 
 #### STEP 4: FINAL EXECUTION
-Only execute code changes after receiving the explicit final 'Y' or 'Yes' confirmation in Step 1 or Step 3. After confirmation, update `.opencode/usage_tracker.json` (including `window_starts` timestamps) before executing.
+Only execute code changes after receiving the explicit final 'Y' or 'Yes' confirmation in Step 1 or Step 3. The plugin auto-increments `.opencode/usage_tracker.json` counters and maintains window `next_reset` timestamps — then switch to the approved model via `/model <id>` before executing.

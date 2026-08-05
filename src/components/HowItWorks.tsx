@@ -66,7 +66,7 @@ const ScoreRing = ({ label, value, color }: { label: string; value: number; colo
 const HowItWorks = () => {
 
   return (
-    <section id="cara-kerja" className="py-16 md:py-24 bg-background relative overflow-hidden">
+    <section data-component="how-it-works" id="cara-kerja" className="py-16 md:py-24 bg-background relative overflow-hidden border-t border-surface-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-14 md:mb-20">

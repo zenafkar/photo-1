@@ -72,7 +72,7 @@ const SocialProof = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-background border-t border-surface-border relative overflow-hidden text-text">
+    <section data-component="social-proof" className="py-16 md:py-24 bg-background border-t border-surface-border relative overflow-hidden text-text">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">

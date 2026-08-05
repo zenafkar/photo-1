@@ -73,7 +73,7 @@ const IntegrityEngine = () => {
   ];
 
   return (
-    <section ref={sectionRef} id="integrity" className="py-16 md:py-24 relative overflow-hidden bg-background border-t border-surface-border text-text">
+    <section data-component="integrity" ref={sectionRef} id="integrity" className="py-16 md:py-24 relative overflow-hidden bg-background border-t border-surface-border text-text">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-16">

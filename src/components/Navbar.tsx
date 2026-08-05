@@ -68,12 +68,14 @@ const Navbar = () => {
       document.body.style.top = `-${scrollY}px`;
       document.body.style.left = '0';
       document.body.style.right = '0';
+      document.getElementById('root')?.setAttribute('aria-hidden', 'true');
       return () => {
         document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.left = '';
         document.body.style.right = '';
+        document.getElementById('root')?.removeAttribute('aria-hidden');
         window.scrollTo(0, scrollY);
       };
     }
@@ -124,6 +126,7 @@ const Navbar = () => {
   return (
     <>
     <nav
+      data-component="nav"
       className={`fixed w-full z-[60] transition-all duration-300 pt-[env(safe-area-inset-top)] ${
         isScrolled
           ? 'bg-background/90 backdrop-blur-lg border-b border-surface-border py-2'

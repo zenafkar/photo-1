@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { HelpCircle, Plus, Minus } from 'lucide-react';
 
 const faqs = [
   {
@@ -48,9 +48,8 @@ const FAQ = () => {
   const flatIndex = (catIdx: number, itemIdx: number) => `${catIdx}-${itemIdx}`;
 
   return (
-    <section id="faq" className="py-16 md:py-24 bg-background border-t border-surface-border text-text">
+    <section data-component="faq" id="faq" className="py-16 md:py-24 bg-background border-t border-surface-border text-text">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-12 md:mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-surface-border text-xs font-semibold text-primary mb-5 mx-auto">
             <HelpCircle className="w-3.5 h-3.5" />
@@ -62,7 +61,6 @@ const FAQ = () => {
           </p>
         </div>
 
-        {/* FAQ by category */}
         <div className="space-y-8">
           {faqs.map((category, catIdx) => (
             <div key={catIdx}>
@@ -71,17 +69,24 @@ const FAQ = () => {
                 {category.items.map((faq, itemIdx) => {
                   const idx = flatIndex(catIdx, itemIdx);
                   const isOpen = openIndex === idx;
+                  const triggerId = `faq-trigger-${idx}`;
+                  const panelId = `faq-panel-${idx}`;
 
                   return (
                     <div
                       key={idx}
+                      data-slot="faq-item"
                       className={`border rounded-2xl overflow-hidden transition-all duration-200 bg-surface/40 ${
                         isOpen ? 'border-primary/50' : 'border-surface-border hover:border-primary/30'
                       }`}
                     >
                       <button
+                        data-slot="faq-trigger"
                         onClick={() => setOpenIndex(isOpen ? null : idx)}
-                        className="w-full p-5 sm:p-6 text-left flex justify-between items-center gap-4 hover:bg-surface/50 transition-colors focus:outline-none group min-h-[56px]"
+                        className="w-full p-5 sm:p-6 text-left flex justify-between items-center gap-4 hover:bg-surface/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-inset group min-h-[56px]"
+                        aria-expanded={isOpen}
+                        aria-controls={panelId}
+                        id={triggerId}
                       >
                         <span className={`text-base sm:text-lg font-semibold transition-colors ${isOpen ? 'text-primary' : 'text-text group-hover:text-primary/80'}`}>
                           {faq.question}
@@ -89,11 +94,17 @@ const FAQ = () => {
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
                           isOpen ? 'bg-primary/20 text-primary' : 'bg-surface border border-surface-border text-text-muted group-hover:bg-primary/10'
                         }`}>
-                          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                          {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                         </div>
                       </button>
                       {isOpen && (
-                        <div className="px-5 sm:px-6 pb-5 sm:pb-6 text-text-muted leading-relaxed text-sm sm:text-base border-t border-surface-border pt-4">
+                        <div
+                          data-slot="faq-answer"
+                          role="region"
+                          id={panelId}
+                          aria-labelledby={triggerId}
+                          className="px-5 sm:px-6 pb-5 sm:pb-6 text-text-muted leading-relaxed text-sm sm:text-base border-t border-surface-border pt-4"
+                        >
                           {faq.answer}
                         </div>
                       )}
@@ -105,14 +116,13 @@ const FAQ = () => {
           ))}
         </div>
 
-        {/* Contact CTA */}
         <div className="mt-12 text-center">
           <p className="text-text-muted text-sm mb-3">Masih ragu? Tanya kami langsung.</p>
           <a
             href="mailto:hello@zenstudio.my.id"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary/10 border border-secondary/20 text-secondary font-semibold hover:bg-secondary/20 transition-colors text-sm"
           >
-            ✉️ hello@zenstudio.my.id
+            hello@zenstudio.my.id
           </a>
         </div>
       </div>

@@ -20,7 +20,7 @@ const PricingSection = () => {
   };
 
   return (
-    <section id="harga" className="py-16 md:py-24 bg-background relative overflow-hidden text-text">
+    <section data-component="pricing" id="harga" className="py-16 md:py-24 bg-background relative overflow-hidden text-text border-t border-surface-border">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">

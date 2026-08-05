@@ -2,7 +2,7 @@ import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useAuth } from "@cle
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useApiClient } from "../services/api";
-import { Loader2, Upload, Sparkles, Image as ImageIcon, Trash2, Download, Home, Zap, AlertTriangle, RefreshCw, Wand2, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, Upload, Sparkles, Image as ImageIcon, Trash2, Download, Home, Zap, AlertTriangle, RefreshCw, Wand2, CheckCircle2, XCircle, Copy, Check } from 'lucide-react';
 import ZoomableImage from '../components/ZoomableImage';
 import { ZenLogo } from '../components/ZenLogo';
 import { PromptGeneratorModal } from '../components/PromptGeneratorModal';
@@ -51,6 +51,7 @@ export default function StudioDashboard() {
   // UI State
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const { isLoaded, isSignedIn } = useAuth();
   const api = useApiClient();
@@ -367,6 +368,24 @@ export default function StudioDashboard() {
     }
   };
 
+  const handleCopy = async (text: string, field: string) => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    }
+  };
+
   return (
     <>
       <SignedIn>
@@ -597,13 +616,29 @@ export default function StudioDashboard() {
                         </button>
                       </div>
 
-                      <textarea 
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        rows={3}
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none text-base md:text-sm font-medium text-slate-700"
-                        placeholder="Contoh: Premium studio lighting, professional product photography on black marble..."
-                      />
+                      <div className="relative">
+                        <textarea 
+                          value={prompt}
+                          onChange={(e) => setPrompt(e.target.value)}
+                          rows={3}
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none text-base md:text-sm font-medium text-slate-700"
+                          placeholder="Contoh: Premium studio lighting, professional product photography on black marble..."
+                        />
+                        {prompt && (
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(prompt, 'prompt')}
+                            className="absolute top-2 right-2 p-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 transition-colors"
+                            aria-label="Salin prompt"
+                          >
+                            {copiedField === 'prompt' ? (
+                              <Check className="w-3.5 h-3.5 text-green-500" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5 text-slate-400" />
+                            )}
+                          </button>
+                        )}
+                      </div>
 
                       {/* Quick Prompt Tags */}
                       <div className="flex items-center gap-1.5 flex-wrap pt-1">

@@ -10,7 +10,7 @@ const InstagramIcon = ({ className }: { className?: string }) => (
 
 const Footer = () => {
   return (
-    <footer className="bg-background pt-16 pb-8 border-t border-surface-border text-text">
+    <footer data-component="footer" className="bg-background pt-16 pb-8 border-t border-surface-border text-text">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">

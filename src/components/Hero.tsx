@@ -1,13 +1,8 @@
 import {
   ArrowRight,
-  Image as ImageIcon,
-  Zap,
   ShieldCheck,
   Sparkles,
   Cpu,
-  Wand2,
-  Users,
-  Clock
 } from 'lucide-react';
 import { StaggerContainer, StaggerItem } from './ScrollReveal';
 import { SignedOut, SignedIn, useClerk } from '@clerk/clerk-react';
@@ -52,7 +47,7 @@ const HeroInteractiveDemo = () => {
   ];
 
   return (
-    <div className="relative w-full max-w-[480px] mx-auto bg-surface/60 backdrop-blur-sm border border-surface-border rounded-3xl p-4 sm:p-5 overflow-hidden group">
+    <div className="relative w-full max-w-[400px] mx-auto bg-surface/60 backdrop-blur-sm border border-surface-border rounded-3xl p-4 sm:p-5 overflow-hidden group">
       {/* Subtle warm glow inside demo */}
       <div className="absolute top-0 right-0 w-48 h-48 bg-[radial-gradient(circle,rgba(212,69,42,0.12)_0%,transparent_70%)] pointer-events-none rounded-full" />
 
@@ -161,42 +156,13 @@ const HeroInteractiveDemo = () => {
 
 const Hero = () => {
   const { openSignIn, openSignUp } = useClerk();
-  const heroFeatures = [
-    {
-      icon: ShieldCheck,
-      title: "100% Brand Shield",
-      desc: "Bentuk asli & logo terjaga",
-      color: "bg-amber-500/10 text-amber-400 border-amber-500/20"
-    },
-    {
-      icon: ImageIcon,
-      title: "4K Ultra HD",
-      desc: "Kualitas studio komersial",
-      color: "bg-sky-500/10 text-sky-400 border-sky-500/20"
-    },
-    {
-      icon: Zap,
-      title: "Lightning AI",
-      desc: "Selesai dalam 30 detik",
-      color: "bg-primary/10 text-primary border-primary/20"
-    },
-    {
-      icon: Wand2,
-      title: "Smart Prompt",
-      desc: "AI rakit teks untuk Anda",
-      color: "bg-secondary/10 text-secondary border-secondary/20"
-    }
-  ];
-
   const trustItems = [
     { icon: Sparkles, label: "3 Foto Gratis", sub: "Tanpa kartu kredit" },
-    { icon: Clock, label: "15–30 Detik", sub: "Per foto" },
     { icon: ShieldCheck, label: "Produk 100% Asli", sub: "Bentuk & warna terjaga" },
-    { icon: Users, label: "10.000+ UMKM", sub: "Telah menggunakan" },
   ];
 
   return (
-    <div className="relative pt-20 pb-12 sm:pt-28 sm:pb-20 lg:pt-36 lg:pb-28 overflow-hidden bg-background text-text isolate">
+    <section data-component="hero" className="relative pt-20 pb-12 sm:pt-28 sm:pb-20 lg:pt-36 lg:pb-28 overflow-hidden bg-background text-text isolate border-b border-surface-border">
       {/* Soft background glows — warm, darkroom atmosphere */}
       <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
         <div className="absolute -top-[200px] -left-[200px] w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(212,69,42,0.08)_0%,transparent_60%)] rounded-full blur-3xl opacity-50" />
@@ -302,10 +268,10 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Trust Strip + Feature Cards */}
+        {/* Trust Strip */}
         <div className="mt-16 sm:mt-20 lg:mt-24">
           {/* Trust Stats Row — restrained, editorial */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mb-10">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto">
             {trustItems.map((item, i) => {
               const Icon = item.icon;
               return (
@@ -321,35 +287,10 @@ const Hero = () => {
               );
             })}
           </div>
-
-          {/* Feature Cards Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
-            {heroFeatures.map((item, index) => {
-              const IconComp = item.icon;
-              return (
-                <motion.div
-                  key={index}
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className="p-4 sm:p-5 rounded-2xl bg-surface/40 border border-surface-border text-left relative overflow-hidden group cursor-default hover:border-primary/30 transition-colors"
-                >
-                  <div className={`p-2.5 rounded-xl border ${item.color} shrink-0 inline-flex mb-3`}>
-                    <IconComp className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <h3 className="font-sans text-sm sm:text-base font-bold text-text group-hover:text-primary transition-colors mb-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                    {item.desc}
-                  </p>
-                </motion.div>
-              );
-            })}
-          </div>
         </div>
 
       </div>
-    </div>
+    </section>
   );
 };
 

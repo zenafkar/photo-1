@@ -1,4 +1,5 @@
 import { ZenLogo } from './ZenLogo';
+import { TikTokIcon } from './MarketplaceIcons';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -28,7 +29,7 @@ const Footer = () => {
                 <InstagramIcon className="w-5 h-5" />
               </span>
               <span className="w-10 h-10 rounded-full bg-surface flex items-center justify-center text-text-muted hover:text-primary hover:border-primary border border-surface-border transition-all cursor-default" aria-label="TikTok">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 6.5a4.5 4.5 0 01-3-1.5v6a5 5 0 11-4-4.8v2.4a2.5 2.5 0 102 2.4V2h2.5c.5 1.5 1.5 3 2.5 4.5z"/></svg>
+                <TikTokIcon className="w-5 h-5" />
               </span>
               <a href="mailto:hello@zenstudio.my.id" className="w-10 h-10 rounded-full bg-surface flex items-center justify-center text-text-muted hover:text-primary hover:border-primary border border-surface-border transition-all" aria-label="Email">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>

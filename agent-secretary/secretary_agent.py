@@ -23,9 +23,10 @@ WIB = timezone(timedelta(hours=7))
 # ==========================================
 # KONFIGURASI KUNCI (PRD v1.5.0)
 # ==========================================
-WATCH_DIRECTORY = "."
-DATABASE_FILE = "Notulensi.json"
-BACKUP_DIR = ".cache/secretary_backups"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+WATCH_DIRECTORY = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+DATABASE_FILE = os.path.join(SCRIPT_DIR, "Notulensi.json")
+BACKUP_DIR = os.path.join(SCRIPT_DIR, ".cache", "secretary_backups")
 MAX_HISTORY = 1000
 MAX_FILE_SIZE_DIFF_BYTES = 1024 * 1024  # 1 MB Limit
 MAX_BACKUPS = 60  # Cap jumlah snapshot fisik di .cache/secretary_backups/
@@ -46,9 +47,11 @@ SENSITIVE_FILENAMES = (
     "test-clerk.js", "test-ui.js", "*.tsbuildinfo",
 )
 
+DATABASE_BASENAME = os.path.basename(DATABASE_FILE)
+
 IGNORE_LIST = [
-    ".git", "__pycache__", ".DS_Store", "node_modules", ".venv",
-    DATABASE_FILE, DATABASE_FILE + ".tmp", "agent_log.txt", ".cache",
+    ".git", "__pycache__", ".DS_Store", "node_modules", ".venv", "dist",
+    DATABASE_BASENAME, DATABASE_BASENAME + ".tmp", "agent_log.txt", ".cache",
     ".env", ".env.local", ".env.production", ".env.development",
     ".env.example", "*.pem", "*.key", "*.p12", "*.pfx",
     "test-clerk.js", "test-ui.js", "*.tsbuildinfo",
@@ -150,6 +153,15 @@ def prune_backups():
                     pass  # File mungkin sudah dihapus proses lain — abaikan
     except OSError:
         pass  # Folder backup belum ada / tidak bisa diakses — abaikan
+
+def parse_wib_time(value):
+    """Parse timestamp WIB dari format lama (%Y-%m-%d %H:%M:%S) maupun ISO 8601."""
+    for fmt in ("%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%d %H:%M:%S"):
+        try:
+            return datetime.strptime(value, fmt)
+        except (ValueError, TypeError):
+            continue
+    raise ValueError(f"Timestamp tidak dikenal: {value}")
 
 def save_db():
     """Atomic Save untuk mencegah corrupt file Notulensi.json"""
@@ -449,7 +461,14 @@ def filter_notulensi(menit: int = None, kata_kunci: str = None):
     hasil = list(history)
     if menit:
         batas = datetime.now(WIB) - timedelta(minutes=menit)
-        hasil = [e for e in hasil if datetime.strptime(e["waktu"], "%Y-%m-%d %H:%M:%S") >= batas]
+        filtered = []
+        for e in hasil:
+            try:
+                if parse_wib_time(e["waktu"]) >= batas:
+                    filtered.append(e)
+            except (ValueError, TypeError):
+                pass  # Abaikan entry dengan timestamp tidak dikenal
+        hasil = filtered
     if kata_kunci:
         hasil = [e for e in hasil if kata_kunci.lower() in e["target"].lower()]
     return {"total": len(hasil), "data": hasil}

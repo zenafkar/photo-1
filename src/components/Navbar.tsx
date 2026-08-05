@@ -88,7 +88,16 @@ const Navbar = () => {
         // rAF callback runs BEFORE the next paint, so scrollTo happens in the same
         // paint cycle as the style clear — no visible jump from top to bottom.
         requestAnimationFrame(() => {
-          window.scrollTo(0, scrollY);
+          // Temporarily disable smooth scroll to prevent 'anchor effect' jumping
+          const html = document.documentElement;
+          html.style.setProperty('scroll-behavior', 'auto', 'important');
+          
+          window.scrollTo({ top: scrollY, left: 0, behavior: 'instant' } as ScrollToOptions);
+          
+          // Restore smooth scroll on the next frame
+          requestAnimationFrame(() => {
+            html.style.removeProperty('scroll-behavior');
+          });
         });
       };
     }

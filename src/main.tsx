@@ -30,6 +30,8 @@ if (!PUBLISHABLE_KEY) {
           publishableKey={PUBLISHABLE_KEY}
           signInFallbackRedirectUrl="/studio"
           signUpFallbackRedirectUrl="/studio"
+          afterSignInUrl="/studio"
+          afterSignUpUrl="/studio"
         >
           <App />
         </ClerkProvider>

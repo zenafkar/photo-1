@@ -31,7 +31,7 @@ const Navbar = () => {
   const handleOpenSignIn = () => {
     try {
       if (typeof openSignIn === 'function') {
-        openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
+        openSignIn({ fallbackRedirectUrl: '/studio' });
       }
     } catch (error) {
       console.error("Error opening sign-in modal:", error);
@@ -41,9 +41,9 @@ const Navbar = () => {
   const handleOpenSignUp = () => {
     try {
       if (typeof openSignUp === 'function') {
-        openSignUp({ fallbackRedirectUrl: '/studio', signInFallbackRedirectUrl: '/studio' });
+        openSignUp({ fallbackRedirectUrl: '/studio' });
       } else if (typeof openSignIn === 'function') {
-        openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
+        openSignIn({ fallbackRedirectUrl: '/studio' });
       }
     } catch (error) {
       console.error("Error opening sign-up modal:", error);

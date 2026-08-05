@@ -230,9 +230,9 @@ const Hero = () => {
                     onClick={() => {
                       try {
                         if (typeof openSignUp === 'function') {
-                          openSignUp({ fallbackRedirectUrl: '/studio', signInFallbackRedirectUrl: '/studio' });
+                          openSignUp({ fallbackRedirectUrl: '/studio' });
                         } else if (typeof openSignIn === 'function') {
-                          openSignIn({ fallbackRedirectUrl: '/studio', signUpFallbackRedirectUrl: '/studio' });
+                          openSignIn({ fallbackRedirectUrl: '/studio' });
                         }
                       } catch (e) {
                         console.error("Auth modal error:", e);

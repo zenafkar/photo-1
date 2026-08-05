@@ -13,13 +13,13 @@ const paymentMethods = ['QRIS', 'GoPay', 'OVO', 'DANA', 'Bank Transfer', 'Visa',
 
 const Footer = () => {
   return (
-    <footer data-component="footer" className="bg-background pt-16 pb-8 border-t border-surface-border text-text">
+    <footer data-component="footer" className="bg-background pt-10 pb-8 border-t border-surface-border text-text">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-10 mb-12">
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-2">
-            <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex items-center gap-2.5 mb-2">
               <ZenLogo className="h-10" />
             </div>
             <p className="text-sm text-text-muted leading-relaxed mb-5 max-w-xs">
@@ -82,7 +82,7 @@ const Footer = () => {
               ))}
             </div>
           </div>
-        </div>v>
+        </div>
 
         {/* Bottom bar */}
         <div className="pt-6 border-t border-surface-border flex flex-col sm:flex-row justify-between items-center gap-3">

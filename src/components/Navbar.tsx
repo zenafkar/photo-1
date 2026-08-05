@@ -146,10 +146,7 @@ const Navbar = () => {
           <div className="flex items-center justify-between h-12 lg:h-14">
             {/* Logo */}
             <a href="#" className="flex items-center gap-2 sm:gap-2.5 group shrink-0" aria-label="ZenStudio — Beranda">
-              <ZenLogo className="w-8 h-8 sm:w-9 sm:h-9 group-hover:scale-105 transition-transform" />
-              <span className="font-sans text-lg xs:text-xl sm:text-2xl font-bold tracking-tight text-text">
-                ZenStudio
-              </span>
+              <ZenLogo className="h-8 sm:h-9 group-hover:scale-105 transition-transform" />
             </a>
 
             {/* Desktop Nav Links */}
@@ -267,10 +264,7 @@ const Navbar = () => {
                 style={{ paddingTop: 'env(safe-area-inset-top)' }}
               >
                 <a href="#" onClick={() => setIsOpen(false)} className="flex items-center gap-2 group shrink-0" aria-label="ZenStudio — Beranda">
-                  <ZenLogo className="w-8 h-8 sm:w-9 sm:h-9" />
-                  <span className="font-sans text-lg xs:text-xl sm:text-2xl font-bold tracking-tight text-text">
-                    ZenStudio
-                  </span>
+                  <ZenLogo className="h-8 sm:h-9" />
                 </a>
                 <button
                   onClick={() => setIsOpen(false)}

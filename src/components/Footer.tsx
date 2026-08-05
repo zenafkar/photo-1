@@ -18,8 +18,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
-              <ZenLogo className="w-8 h-8" />
-              <span className="font-sans text-xl font-bold text-text tracking-tight">ZenStudio</span>
+              <ZenLogo className="h-10" />
             </div>
             <p className="text-sm text-text-muted leading-relaxed mb-5 max-w-xs">
               Tingkatkan konversi dengan foto produk kelas dunia dalam hitungan detik. Tanpa studio, tanpa fotografer.

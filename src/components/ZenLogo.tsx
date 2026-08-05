@@ -1,7 +1,7 @@
 
 
-export const ZenLogo = ({ className = "w-8 h-8" }: { className?: string }) => (
-  <div className={`flex items-center justify-center rounded-xl overflow-hidden shadow-md shadow-primary/20 ${className}`}>
-    <img src="/logo-icon.png" alt="ZenStudio Logo" className="w-full h-full object-cover" />
+export const ZenLogo = ({ className = "h-8 w-auto" }: { className?: string }) => (
+  <div className={`flex items-center justify-center ${className}`}>
+    <img src="/logo-baru.png" alt="ZenStudio Logo" className="h-full w-auto object-contain" />
   </div>
 );

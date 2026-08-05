@@ -9,6 +9,20 @@ const InstagramIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const VisaIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 36 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#1434CB" d="M13.535 15.894l1.4-8.694h2.24l-1.4 8.694h-2.24zm7.362-8.528c-.446-.17-.1.141-.446-.17-.78-.291-1.99-.39-3.21-.39-3.532 0-6.015 1.87-6.037 4.53-.023 1.977 1.776 3.078 3.134 3.738 1.393.676 1.861 1.11 1.854 1.716-.01.928-1.119 1.354-2.155 1.354-1.438 0-2.203-.223-3.38-.737l-.469-.224-.509 3.134c.852.39 2.427.726 4.053.74 3.82.0 6.303-1.873 6.336-4.77.022-1.593-.951-2.808-3.036-3.805-1.263-.632-2.037-1.057-2.026-1.7.01-.587.652-1.203 2.07-1.203 1.176.01 2.036.25 2.698.536l.325.147.53-3.099zm8.566-.166h-1.734c-.538 0-.943.157-1.179.718l-3.344 7.972h2.353l.469-1.297h2.875l.27 1.297h2.073l-1.783-8.69zm-2.775 5.58l1.168-3.179.673 3.179h-1.841zm-17.702-5.58l-2.207 5.925-.239-1.203c-.417-1.428-1.722-2.981-3.176-3.741l2.036 7.712h2.383l3.553-8.693h-2.35z"/>
+  </svg>
+);
+
+const MastercardIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 36 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="13" cy="12" r="7" fill="#EB001B"/>
+    <circle cx="23" cy="12" r="7" fill="#F79E1B"/>
+    <path d="M18 6.848a6.97 6.97 0 00-2.484 5.152A6.97 6.97 0 0018 17.152a6.97 6.97 0 002.484-5.152A6.97 6.97 0 0018 6.848z" fill="#FF5F00"/>
+  </svg>
+);
+
 const Footer = () => {
   return (
     <footer data-component="footer" className="bg-background pt-16 pb-8 border-t border-surface-border text-text">
@@ -85,11 +99,11 @@ const Footer = () => {
               <span className="inline-flex items-center justify-center h-7 px-2.5 rounded-lg bg-surface/80 border border-surface-border text-xs font-semibold text-text-muted hover:text-text hover:border-primary/30 transition-all cursor-default">
                 Bank Transfer
               </span>
-              <span className="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-white border border-surface-border shadow-xs hover:border-primary/40 transition-all">
-                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/visa/default.svg" alt="Visa" className="h-3.5 w-auto object-contain" />
+              <span className="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-white border border-surface-border shadow-xs hover:border-primary/40 transition-all" title="Visa">
+                <VisaIcon className="h-4 w-auto" />
               </span>
-              <span className="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-white border border-surface-border shadow-xs hover:border-primary/40 transition-all">
-                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/mastercard/default.svg" alt="Mastercard" className="h-3.5 w-auto object-contain" />
+              <span className="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-white border border-surface-border shadow-xs hover:border-primary/40 transition-all" title="Mastercard">
+                <MastercardIcon className="h-4 w-auto" />
               </span>
             </div>
           </div>

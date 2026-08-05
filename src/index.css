@@ -161,3 +161,15 @@
   }
 }
 
+/* ── Clerk Components CSS Isolation (Protect from Tailwind Preflight in Mobile) ── */
+.cl-rootBox svg,
+.cl-component svg {
+  display: inline-block !important;
+  max-width: 100% !important;
+}
+
+.cl-rootBox button,
+.cl-component button {
+  position: relative;
+  z-index: 50;
+}

@@ -19,5 +19,3 @@ agent_log.txt
 __pycache__/
 *.pyc
 
-# Agent Smart node_modules (but track the config files)
-Agent Smart/.opencode/node_modules/

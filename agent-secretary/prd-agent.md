@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD)
 **Nama Produk:** Agent Secretary (Local Knowledge Base, File Watcher, & Auto-Rollback)  
-**Versi:** 1.4.0  
+**Versi:** 1.5.0  
 **Target Platform:** Local Environment / OpenCode Terminal  
 **Dokumen Status:** Updated (Draft)  
 

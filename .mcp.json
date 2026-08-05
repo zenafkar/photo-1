@@ -6,7 +6,10 @@
       "args": [
         "agent-secretary/mcp_server.py"
       ],
-      "env": {}
+      "env": {
+        "SECRETARY_AUTH_TOKEN": "${SECRETARY_AUTH_TOKEN}",
+        "SECRETARY_WEBHOOK_URL": "${SECRETARY_WEBHOOK_URL}"
+      }
     }
   }
 }

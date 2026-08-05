@@ -16,7 +16,7 @@ import uvicorn
 import requests
 
 # ==========================================
-# KONFIGURASI KUNCI (PRD v1.4.0)
+# KONFIGURASI KUNCI (PRD v1.5.0)
 # ==========================================
 WATCH_DIRECTORY = "."
 DATABASE_FILE = "Notulensi.json"
@@ -425,7 +425,7 @@ class UltimateSecretaryHandler(FileSystemEventHandler):
 # ==========================================
 # FASTAPI ENDPOINTS & AUTO-ROLLBACK
 # ==========================================
-app = FastAPI(title="Secretary Agent API v1.4.0")
+app = FastAPI(title="Secretary Agent API v1.5.0")
 
 class RollbackRequest(BaseModel):
     target_file: str

@@ -31,11 +31,6 @@ const IntegrityEngine = () => {
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
 
-  const ringsRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress: ringsScrollY } = useScroll({
-    target: ringsRef,
-    offset: ["start end", "center center"]
-  });
 
   const features = [
     {
@@ -234,66 +229,8 @@ const IntegrityEngine = () => {
           </div>
         </div>
 
-        {/* Live Authenticity Score Validation */}
-        <div ref={ringsRef} className="bg-surface/40 border border-surface-border rounded-[2.5rem] p-6 md:p-10 max-w-6xl mx-auto relative overflow-hidden">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
-
-          <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4 border-b border-surface-border pb-6 relative z-10">
-            <div className="flex items-center gap-4 text-center md:text-left">
-              <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary hidden sm:block">
-                <Zap className="w-6 h-6" />
-              </div>
-              <div>
-                <h4 className="font-display font-bold text-xl text-text mb-1">Skor Keaslian Produk</h4>
-                <p className="text-sm text-text-muted">Verifikasi piksel otomatis oleh Computer Vision</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 bg-secondary/10 border border-secondary/20 px-4 py-2 rounded-full text-xs font-semibold text-secondary">
-              <span className="w-2.5 h-2.5 rounded-full bg-secondary" />
-              100% AMAN DIGUNAKAN
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 relative z-10">
-            <ScoreRing label="Akurasi Bentuk Asli" value={99.8} scrollYProgress={ringsScrollY} color="#D4452A" />
-            <ScoreRing label="Konsistensi Warna" value={99.5} scrollYProgress={ringsScrollY} color="#3D8B7D" />
-            <ScoreRing label="Keutuhan Logo" value={100} scrollYProgress={ringsScrollY} color="#C7823A" />
-            <ScoreRing label="Ketajaman Teks" value={99.9} scrollYProgress={ringsScrollY} color="#38BDF8" />
-          </div>
-        </div>
       </div>
     </section>
-  );
-};
-
-const ScoreRing = ({ label, value, scrollYProgress, color = "#D4452A" }: { label: string, value: number, scrollYProgress: MotionValue<number>, color?: string }) => {
-  const circumference = 282.743;
-  const targetOffset = circumference * (1 - value / 100);
-
-  const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [circumference, targetOffset]);
-
-  return (
-    <div className="flex flex-col items-center justify-center p-5 rounded-3xl bg-background/40 border border-surface-border hover:border-primary/30 transition-colors">
-      <div className="relative w-24 h-24 mb-4">
-        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" className="text-surface-border" strokeWidth="8" />
-          <motion.circle
-            cx="50" cy="50" r="45"
-            fill="none"
-            stroke={color}
-            strokeWidth="8"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            style={{ strokeDashoffset, filter: `drop-shadow(0 0 8px ${color})` }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-display text-2xl font-bold text-text tracking-tighter">{value}%</span>
-          <span className="text-[10px] font-bold text-secondary tracking-widest mt-0.5">LULUS</span>
-        </div>
-      </div>
-      <span className="text-text-muted font-semibold text-sm text-center leading-tight">{label}</span>
-    </div>
   );
 };
 

@@ -79,7 +79,7 @@ const PricingSection = () => {
                 <span className="text-primary font-bold text-sm bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
                   {PACKAGES.starter.credits} Foto
                 </span>
-                <span className="text-text-muted text-xs">≈ Rp {(PACKAGES.starter.price / PACKAGES.starter.credits).toLocaleString("id-ID")}/foto</span>
+                <span className="text-text-muted text-xs">Up to {PACKAGES.starter.credits} Foto</span>
               </div>
             </div>
 
@@ -119,7 +119,7 @@ const PricingSection = () => {
                 <span className="text-secondary font-bold text-sm bg-secondary/10 border border-secondary/20 px-3 py-1 rounded-full">
                    {PACKAGES.pro.credits} Foto
                 </span>
-                <span className="text-text-muted text-xs">≈ Rp {(PACKAGES.pro.price / PACKAGES.pro.credits).toLocaleString("id-ID")}/foto</span>
+                <span className="text-text-muted text-xs">Up to {PACKAGES.pro.credits} Foto</span>
               </div>
             </div>
 

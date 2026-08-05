@@ -448,6 +448,14 @@ class UltimateSecretaryHandler(FileSystemEventHandler):
 # ==========================================
 app = FastAPI(title="Secretary Agent API v1.5.0")
 
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy" if observer_alive else "degraded",
+        "observer_alive": observer_alive,
+        "history_count": len(history),
+    }
+
 class RollbackRequest(BaseModel):
     target_file: str
     rollback_to_timestamp: str = ""  # Format: YYYY-MM-DD HH:MM:SS — opsional, selalu pakai backup terbaru
@@ -534,17 +542,38 @@ def execute_rollback(req: RollbackRequest, authorization: str = Header(default="
 # ==========================================
 # MAIN EXECUTION
 # ==========================================
+observer_alive = False
+
 def run_observer():
-    event_handler = UltimateSecretaryHandler()
-    observer = Observer()
-    observer.schedule(event_handler, WATCH_DIRECTORY, recursive=True)
-    observer.start()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
+    global observer_alive
+    RESTART_DELAY = 5
+
+    while True:
+        event_handler = UltimateSecretaryHandler()
+        observer = Observer()
+        observer.schedule(event_handler, WATCH_DIRECTORY, recursive=True)
+        try:
+            observer.start()
+            observer_alive = True
+            print(f"[Secretary] Observer started — watching {WATCH_DIRECTORY}")
+
+            while observer.is_alive():
+                time.sleep(1)
+
+            # observer.is_alive() returned False but no exception — unexpected exit
+            print("[Secretary] Observer stopped unexpectedly, restarting...")
+        except Exception as e:
+            print(f"[Secretary] Observer crashed: {e}")
+        finally:
+            observer_alive = False
+            try:
+                observer.stop()
+            except Exception:
+                pass
+            observer.join()
+
+        print(f"[Secretary] Restarting observer in {RESTART_DELAY}s...")
+        time.sleep(RESTART_DELAY)
 
 if __name__ == "__main__":
     load_db()

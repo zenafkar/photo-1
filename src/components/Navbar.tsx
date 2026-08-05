@@ -138,15 +138,15 @@ const Navbar = () => {
         data-component="nav"
         className={`fixed w-full z-[60] transition-all duration-300 pt-[env(safe-area-inset-top)] ${
           isScrolled
-            ? 'bg-background/90 backdrop-blur-lg border-b border-surface-border py-2'
-            : 'bg-transparent py-3'
+            ? 'bg-background/90 backdrop-blur-lg border-b border-surface-border py-1.5'
+            : 'bg-transparent py-2'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-12 lg:h-14">
+          <div className="flex items-center justify-between h-14">
             {/* Logo */}
             <a href="#" className="flex items-center gap-2 sm:gap-2.5 group shrink-0" aria-label="ZenStudio — Beranda">
-              <ZenLogo className="h-10 group-hover:scale-105 transition-transform" />
+              <ZenLogo className="h-11 group-hover:scale-105 transition-transform" />
             </a>
 
             {/* Desktop Nav Links */}
@@ -264,7 +264,7 @@ const Navbar = () => {
                 style={{ paddingTop: 'env(safe-area-inset-top)' }}
               >
                 <a href="#" onClick={() => setIsOpen(false)} className="flex items-center gap-2 group shrink-0" aria-label="ZenStudio — Beranda">
-                  <ZenLogo className="h-10" />
+                  <ZenLogo className="h-11" />
                 </a>
                 <button
                   onClick={() => setIsOpen(false)}

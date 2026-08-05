@@ -9,9 +9,11 @@ import { isAllowedUrl } from "../services/urlSafety";
 const router = Router();
 
 const generateSchema = z.object({
-  imageUrl: z.string().min(1).max(5000).refine(isAllowedUrl, {
-    message: "URL tidak valid. Gunakan HTTPS atau data:image (PNG/JPEG/WebP) base64.",
-  }),
+  imageUrls: z.array(
+    z.string().min(1).max(5000).refine(isAllowedUrl, {
+      message: "URL tidak valid. Gunakan HTTPS atau data:image (PNG/JPEG/WebP) base64.",
+    })
+  ).min(1).max(3),
   prompt: z.string().min(3).max(2000),
   provider: z.enum(["replicate", "nanobanana", "nanobanana2", "gptimage"]).optional(),
   aspectRatio: z.string().max(20).optional(),
@@ -31,12 +33,14 @@ router.post("/", async (req: Request, res: Response) => {
     if (!parsed.success) {
       return res.status(400).json({ success: false, message: "Invalid payload", errors: parsed.error.issues });
     }
-    const { imageUrl, prompt, provider, aspectRatio, resolution, outputFormat } = parsed.data;
+    const { imageUrls, prompt, provider, aspectRatio, resolution, outputFormat } = parsed.data;
 
-    // Server-side size validation: reject base64 images larger than ~10MB
+    // Server-side size validation: reject base64 images larger than ~10MB each
     const MAX_BASE64_SIZE = 15 * 1024 * 1024; // 15MB (~10MB raw image + base64 overhead)
-    if (imageUrl && imageUrl.startsWith("data:") && imageUrl.length > MAX_BASE64_SIZE) {
-      return res.status(413).json({ success: false, message: "Ukuran gambar terlalu besar (maksimal 10MB). Silakan gunakan gambar dengan ukuran lebih kecil." });
+    for (const imageUrl of imageUrls) {
+      if (imageUrl.startsWith("data:") && imageUrl.length > MAX_BASE64_SIZE) {
+        return res.status(413).json({ success: false, message: "Ukuran salah satu gambar terlalu besar (maksimal 10MB per gambar). Silakan gunakan gambar dengan ukuran lebih kecil." });
+      }
     }
 
     // Fetch user and check credits
@@ -136,25 +140,27 @@ router.post("/", async (req: Request, res: Response) => {
     }
 
     // ── Now do the expensive work: save original, call AI, save result ──
-    let localOriginalUrl = "";
+    let localOriginalUrls: string[] = [];
     let localProcessedUrl = "";
     let predictionId: string | undefined;
 
     try {
-      // Save original image locally
-      localOriginalUrl = await saveBase64Locally(imageUrl, req);
+      // Save original images locally
+      for (const imageUrl of imageUrls) {
+        const localUrl = await saveBase64Locally(imageUrl, req);
+        localOriginalUrls.push(localUrl);
+      }
 
       // Replicate tidak bisa mengakses http://localhost, gunakan base64 Data URI jika local URL mengandung localhost
-      const validAiImageUrl = (localOriginalUrl.includes("localhost") || localOriginalUrl.includes("127.0.0.1"))
-        ? imageUrl
-        : localOriginalUrl;
-
-      // Dedup: if a prediction with this replicateId already exists for this user
-      // (handled inside AIService.generate, but we need the predictionId first)
+      const validAiImageUrls = localOriginalUrls.map((localUrl, i) =>
+        (localUrl.includes("localhost") || localUrl.includes("127.0.0.1"))
+          ? imageUrls[i]
+          : localUrl
+      );
 
       // Call modular AI Provider (Secure, server-side only)
       const result = await AIService.generate({
-        imageUrl: validAiImageUrl,
+        imageUrls: validAiImageUrls,
         prompt,
         provider,
         aspectRatio,
@@ -169,9 +175,9 @@ router.post("/", async (req: Request, res: Response) => {
           where: { replicateId: predictionId, userId: user!.id }
         });
         if (existing) {
-          // Clean up the original file we already saved (would otherwise leak)
-          if (localOriginalUrl) {
-            try { await deleteLocalImage(localOriginalUrl); } catch (e: any) {
+          // Clean up the original files we already saved (would otherwise leak)
+          for (const url of localOriginalUrls) {
+            try { await deleteLocalImage(url); } catch (e: any) {
               console.warn("[Generate] Failed to clean up leaked original file:", e?.message);
             }
           }
@@ -218,7 +224,7 @@ router.post("/", async (req: Request, res: Response) => {
         where: { id: deductionResult.generation.id },
         data: {
           replicateId: predictionId || null,
-          originalUrl: localOriginalUrl,
+          originalUrl: JSON.stringify(localOriginalUrls),
           processedUrl: localProcessedUrl,
           status: "completed",
         },
@@ -230,7 +236,7 @@ router.post("/", async (req: Request, res: Response) => {
           generation: {
             ...deductionResult.generation,
             replicateId: predictionId || null,
-            originalUrl: localOriginalUrl,
+            originalUrl: JSON.stringify(localOriginalUrls),
             processedUrl: localProcessedUrl,
             status: "completed",
           },
@@ -274,8 +280,8 @@ router.post("/", async (req: Request, res: Response) => {
         refunded = true;
 
         // Clean up saved files (outside transaction — file ops shouldn't roll back DB)
-        if (localOriginalUrl) {
-          try { await deleteLocalImage(localOriginalUrl); } catch {}
+        for (const url of localOriginalUrls) {
+          try { await deleteLocalImage(url); } catch {}
         }
         if (localProcessedUrl) {
           try { await deleteLocalImage(localProcessedUrl); } catch {}
@@ -327,7 +333,18 @@ router.delete("/:id", async (req: Request, res: Response) => {
       await deleteLocalImage(generation.processedUrl);
     }
     if (generation.originalUrl) {
-      await deleteLocalImage(generation.originalUrl);
+      try {
+        const parsed = JSON.parse(generation.originalUrl);
+        if (Array.isArray(parsed)) {
+          for (const url of parsed) {
+            await deleteLocalImage(url);
+          }
+        } else {
+          await deleteLocalImage(generation.originalUrl);
+        }
+      } catch {
+        await deleteLocalImage(generation.originalUrl);
+      }
     }
 
     await prisma.generation.delete({

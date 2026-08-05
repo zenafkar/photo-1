@@ -1,5 +1,5 @@
 export interface AIGenerationOptions {
-  imageUrl: string;
+  imageUrls: string[];
   prompt: string;
   provider?: "replicate" | "nanobanana" | "nanobanana2" | "gptimage";
   aspectRatio?: string;
@@ -108,7 +108,7 @@ export class AIService {
   }
 
   private static async callReplicate(options: AIGenerationOptions): Promise<AIGenerationResult> {
-    const { imageUrl, prompt, aspectRatio, resolution, outputFormat } = options;
+    const { imageUrls, prompt, aspectRatio, resolution, outputFormat } = options;
     const token = process.env.REPLICATE_API_TOKEN;
     console.log(`[AI] Calling Replicate (Nano Banana Pro) with prompt: ${prompt}`);
 
@@ -119,7 +119,7 @@ export class AIService {
     const { options: fetchOpts, clearTimeout: clear } = this.getFetchOptions({
       input: {
         prompt: prompt,
-        image_input: [imageUrl],
+        image_input: imageUrls,
         aspect_ratio: aspectRatio,
         resolution: resolution ? resolution.toUpperCase() : "1K",
         output_format: outputFormat || "jpg"
@@ -166,7 +166,7 @@ export class AIService {
   }
 
   private static async callReplicateNanoBanana2(options: AIGenerationOptions): Promise<AIGenerationResult> {
-    const { imageUrl, prompt, aspectRatio, resolution, outputFormat } = options;
+    const { imageUrls, prompt, aspectRatio, resolution, outputFormat } = options;
     const token = process.env.REPLICATE_API_TOKEN;
     console.log(`[AI] Calling Replicate (Nano Banana 2) with prompt: ${prompt}`);
 
@@ -177,7 +177,7 @@ export class AIService {
     const { options: fetchOpts, clearTimeout: clear } = this.getFetchOptions({
       input: {
         prompt: prompt,
-        image_input: [imageUrl],
+        image_input: imageUrls,
         aspect_ratio: aspectRatio,
         resolution: resolution ? resolution.toUpperCase() : "1K",
         output_format: outputFormat || "jpg"
@@ -224,7 +224,7 @@ export class AIService {
   }
 
   private static async callReplicateGPTImage(options: AIGenerationOptions): Promise<AIGenerationResult> {
-    const { imageUrl, prompt, aspectRatio, resolution, outputFormat } = options;
+    const { imageUrls, prompt, aspectRatio, resolution, outputFormat } = options;
     const token = process.env.REPLICATE_API_TOKEN;
     console.log(`[AI] Calling Replicate (OpenAI GPT-Image 1.5) with prompt: ${prompt}`);
 
@@ -256,8 +256,11 @@ export class AIService {
       quality: mappedQuality
     };
 
-    if (imageUrl && (imageUrl.startsWith("data:image/") || imageUrl.startsWith("https://") || imageUrl.startsWith("http://"))) {
-      inputPayload.input_images = [imageUrl];
+    const validImages = imageUrls.filter(url =>
+      url.startsWith("data:image/") || url.startsWith("https://") || url.startsWith("http://")
+    );
+    if (validImages.length > 0) {
+      inputPayload.input_images = validImages;
     }
 
     const { options: fetchOpts, clearTimeout: clear } = this.getFetchOptions({

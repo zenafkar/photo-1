@@ -133,7 +133,7 @@ export const useApiClient = () => {
   return useMemo(() => ({
     getProfile: () => request("/user/me"),
     generateImage: (payload: {
-      imageUrl: string;
+      imageUrls: string[];
       prompt: string;
       provider?: string;
       aspectRatio?: string;

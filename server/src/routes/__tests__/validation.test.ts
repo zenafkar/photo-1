@@ -3,7 +3,7 @@ import { z } from "zod";
 
 // Same schema as generate.ts
 const generateSchema = z.object({
-  imageUrl: z.string().min(1),
+  imageUrls: z.array(z.string().min(1)).min(1).max(3),
   prompt: z.string().min(3),
   provider: z.enum(["replicate", "nanobanana", "nanobanana2", "gptimage"]).optional(),
   aspectRatio: z.string().optional(),
@@ -14,7 +14,7 @@ const generateSchema = z.object({
 describe("generate payload validation", () => {
   it("accepts a valid payload with all fields", () => {
     const result = generateSchema.safeParse({
-      imageUrl: "https://example.com/photo.jpg",
+      imageUrls: ["https://example.com/photo.jpg"],
       prompt: "Studio lighting, 4k",
       provider: "gptimage",
       aspectRatio: "1:1",
@@ -26,26 +26,51 @@ describe("generate payload validation", () => {
 
   it("accepts minimal valid payload (only required fields)", () => {
     const result = generateSchema.safeParse({
-      imageUrl: "https://example.com/photo.jpg",
+      imageUrls: ["https://example.com/photo.jpg"],
       prompt: "Studio photo",
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejects when imageUrl is empty", () => {
+  it("accepts multiple images up to 3", () => {
     const result = generateSchema.safeParse({
-      imageUrl: "",
+      imageUrls: [
+        "https://example.com/photo1.jpg",
+        "https://example.com/photo2.jpg",
+        "https://example.com/photo3.jpg",
+      ],
+      prompt: "Studio photo",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects more than 3 images", () => {
+    const result = generateSchema.safeParse({
+      imageUrls: [
+        "https://example.com/photo1.jpg",
+        "https://example.com/photo2.jpg",
+        "https://example.com/photo3.jpg",
+        "https://example.com/photo4.jpg",
+      ],
+      prompt: "Studio photo",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects when imageUrls is empty", () => {
+    const result = generateSchema.safeParse({
+      imageUrls: [],
       prompt: "Test prompt here",
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues.some((i) => i.path.includes("imageUrl"))).toBe(true);
+      expect(result.error.issues.some((i) => i.path.includes("imageUrls"))).toBe(true);
     }
   });
 
   it("rejects when prompt is shorter than 3 characters", () => {
     const result = generateSchema.safeParse({
-      imageUrl: "https://example.com/photo.jpg",
+      imageUrls: ["https://example.com/photo.jpg"],
       prompt: "ab",
     });
     expect(result.success).toBe(false);
@@ -56,7 +81,7 @@ describe("generate payload validation", () => {
 
   it("rejects invalid provider enum value", () => {
     const result = generateSchema.safeParse({
-      imageUrl: "https://example.com/photo.jpg",
+      imageUrls: ["https://example.com/photo.jpg"],
       prompt: "Studio photo",
       provider: "invalid-provider",
     });
@@ -65,7 +90,7 @@ describe("generate payload validation", () => {
 
   it("allows optional fields to be omitted", () => {
     const result = generateSchema.safeParse({
-      imageUrl: "data:image/jpeg;base64,abc123",
+      imageUrls: ["data:image/jpeg;base64,abc123"],
       prompt: "Professional studio lighting",
     });
     expect(result.success).toBe(true);

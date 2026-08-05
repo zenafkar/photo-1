@@ -148,7 +148,7 @@ describe("useApiClient", () => {
     const api = setup();
     await act(async () => {
       await api.generateImage({
-        imageUrl: "data:image/jpeg;base64,abc",
+        imageUrls: ["data:image/jpeg;base64,abc"],
         prompt: "Studio lighting",
         provider: "gptimage",
         aspectRatio: "1:1",
@@ -162,7 +162,7 @@ describe("useApiClient", () => {
     expect(options.method).toBe("POST");
 
     const body = JSON.parse(options.body);
-    expect(body.imageUrl).toBe("data:image/jpeg;base64,abc");
+    expect(body.imageUrls).toEqual(["data:image/jpeg;base64,abc"]);
     expect(body.prompt).toBe("Studio lighting");
     expect(body.provider).toBe("gptimage");
   });

@@ -34,7 +34,7 @@ const GoogleIcon = ({ className }: { className?: string }) => (
 
 export default function StudioDashboard() {
   const [credits, setCredits] = useState<number | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [prompt, setPrompt] = useState("");
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [provider, setProvider] = useState("gptimage");
@@ -152,16 +152,16 @@ export default function StudioDashboard() {
     }
   }, [paymentStatus.status, loadProfile]);
 
-  // Track latest blob URL via ref so unmount cleanup always revokes the current one
-  const previewUrlRef = useRef<string | null>(null);
+  // Track latest blob URLs via ref so unmount cleanup always revokes current ones
+  const previewUrlsRef = useRef<string[]>([]);
   useEffect(() => {
-    previewUrlRef.current = previewUrl;
-  }, [previewUrl]);
+    previewUrlsRef.current = previewUrls;
+  }, [previewUrls]);
   useEffect(() => {
     return () => {
-      if (previewUrlRef.current?.startsWith('blob:')) {
-        URL.revokeObjectURL(previewUrlRef.current);
-      }
+      previewUrlsRef.current.forEach(url => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
     };
   }, []);
 
@@ -186,7 +186,7 @@ export default function StudioDashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, isSignedIn]);
 
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [imageBase64Array, setImageBase64Array] = useState<string[]>([]);
 
   const compressImage = (file: File, maxWidth = 1920, maxHeight = 1920, quality = 0.85): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -228,39 +228,64 @@ export default function StudioDashboard() {
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    const MAX_IMAGES = 3;
 
-      // Validasi ukuran file (Max 10MB)
-      const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    if (files.length > MAX_IMAGES) {
+      alert(`Maksimal ${MAX_IMAGES} gambar sekaligus.`);
+      e.target.value = '';
+      return;
+    }
+
+    for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
-        alert("Ukuran file terlalu besar! Maksimal 10MB.");
-        e.target.value = ''; // Reset input
+        alert(`"${file.name}" terlalu besar! Maksimal 10MB per gambar.`);
+        e.target.value = '';
         return;
       }
+    }
 
-      // Revoke previous blob URL to prevent memory leak
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(previewUrl);
-      }
+    previewUrls.forEach(url => {
+      if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+    });
 
-      setPreviewUrl(URL.createObjectURL(file));
-      
+    const newPreviewUrls: string[] = [];
+    const newBase64Array: string[] = [];
+
+    for (const file of files) {
+      newPreviewUrls.push(URL.createObjectURL(file));
       try {
         const compressedBase64 = await compressImage(file);
-        setImageBase64(compressedBase64);
+        newBase64Array.push(compressedBase64);
       } catch {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImageBase64(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        newBase64Array.push(base64);
       }
     }
+
+    setPreviewUrls(newPreviewUrls);
+    setImageBase64Array(newBase64Array);
+    e.target.value = '';
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setPreviewUrls(prev => {
+      const url = prev[index];
+      if (url && url.startsWith('blob:')) URL.revokeObjectURL(url);
+      return prev.filter((_, i) => i !== index);
+    });
+    setImageBase64Array(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleGenerate = async () => {
-    if (!previewUrl || credits === 0 || !imageBase64) return;
+    if (previewUrls.length === 0 || credits === 0 || imageBase64Array.length === 0) return;
 
     const resString = (resolution || "").toLowerCase();
     let creditsToDeduct = resString === "4k" ? 2 : 1;
@@ -294,7 +319,7 @@ export default function StudioDashboard() {
     try {
       // Mengirimkan gambar asli (base64) ke backend
       const res = await api.generateImage({
-        imageUrl: imageBase64,
+        imageUrls: imageBase64Array,
         prompt: prompt,
         provider: provider,
         aspectRatio: aspectRatio,
@@ -508,29 +533,47 @@ export default function StudioDashboard() {
                     <div className="space-y-3">
                       <label className="flex items-center text-sm font-bold text-slate-800">
                         Image <span className="text-red-500 ml-1">*</span>
+                        <span className="ml-2 text-xs font-normal text-slate-500">(Maks 3 gambar)</span>
                       </label>
                       <div className="relative group">
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={handleFileChange}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        />
-                        <div className={`border-2 border-dashed rounded-xl overflow-hidden transition-colors ${previewUrl ? 'border-indigo-300' : 'border-slate-300 group-hover:border-indigo-400 bg-slate-50'}`}>
-                          {previewUrl ? (
-                            <div className="relative aspect-square">
-                              <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <span className="text-white font-medium bg-black/50 px-4 py-2 rounded-lg backdrop-blur-sm">Ganti Foto</span>
-                              </div>
+                        {previewUrls.length < 3 && (
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleFileChange}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          />
+                        )}
+                        <div className={`border-2 border-dashed rounded-xl overflow-hidden transition-colors ${previewUrls.length > 0 ? 'border-indigo-300' : 'border-slate-300 group-hover:border-indigo-400 bg-slate-50'}`}>
+                          {previewUrls.length > 0 ? (
+                            <div className="grid grid-cols-3 gap-2 p-2">
+                              {previewUrls.map((url, index) => (
+                                <div key={index} className="relative aspect-square group/img">
+                                  <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover rounded-lg" />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleRemoveImage(index); }}
+                                    className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md"
+                                  >
+                                    &times;
+                                  </button>
+                                </div>
+                              ))}
+                              {previewUrls.length < 3 && (
+                                <div className="aspect-square flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50">
+                                  <span className="text-indigo-400 text-2xl font-light">+</span>
+                                  <p className="text-[10px] text-slate-400 mt-1">Tambah</p>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="aspect-square flex flex-col items-center justify-center p-8 text-center">
                               <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-4">
                                 <Upload className="w-5 h-5 text-indigo-400" />
                               </div>
-                              <p className="font-medium text-slate-700 mb-1">Upload a file</p>
-                              <p className="text-xs text-slate-500 mb-4">or drag and drop here (Max 10MB)</p>
+                              <p className="font-medium text-slate-700 mb-1">Upload gambar</p>
+                              <p className="text-xs text-slate-500 mb-4">Pilih hingga 3 gambar (Maks 10MB per gambar)</p>
                             </div>
                           )}
                         </div>
@@ -844,7 +887,7 @@ export default function StudioDashboard() {
                     ) : (
                       <button
                         onClick={handleGenerate}
-                        disabled={!previewUrl || isGenerating}
+                        disabled={previewUrls.length === 0 || isGenerating}
                         className="w-full py-3.5 bg-black hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
                       >
                         {isGenerating ? (

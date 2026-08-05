@@ -95,7 +95,7 @@ const app = createApp();
 
 // Helper to create a valid generate payload
 const validPayload = {
-  imageUrl: "data:image/jpeg;base64,abc123",
+  imageUrls: ["data:image/jpeg;base64,abc123"],
   prompt: "Studio lighting, 4k",
   provider: "gptimage",
   aspectRatio: "1:1",
@@ -180,7 +180,7 @@ describe("Generate Routes", () => {
   it("POST /api/v1/generate returns 400 with invalid body", async () => {
     const res = await request(app)
       .post("/api/v1/generate")
-      .send({ imageUrl: "", prompt: "ab" });
+      .send({ imageUrls: [], prompt: "ab" });
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);

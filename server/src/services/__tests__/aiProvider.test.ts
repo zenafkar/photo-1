@@ -23,7 +23,7 @@ describe("AIService", () => {
         })
       );
 
-      await AIService.generate({ imageUrl: "https://example.com/photo.jpg", prompt: "test", provider: "nanobanana" });
+      await AIService.generate({ imageUrls: ["https://example.com/photo.jpg"], prompt: "test", provider: "nanobanana" });
 
       const calledUrl = fetchMock.mock.calls[0][0];
       expect(calledUrl).toContain("google/nano-banana-pro");
@@ -37,7 +37,7 @@ describe("AIService", () => {
         })
       );
 
-      await AIService.generate({ imageUrl: "https://example.com/photo.jpg", prompt: "test", provider: "nanobanana2" });
+      await AIService.generate({ imageUrls: ["https://example.com/photo.jpg"], prompt: "test", provider: "nanobanana2" });
 
       const calledUrl = fetchMock.mock.calls[0][0];
       expect(calledUrl).toContain("google/nano-banana-2");
@@ -51,7 +51,7 @@ describe("AIService", () => {
         })
       );
 
-      await AIService.generate({ imageUrl: "https://example.com/photo.jpg", prompt: "test", provider: "gptimage" });
+      await AIService.generate({ imageUrls: ["https://example.com/photo.jpg"], prompt: "test", provider: "gptimage" });
 
       const calledUrl = fetchMock.mock.calls[0][0];
       expect(calledUrl).toContain("openai/gpt-image-1.5");
@@ -65,7 +65,7 @@ describe("AIService", () => {
         })
       );
 
-      await AIService.generate({ imageUrl: "https://example.com/photo.jpg", prompt: "test" });
+      await AIService.generate({ imageUrls: ["https://example.com/photo.jpg"], prompt: "test" });
 
       const calledUrl = fetchMock.mock.calls[0][0];
       expect(calledUrl).toContain("google/nano-banana-pro");
@@ -81,7 +81,7 @@ describe("AIService", () => {
       );
 
       await AIService.generate({
-        imageUrl: "https://example.com/photo.jpg",
+        imageUrls: ["https://example.com/photo.jpg"],
         prompt: "test",
         provider: "gptimage",
         aspectRatio: "9:16",
@@ -106,7 +106,7 @@ describe("AIService", () => {
         );
 
         await AIService.generate({
-          imageUrl: "https://example.com/photo.jpg",
+          imageUrls: ["https://example.com/photo.jpg"],
           prompt: "test",
           provider: "gptimage",
           resolution: res,
@@ -125,7 +125,7 @@ describe("AIService", () => {
       );
 
       await AIService.generate({
-        imageUrl: "https://example.com/photo.jpg",
+        imageUrls: ["https://example.com/photo.jpg"],
         prompt: "test",
         provider: "gptimage",
         outputFormat: "jpg",
@@ -141,7 +141,7 @@ describe("AIService", () => {
       process.env.REPLICATE_API_TOKEN = "r8_...";
 
       await expect(
-        AIService.generate({ imageUrl: "https://example.com/photo.jpg", prompt: "test" })
+        AIService.generate({ imageUrls: ["https://example.com/photo.jpg"], prompt: "test" })
       ).rejects.toThrow("REPLICATE_API_TOKEN is missing or invalid");
     });
 
@@ -150,7 +150,7 @@ describe("AIService", () => {
       fetchMock.mockRejectedValueOnce(Object.assign(new Error("The operation was aborted"), { name: "AbortError" }));
 
       await expect(
-        AIService.generate({ imageUrl: "https://example.com/photo.jpg", prompt: "test" })
+        AIService.generate({ imageUrls: ["https://example.com/photo.jpg"], prompt: "test" })
       ).rejects.toThrow("timed out"); // User-friendly timeout message
     });
   });

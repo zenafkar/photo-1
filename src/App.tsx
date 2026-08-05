@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { TopUpProvider } from "./context/TopUpContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ClerkModalFix } from "./components/ClerkModalFix";
 
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const StudioDashboard = lazy(() => import("./pages/StudioDashboard"));
@@ -21,6 +22,7 @@ function ScrollToTop() {
 function App() {
   return (
     <BrowserRouter>
+      <ClerkModalFix />
       <ScrollToTop />
       <TopUpProvider>
         <ErrorBoundary>

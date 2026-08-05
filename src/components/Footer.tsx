@@ -69,16 +69,27 @@ const Footer = () => {
           {/* Pembayaran */}
           <div>
             <h3 className="font-sans font-bold text-text mb-4">Pembayaran</h3>
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">QRIS</span>
-              <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">GoPay</span>
-              <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">OVO</span>
-              <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">DANA</span>
-              <span className="inline-flex items-center px-1.5 py-1 rounded-lg bg-white border border-surface-border">
-                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/visa/default.svg" alt="Visa" className="h-4 w-auto object-contain" />
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center justify-center h-7 px-2.5 rounded-lg bg-surface/80 border border-surface-border text-xs font-semibold text-text-muted hover:text-text hover:border-primary/30 transition-all cursor-default">
+                QRIS
               </span>
-              <span className="inline-flex items-center px-1.5 py-1 rounded-lg bg-white border border-surface-border">
-                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/mastercard/default.svg" alt="Mastercard" className="h-4 w-auto object-contain" />
+              <span className="inline-flex items-center justify-center h-7 px-2.5 rounded-lg bg-surface/80 border border-surface-border text-xs font-semibold text-text-muted hover:text-text hover:border-primary/30 transition-all cursor-default">
+                GoPay
+              </span>
+              <span className="inline-flex items-center justify-center h-7 px-2.5 rounded-lg bg-surface/80 border border-surface-border text-xs font-semibold text-text-muted hover:text-text hover:border-primary/30 transition-all cursor-default">
+                OVO
+              </span>
+              <span className="inline-flex items-center justify-center h-7 px-2.5 rounded-lg bg-surface/80 border border-surface-border text-xs font-semibold text-text-muted hover:text-text hover:border-primary/30 transition-all cursor-default">
+                DANA
+              </span>
+              <span className="inline-flex items-center justify-center h-7 px-2.5 rounded-lg bg-surface/80 border border-surface-border text-xs font-semibold text-text-muted hover:text-text hover:border-primary/30 transition-all cursor-default">
+                Bank Transfer
+              </span>
+              <span className="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-white border border-surface-border shadow-xs hover:border-primary/40 transition-all">
+                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/visa/default.svg" alt="Visa" className="h-3.5 w-auto object-contain" />
+              </span>
+              <span className="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-white border border-surface-border shadow-xs hover:border-primary/40 transition-all">
+                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/mastercard/default.svg" alt="Mastercard" className="h-3.5 w-auto object-contain" />
               </span>
             </div>
           </div>

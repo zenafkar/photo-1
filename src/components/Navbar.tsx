@@ -276,9 +276,9 @@ const Navbar = () => {
               </div>
 
               {/* Menu Content */}
-              <div className="px-6 pb-8 pt-10 flex-1 flex flex-col justify-center">
-                {/* Nav Links with huge typography */}
-                <div className="flex flex-col space-y-6 sm:space-y-8">
+              <div className="px-6 pb-6 pt-6 flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
+                {/* Nav Links with sleek minimalist style */}
+                <div className="flex flex-col space-y-2">
                   {navLinks.map((link, i) => {
                     return (
                       <motion.a
@@ -286,17 +286,18 @@ const Navbar = () => {
                         ref={i === 0 ? firstMenuItemRef : undefined}
                         href={link.href}
                         onClick={() => setIsOpen(false)}
-                        initial={{ opacity: 0, y: 40 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.08, duration: 0.5, type: 'spring', bounce: 0.2 }}
-                        className="group relative flex items-baseline gap-4 w-fit active:scale-[0.98] transition-transform"
+                        transition={{ delay: i * 0.05, duration: 0.35, ease: 'easeOut' }}
+                        className="group flex items-center gap-4 px-4 py-3.5 rounded-xl text-text hover:text-primary hover:bg-surface/50 transition-all duration-200 active:scale-[0.98]"
                       >
-                        <span className="text-sm sm:text-base font-mono text-primary font-bold -translate-y-4 sm:-translate-y-6 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <span className="text-xs font-mono text-primary/60 font-semibold tracking-widest group-hover:text-primary transition-colors">
                           {String(i + 1).padStart(2, '0')}
                         </span>
-                        <span className="text-4xl xs:text-5xl font-black text-text tracking-tight group-hover:text-primary transition-colors duration-300">
+                        <span className="text-xl sm:text-2xl font-bold tracking-tight">
                           {link.label}
                         </span>
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
                       </motion.a>
                     );
                   })}
@@ -304,28 +305,28 @@ const Navbar = () => {
               </div>
 
               {/* Auth Section with stagger */}
-              <div className="px-6 pb-12">
+              <div className="px-6 pb-10 max-w-md mx-auto w-full">
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4, duration: 0.5, type: 'spring' }}
+                  transition={{ delay: 0.3, duration: 0.4 }}
                 >
                   {!ready ? (
                     <div className="flex justify-center py-4">
                       <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                     </div>
                   ) : isSignedIn ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <Link
                         to="/studio"
                         onClick={() => setIsOpen(false)}
-                        className="w-full bg-primary text-white px-4 py-5 rounded-2xl text-lg font-black flex items-center gap-3 justify-center shadow-[0_8px_30px_rgba(212,69,42,0.35)] active:scale-[0.98] transition-transform duration-300"
+                        className="w-full bg-primary text-white px-4 py-3.5 rounded-xl text-base font-bold flex items-center gap-2.5 justify-center shadow-[0_4px_20px_rgba(212,69,42,0.25)] hover:shadow-[0_6px_25px_rgba(212,69,42,0.35)] active:scale-[0.98] transition-all duration-200"
                       >
-                        <Sparkles className="w-6 h-6" />
+                        <Sparkles className="w-5 h-5" />
                         Masuk Studio
                       </Link>
-                      <div className="flex items-center justify-between px-5 py-4 bg-surface/80 backdrop-blur-md rounded-2xl border border-surface-border shadow-xl">
-                        <span className="text-base font-bold text-text">Profil & Akun</span>
+                      <div className="flex items-center justify-between px-4 py-3.5 bg-surface/60 backdrop-blur-md rounded-xl border border-surface-border">
+                        <span className="text-sm font-semibold text-text">Profil & Akun</span>
                         <UserButton afterSignOutUrl="/">
                           <UserButton.MenuItems>
                             <UserButton.Link label="Studio Dashboard" labelIcon={<Sparkles size={15} />} href="/studio" />
@@ -336,17 +337,17 @@ const Navbar = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <button
                         onClick={() => { setIsOpen(false); handleOpenSignUp(); }}
-                        className="w-full bg-primary text-white px-4 py-5 rounded-2xl text-lg font-black flex items-center gap-3 justify-center shadow-[0_8px_30px_rgba(212,69,42,0.35)] active:scale-[0.98] transition-transform duration-300"
+                        className="w-full bg-primary text-white px-4 py-3.5 rounded-xl text-base font-bold flex items-center gap-2.5 justify-center shadow-[0_4px_20px_rgba(212,69,42,0.25)] hover:shadow-[0_6px_25px_rgba(212,69,42,0.35)] active:scale-[0.98] transition-all duration-200"
                       >
-                        <Sparkles className="w-6 h-6" />
+                        <Sparkles className="w-5 h-5" />
                         Coba Gratis — 3 Foto
                       </button>
                       <button
                         onClick={() => { setIsOpen(false); handleOpenSignIn(); }}
-                        className="w-full px-4 py-5 rounded-2xl text-lg font-bold text-text hover:text-primary transition-all duration-200 text-center border border-surface-border bg-surface/50 backdrop-blur-md active:scale-[0.98]"
+                        className="w-full px-4 py-3.5 rounded-xl text-base font-semibold text-text hover:text-primary transition-all duration-200 text-center border border-surface-border bg-surface/40 backdrop-blur-md active:scale-[0.98]"
                       >
                         Masuk
                       </button>
@@ -358,10 +359,10 @@ const Navbar = () => {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 0.5 }}
-                  className="mt-10 flex justify-center pb-2"
+                  transition={{ delay: 0.4, duration: 0.4 }}
+                  className="mt-6 flex justify-center pb-2"
                 >
-                  <div className="flex items-center gap-3 text-text-muted/30 text-xs font-mono tracking-[0.2em] uppercase">
+                  <div className="flex items-center gap-2.5 text-text-muted/30 text-[11px] font-mono tracking-[0.2em] uppercase">
                     <Sparkles className="w-3 h-3 text-primary/40" />
                     <span>ZenStudio</span>
                     <Sparkles className="w-3 h-3 text-secondary/40" />

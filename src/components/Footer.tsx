@@ -70,13 +70,17 @@ const Footer = () => {
           {/* Pembayaran */}
           <div>
             <h3 className="font-sans font-bold text-text mb-4">Pembayaran</h3>
-            <div className="flex flex-wrap gap-2.5">
-              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2024/10/b737877a71b67787615112f4854b30b6_e2190f206776feffdd640a8cc617a45e_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
-              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2020/10/f7fb2e0ab8572355142dba33ddc7b8d6_0747205be87147c03d04217ad4eb06c3_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
-              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2021/03/5db129dbf7357fd4b59fe9fbbf883f74_e82f1494c766508e8bb827c564ccf373_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
-              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2020/09/080278a8b6c1dea174b9109fa539355e_2af5ca82c1d8c4b76219600643ff509a_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
-              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2020/09/b2bbf094c458f87f3f2da2a586e7900f_02a27aedf91f8278ededd199d03fb89b_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
-              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2021/02/bc8804c570a21f444ff665c5e8882b06_be31feee12a5fd37e039cd951d664959_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">QRIS</span>
+              <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">GoPay</span>
+              <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">OVO</span>
+              <span className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">DANA</span>
+              <span className="inline-flex items-center px-1.5 py-1 rounded-lg bg-white border border-surface-border">
+                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/visa/default.svg" alt="Visa" className="h-4 w-auto object-contain" />
+              </span>
+              <span className="inline-flex items-center px-1.5 py-1 rounded-lg bg-white border border-surface-border">
+                <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/mastercard/default.svg" alt="Mastercard" className="h-4 w-auto object-contain" />
+              </span>
             </div>
           </div>
         </div>

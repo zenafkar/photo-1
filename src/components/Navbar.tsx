@@ -77,13 +77,13 @@ const Navbar = () => {
       document.body.style.right = '0';
       document.getElementById('root')?.setAttribute('aria-hidden', 'true');
       return () => {
+        window.scrollTo(0, scrollY);
         document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.left = '';
         document.body.style.right = '';
         document.getElementById('root')?.removeAttribute('aria-hidden');
-        window.scrollTo(0, scrollY);
       };
     }
   }, [isOpen]);

@@ -1,14 +1,16 @@
 import os
 import json
+import re
 import time
 import shutil
 import hashlib
+import secrets
 import threading
 from datetime import datetime, timedelta
 from collections import deque
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Query, Header, BackgroundTasks
 from pydantic import BaseModel
 import uvicorn
 import requests
@@ -27,11 +29,59 @@ MAX_FILE_SIZE_DIFF_BYTES = 1024 * 1024  # 1 MB Limit
 #   - hooks.slack.com           → Slack Block
 #   - URL lainnya               → Raw JSON (existing)
 WEBHOOK_URL = os.getenv("SECRETARY_WEBHOOK_URL")
+# Auth token untuk endpoint rollback. Wajib diset — server fail-close jika kosong.
+AUTH_TOKEN = os.getenv("SECRETARY_AUTH_TOKEN", "")
+
+# File yang dilarang di-diff / dikirim ke webhook karena bisa memuat secret.
+# .env* dan *.pem/*.key berpotensi memuat kredensial; test-* mengarah ke prod.
+SENSITIVE_FILENAMES = (
+    ".env", ".env.local", ".env.production", ".env.development",
+    ".env.example", ".pem", ".key", ".p12", ".pfx",
+    "test-clerk.js", "test-ui.js", "*.tsbuildinfo",
+)
 
 IGNORE_LIST = [
     ".git", "__pycache__", ".DS_Store", "node_modules", ".venv",
-    DATABASE_FILE, DATABASE_FILE + ".tmp", "agent_log.txt", ".cache"
+    DATABASE_FILE, DATABASE_FILE + ".tmp", "agent_log.txt", ".cache",
+    ".env", ".env.local", ".env.production", ".env.development",
+    ".env.example", "*.pem", "*.key", "*.p12", "*.pfx",
+    "test-clerk.js", "test-ui.js", "*.tsbuildinfo",
 ]
+
+def is_sensitive_path(rel_path):
+    """True jika path memuat nama file yang berpotensi memuat secret."""
+    base = os.path.basename(rel_path).lower()
+    if base in (".env", ".env.local", ".env.production", ".env.development", ".env.example"):
+        return True
+    if base.endswith((".pem", ".key", ".p12", ".pfx", ".tsbuildinfo")):
+        return True
+    return False
+
+def sanitize_target_for_backup(target):
+    """Sanitasi nama file untuk nama backup — aman untuk lintas-OS (bukan hanya \\)."""
+    return re.sub(r'[^A-Za-z0-9_\-.]', '_', target)
+
+def is_safe_target(target):
+    """Validasi path rollback: relatif, tanpa traversal, dan masih di dalam WATCH_DIRECTORY."""
+    if not target:
+        return False
+    if os.path.isabs(target):
+        return False
+    # Tolak traversal (Unix maupun Windows) dan path dengan null byte
+    if ".." in target.replace("\\", "/").split("/"):
+        return False
+    if "\x00" in target:
+        return False
+    resolved = os.path.realpath(os.path.join(WATCH_DIRECTORY, target))
+    watch_root = os.path.realpath(WATCH_DIRECTORY)
+    try:
+        return os.path.commonpath([resolved, watch_root]) == watch_root
+    except ValueError:
+        return False
+
+def is_authenticated(token):
+    """Perbandingan token constant-time."""
+    return bool(AUTH_TOKEN) and secrets.compare_digest(token or "", AUTH_TOKEN)
 
 # In-Memory Database & Cache
 history = deque(maxlen=MAX_HISTORY)
@@ -258,8 +308,14 @@ class UltimateSecretaryHandler(FileSystemEventHandler):
         self.last_event_time = {}
 
     def is_ignored(self, rel_path):
-        parts = rel_path.split(os.sep)
-        return any(ignored in parts or rel_path == ignored for ignored in IGNORE_LIST)
+        parts = rel_path.replace(os.sep, "/").split("/")
+        for ignored in IGNORE_LIST:
+            if ignored.startswith("*."):
+                if any(p.endswith(ignored[1:]) for p in parts):
+                    return True
+            elif ignored in parts or rel_path == ignored:
+                return True
+        return is_sensitive_path(rel_path)
 
     def process_change(self, event_type, src_path, is_dir, dest_path=None):
         rel_path = os.path.relpath(src_path, WATCH_DIRECTORY)
@@ -291,7 +347,13 @@ class UltimateSecretaryHandler(FileSystemEventHandler):
             if event_type == "diubah" and old_data.get("hash") == current_hash and current_hash is not None:
                 return
 
-            if current_lines is not None and old_lines:
+            # Defense-in-depth: file sensitif (mis. .env) tidak pernah di-diff/di-log
+            # isinya, meski lolos IGNORE_LIST. Mencegah kebocoran secret via webhook.
+            if is_sensitive_path(rel_path):
+                entry["diff_stat"] = "SENSITIVE_FILE_SKIPPED"
+                entry["perubahan_detail"] = ["[konten disembunyikan: file sensitif]"]
+
+            if current_lines is not None and old_lines and not is_sensitive_path(rel_path):
                 # Simpan Shadow Backup dari kondisi lama sebelum ditimpa
                 make_shadow_backup(rel_path, old_lines)
 
@@ -361,9 +423,20 @@ def filter_notulensi(menit: int = None, kata_kunci: str = None):
     return {"total": len(hasil), "data": hasil}
 
 @app.post("/notulensi/rollback")
-def execute_rollback(req: RollbackRequest):
+def execute_rollback(req: RollbackRequest, authorization: str = Header(default="")):
     """Auto-Rollback API: Memulihkan file dari Shadow Backup"""
-    safe_target = req.target_file.replace(os.sep, "_")
+    # Autentikasi: fail-close jika token tidak diset di env, atau mismatch.
+    if not AUTH_TOKEN:
+        raise HTTPException(status_code=503, detail="Server misconfiguration: SECRETARY_AUTH_TOKEN not set.")
+    provided = authorization[7:] if authorization.lower().startswith("bearer ") else ""
+    if not is_authenticated(provided):
+        raise HTTPException(status_code=401, detail="Unauthorized.")
+
+    # Validasi path: tolak traversal keluar dari WATCH_DIRECTORY.
+    if not is_safe_target(req.target_file):
+        raise HTTPException(status_code=400, detail="Invalid target_file.")
+
+    safe_target = sanitize_target_for_backup(req.target_file)
 
     # Cari file backup terdekat di folder .cache/secretary_backups/
     if not os.path.exists(BACKUP_DIR):

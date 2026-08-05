@@ -1,5 +1,7 @@
 import puppeteer from 'puppeteer';
 
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5173';
+
 (async () => {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
@@ -15,8 +17,8 @@ import puppeteer from 'puppeteer';
     console.error(`BROWSER_NETWORK_ERROR: ${request.url()} - ${request.failure()?.errorText}`);
   });
 
-  console.log('Navigating to https://zenstudio.my.id...');
-  await page.goto('https://zenstudio.my.id', { waitUntil: 'networkidle0', timeout: 30000 });
+  console.log(`Navigating to ${BASE_URL}...`);
+  await page.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: 30000 });
   
   console.log('Page loaded. Checking for "Masuk" or "Mulai Gratis" button...');
   

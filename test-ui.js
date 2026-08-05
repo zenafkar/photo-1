@@ -1,5 +1,7 @@
 import puppeteer from 'puppeteer';
 
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5173';
+
 (async () => {
   console.log('Launching browser...');
   const browser = await puppeteer.launch({ headless: true });
@@ -20,8 +22,8 @@ import puppeteer from 'puppeteer';
     }
   });
 
-  console.log('Navigating to https://zenstudio.my.id...');
-  await page.goto('https://zenstudio.my.id', { waitUntil: 'networkidle0', timeout: 60000 });
+  console.log(`Navigating to ${BASE_URL}...`);
+  await page.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: 60000 });
   
   // Set viewport to simulate desktop
   await page.setViewport({ width: 1920, height: 1080 });

@@ -245,18 +245,11 @@ const Navbar = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
-              className="fixed inset-0 z-[70] min-h-[100dvh] bg-background/95 backdrop-blur-xl lg:hidden overflow-y-auto overscroll-contain"
+              className="fixed inset-0 z-[70] min-h-[100dvh] bg-background/90 backdrop-blur-3xl lg:hidden overflow-y-auto overscroll-contain flex flex-col"
             >
-              {/* Top accent gradient line */}
-              <motion.div
-                initial={{ scaleX: 0, opacity: 0 }}
-                animate={{ scaleX: 1, opacity: 1 }}
-                transition={{ delay: 0.1, duration: 0.4, ease: 'easeOut' }}
-                className="h-[2px] bg-gradient-to-r from-primary via-secondary to-primary origin-left"
-              />
-
-              {/* Ambient glow */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 bg-[radial-gradient(circle,rgba(212,69,42,0.08)_0%,transparent_70%)] pointer-events-none" />
+              {/* Ambient glow mesh */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150vw] h-[50vh] bg-[radial-gradient(ellipse_at_top,rgba(212,69,42,0.15)_0%,transparent_70%)] pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-[100vw] h-[50vh] bg-[radial-gradient(ellipse_at_bottom_right,rgba(61,139,125,0.1)_0%,transparent_70%)] pointer-events-none" />
 
               {/* Header with close button */}
               <div
@@ -283,68 +276,56 @@ const Navbar = () => {
               </div>
 
               {/* Menu Content */}
-              <div className="px-4 pb-8 pt-6">
-                {/* Nav Links with stagger animation */}
-                <div className="space-y-1">
+              <div className="px-6 pb-8 pt-10 flex-1 flex flex-col justify-center">
+                {/* Nav Links with huge typography */}
+                <div className="flex flex-col space-y-6 sm:space-y-8">
                   {navLinks.map((link, i) => {
-                    const Icon = link.icon;
                     return (
                       <motion.a
                         key={link.href}
                         ref={i === 0 ? firstMenuItemRef : undefined}
                         href={link.href}
                         onClick={() => setIsOpen(false)}
-                        initial={{ opacity: 0, x: -16 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05, duration: 0.25, ease: 'easeOut' }}
-                        className="group flex items-center gap-4 px-4 py-3.5 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface/50 transition-all duration-200 min-h-[52px] active:scale-[0.98]"
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.08, duration: 0.5, type: 'spring', bounce: 0.2 }}
+                        className="group relative flex items-baseline gap-4 w-fit active:scale-[0.98] transition-transform"
                       >
-                        <div className="p-2 rounded-lg bg-surface border border-surface-border group-hover:bg-primary/10 group-hover:border-primary/20 group-hover:text-primary transition-all duration-200 text-text-muted">
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-[10px] font-mono text-primary/40 font-bold">
-                            {String(i + 1).padStart(2, '0')}
-                          </span>
-                          <span>{link.label}</span>
-                        </div>
-                        {/* Animated underline on hover */}
-                        <div className="ml-auto w-0 h-[2px] bg-primary rounded-full group-hover:w-8 transition-all duration-300" />
+                        <span className="text-sm sm:text-base font-mono text-primary font-bold -translate-y-4 sm:-translate-y-6 opacity-60 group-hover:opacity-100 transition-opacity">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <span className="text-4xl xs:text-5xl font-black text-text tracking-tight group-hover:text-primary transition-colors duration-300">
+                          {link.label}
+                        </span>
                       </motion.a>
                     );
                   })}
                 </div>
+              </div>
 
-                {/* Gradient divider */}
+              {/* Auth Section with stagger */}
+              <div className="px-6 pb-12">
                 <motion.div
-                  initial={{ scaleX: 0, opacity: 0 }}
-                  animate={{ scaleX: 1, opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.4, ease: 'easeOut' }}
-                  className="my-6 h-px bg-gradient-to-r from-transparent via-surface-border to-transparent origin-center"
-                />
-
-                {/* Auth Section with stagger */}
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35, duration: 0.3, ease: 'easeOut' }}
+                  transition={{ delay: 0.4, duration: 0.5, type: 'spring' }}
                 >
                   {!ready ? (
                     <div className="flex justify-center py-4">
                       <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                     </div>
                   ) : isSignedIn ? (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <Link
                         to="/studio"
                         onClick={() => setIsOpen(false)}
-                        className="w-full bg-primary text-white px-4 py-4 rounded-xl text-base font-bold flex items-center gap-2 justify-center min-h-[52px] shadow-[0_4px_20px_rgba(212,69,42,0.3)] hover:shadow-[0_6px_25px_rgba(212,69,42,0.45)] transition-all duration-300 active:scale-[0.98]"
+                        className="w-full bg-primary text-white px-4 py-5 rounded-2xl text-lg font-black flex items-center gap-3 justify-center shadow-[0_8px_30px_rgba(212,69,42,0.35)] active:scale-[0.98] transition-transform duration-300"
                       >
-                        <Sparkles className="w-5 h-5" />
+                        <Sparkles className="w-6 h-6" />
                         Masuk Studio
                       </Link>
-                      <div className="flex items-center justify-between px-4 py-3 bg-surface/50 rounded-xl border border-surface-border">
-                        <span className="text-sm font-medium text-text">Profil & Akun</span>
+                      <div className="flex items-center justify-between px-5 py-4 bg-surface/80 backdrop-blur-md rounded-2xl border border-surface-border shadow-xl">
+                        <span className="text-base font-bold text-text">Profil & Akun</span>
                         <UserButton afterSignOutUrl="/">
                           <UserButton.MenuItems>
                             <UserButton.Link label="Studio Dashboard" labelIcon={<Sparkles size={15} />} href="/studio" />
@@ -355,19 +336,19 @@ const Navbar = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      <button
-                        onClick={() => { setIsOpen(false); handleOpenSignIn(); }}
-                        className="w-full px-4 py-4 rounded-xl text-base font-semibold text-text hover:text-primary hover:bg-surface/50 transition-all duration-200 text-left min-h-[52px] border border-surface-border hover:border-primary/30 active:scale-[0.98]"
-                      >
-                        Masuk
-                      </button>
+                    <div className="space-y-4">
                       <button
                         onClick={() => { setIsOpen(false); handleOpenSignUp(); }}
-                        className="w-full bg-primary text-white px-4 py-4 rounded-xl text-base font-bold flex items-center gap-2 justify-center min-h-[52px] shadow-[0_4px_20px_rgba(212,69,42,0.3)] hover:shadow-[0_6px_25px_rgba(212,69,42,0.45)] transition-all duration-300 active:scale-[0.98]"
+                        className="w-full bg-primary text-white px-4 py-5 rounded-2xl text-lg font-black flex items-center gap-3 justify-center shadow-[0_8px_30px_rgba(212,69,42,0.35)] active:scale-[0.98] transition-transform duration-300"
                       >
-                        <Sparkles className="w-5 h-5" />
+                        <Sparkles className="w-6 h-6" />
                         Coba Gratis — 3 Foto
+                      </button>
+                      <button
+                        onClick={() => { setIsOpen(false); handleOpenSignIn(); }}
+                        className="w-full px-4 py-5 rounded-2xl text-lg font-bold text-text hover:text-primary transition-all duration-200 text-center border border-surface-border bg-surface/50 backdrop-blur-md active:scale-[0.98]"
+                      >
+                        Masuk
                       </button>
                     </div>
                   )}
@@ -377,13 +358,13 @@ const Navbar = () => {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 0.5 }}
-                  className="mt-8 flex justify-center"
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  className="mt-10 flex justify-center pb-2"
                 >
-                  <div className="flex items-center gap-2 text-text-muted/40 text-xs font-mono">
-                    <div className="w-1 h-1 rounded-full bg-primary/30" />
+                  <div className="flex items-center gap-3 text-text-muted/30 text-xs font-mono tracking-[0.2em] uppercase">
+                    <Sparkles className="w-3 h-3 text-primary/40" />
                     <span>ZenStudio</span>
-                    <div className="w-1 h-1 rounded-full bg-secondary/30" />
+                    <Sparkles className="w-3 h-3 text-secondary/40" />
                   </div>
                 </motion.div>
               </div>

@@ -21,11 +21,16 @@ DATABASE_FILE = "Notulensi.json"
 BACKUP_DIR = ".cache/secretary_backups"
 MAX_HISTORY = 1000
 MAX_FILE_SIZE_DIFF_BYTES = 1024 * 1024  # 1 MB Limit
-WEBHOOK_URL = None  # Ganti dengan URL listener OpenCode AI jika ada (cth: "http://127.0.0.1:9000/webhook")
+# WEBHOOK_URL: Baca dari environment variable SECRETARY_WEBHOOK_URL
+# Format otomatis dideteksi dari URL:
+#   - discord.com/api/webhooks  → Discord Embed
+#   - hooks.slack.com           → Slack Block
+#   - URL lainnya               → Raw JSON (existing)
+WEBHOOK_URL = os.getenv("SECRETARY_WEBHOOK_URL")
 
 IGNORE_LIST = [
     ".git", "__pycache__", ".DS_Store", "node_modules", ".venv",
-    DATABASE_FILE, "agent_log.txt", ".cache"
+    DATABASE_FILE, DATABASE_FILE + ".tmp", "agent_log.txt", ".cache"
 ]
 
 # In-Memory Database & Cache
@@ -88,17 +93,162 @@ def load_db():
             if os.path.exists(DATABASE_FILE):
                 os.rename(DATABASE_FILE, DATABASE_FILE + ".corrupted")
 
+def detect_webhook_type(url):
+    """Auto-deteksi format webhook berdasarkan URL pattern."""
+    if not url:
+        return "raw"
+    url_lower = url.lower()
+    if "discord.com/api/webhooks" in url_lower:
+        return "discord"
+    if "hooks.slack.com" in url_lower:
+        return "slack"
+    return "raw"
+
+def format_discord_payload(entry):
+    """Bungkus entry jadi Discord Embed format."""
+    aksi = entry.get("aksi", "unknown")
+    target = entry.get("target", "?")
+    waktu = entry.get("waktu", "?")
+    jenis = entry.get("jenis", "file")
+
+    # Warna embed berdasarkan jenis aksi
+    color_map = {
+        "dibuat": 0x57F287,   # hijau
+        "diubah": 0xFEE75C,   # kuning
+        "dihapus": 0xED4245,  # merah
+        "rollback": 0x5865F2, # biru
+    }
+    color = color_map.get(aksi.split(" ke")[0], 0x95A5A6)  # abu-abu default
+
+    embed = {
+        "title": f"{aksi.upper()} — {target}",
+        "color": color,
+        "timestamp": waktu,
+        "fields": [
+            {"name": "Target", "value": f"`{target}`", "inline": True},
+            {"name": "Jenis", "value": jenis, "inline": True},
+        ],
+    }
+
+    # Tambah diff stat jika ada
+    diff_stat = entry.get("diff_stat")
+    if diff_stat and isinstance(diff_stat, dict):
+        embed["fields"].append({
+            "name": "Diff",
+            "value": f"+{diff_stat.get('ditambah', 0)} / -{diff_stat.get('dihapus', 0)} baris",
+            "inline": True
+        })
+
+    # Tambah detail perubahan (ringkas, maks 10 baris)
+    detail = entry.get("perubahan_detail", [])
+    if detail:
+        detail_text = "\n".join(detail[:10])
+        if len(detail) > 10:
+            detail_text += f"\n... dan {len(detail) - 10} baris lainnya"
+        embed["description"] = f"```diff\n{detail_text}\n```"
+
+    # Keterangan khusus (rollback)
+    keterangan = entry.get("keterangan")
+    if keterangan:
+        embed["fields"].append({"name": "Keterangan", "value": keterangan, "inline": False})
+
+    return {
+        "embeds": [embed],
+        "username": "Agent Secretary",
+    }
+
+def format_slack_payload(entry):
+    """Bungkus entry jadi Slack Block Kit format."""
+    aksi = entry.get("aksi", "unknown")
+    target = entry.get("target", "?")
+    waktu = entry.get("waktu", "?")
+
+    # Emoji berdasarkan aksi
+    emoji_map = {
+        "dibuat": ":heavy_plus_sign:",
+        "diubah": ":pencil2:",
+        "dihapus": ":wastebasket:",
+        "rollback": ":rewind:",
+    }
+    emoji = emoji_map.get(aksi.split(" ke")[0], ":information_source:")
+
+    blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"{emoji} *{aksi.upper()}* — `{target}`"
+            }
+        },
+        {
+            "type": "context",
+            "elements": [
+                {"type": "mrkdwn", "text": f":clock3: {waktu}  |  :file_folder: {entry.get('jenis', 'file')}"}
+            ]
+        }
+    ]
+
+    # Diff stat
+    diff_stat = entry.get("diff_stat")
+    if diff_stat and isinstance(diff_stat, dict):
+        blocks.append({
+            "type": "context",
+            "elements": [
+                {"type": "mrkdwn", "text": f":bar_chart: `+{diff_stat.get('ditambah', 0)}` / `-{diff_stat.get('dihapus', 0)}` baris"}
+            ]
+        })
+
+    # Detail perubahan (ringkas)
+    detail = entry.get("perubahan_detail", [])
+    if detail:
+        detail_text = "\n".join(detail[:10])
+        if len(detail) > 10:
+            detail_text += f"\n... dan {len(detail) - 10} baris lainnya"
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"```{detail_text}```"
+            }
+        })
+
+    # Keterangan rollback
+    keterangan = entry.get("keterangan")
+    if keterangan:
+        blocks.append({
+            "type": "context",
+            "elements": [{"type": "mrkdwn", "text": f":memo: {keterangan}"}]
+        })
+
+    return {
+        "blocks": blocks,
+        "username": "Agent Secretary",
+    }
+
 def send_webhook_async(payload):
-    """Webhook Pusher Non-blocking dengan 3x Retry"""
+    """Webhook Pusher Non-blocking dengan 3x Retry + Auto-format Discord/Slack"""
     if not WEBHOOK_URL:
         return
-    for _ in range(3):
+
+    webhook_type = detect_webhook_type(WEBHOOK_URL)
+    if webhook_type == "discord":
+        formatted = format_discord_payload(payload)
+    elif webhook_type == "slack":
+        formatted = format_slack_payload(payload)
+    else:
+        formatted = payload  # Raw JSON untuk generic webhook
+
+    for attempt in range(3):
         try:
-            res = requests.post(WEBHOOK_URL, json=payload, timeout=2)
-            if res.status_code == 200:
+            res = requests.post(WEBHOOK_URL, json=formatted, timeout=3)
+            if res.status_code in (200, 204):
+                break
+            # Discord/Slack return non-200 on malformed payload — jangan retry
+            if webhook_type in ("discord", "slack") and 400 <= res.status_code < 500:
                 break
         except Exception:
-            time.sleep(1)
+            if attempt < 2:
+                time.sleep(1)
 
 # ==========================================
 # CORE FILE WATCHER & CONTENT DIFFING
@@ -194,7 +344,7 @@ app = FastAPI(title="Secretary Agent API v1.4.0")
 
 class RollbackRequest(BaseModel):
     target_file: str
-    rollback_to_timestamp: str  # Format: YYYY-MM-DD HH:MM:SS
+    rollback_to_timestamp: str = ""  # Format: YYYY-MM-DD HH:MM:SS — opsional, selalu pakai backup terbaru
 
 @app.get("/notulensi/terakhir")
 def get_terakhir(limit: int = Query(default=10, le=100)):
@@ -279,5 +429,7 @@ if __name__ == "__main__":
     watcher_thread = threading.Thread(target=run_observer, daemon=True)
     watcher_thread.start()
 
-    print("Agent Secretary v1.4.0 Aktif [Port 8000]")
+    wh_type = detect_webhook_type(WEBHOOK_URL) if WEBHOOK_URL else None
+    wh_status = f"Webhook: {wh_type.upper()}" if wh_type else "Webhook: OFF"
+    print(f"Agent Secretary v1.5.0 Aktif [Port 8000] | {wh_status}")
     uvicorn.run(app, host="127.0.0.1", port=8000, log_level="error")

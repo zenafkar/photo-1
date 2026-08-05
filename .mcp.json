@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "secretary": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "agent-secretary/mcp_server.py"
+      ],
+      "env": {}
+    }
+  }
+}

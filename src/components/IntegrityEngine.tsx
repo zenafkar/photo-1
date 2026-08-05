@@ -4,11 +4,10 @@ import {
   Droplet,
   Image as ImageIcon,
   Cpu,
-  Zap,
   MousePointer2
 } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const IntegrityEngine = () => {
   const sectionRef = useRef<HTMLElement>(null);

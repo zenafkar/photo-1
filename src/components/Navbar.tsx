@@ -77,6 +77,10 @@ const Navbar = () => {
       document.body.style.right = '0';
       document.getElementById('root')?.setAttribute('aria-hidden', 'true');
       return () => {
+        const html = document.documentElement;
+        // Disable smooth scrolling temporarily to prevent 'anchor effect' jumping
+        html.style.setProperty('scroll-behavior', 'auto', 'important');
+
         // Clear fixed positioning first so the document regains its scroll height
         document.body.style.overflow = '';
         document.body.style.position = '';
@@ -85,20 +89,13 @@ const Navbar = () => {
         document.body.style.right = '';
         document.getElementById('root')?.removeAttribute('aria-hidden');
 
-        // rAF callback runs BEFORE the next paint, so scrollTo happens in the same
-        // paint cycle as the style clear — no visible jump from top to bottom.
-        requestAnimationFrame(() => {
-          // Temporarily disable smooth scroll to prevent 'anchor effect' jumping
-          const html = document.documentElement;
-          html.style.setProperty('scroll-behavior', 'auto', 'important');
-          
-          window.scrollTo({ top: scrollY, left: 0, behavior: 'instant' } as ScrollToOptions);
-          
-          // Restore smooth scroll on the next frame
-          requestAnimationFrame(() => {
-            html.style.removeProperty('scroll-behavior');
-          });
-        });
+        // Scroll immediately synchronously (don't wait for rAF, which can cause layout thrashing on mobile)
+        window.scrollTo({ top: scrollY, left: 0, behavior: 'instant' } as ScrollToOptions);
+        
+        // Wait slightly before restoring smooth scroll to ensure the instant scroll is fully processed
+        setTimeout(() => {
+          html.style.removeProperty('scroll-behavior');
+        }, 10);
       };
     }
   }, [isOpen]);

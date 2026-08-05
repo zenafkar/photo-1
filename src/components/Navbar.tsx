@@ -5,6 +5,7 @@ import { UserButton, useAuth, useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ZenLogo } from './ZenLogo';
+import { handleSmoothScroll } from '../utils/smoothScroll';
 
 const navLinks = [
   { href: '#cara-kerja', label: 'Cara Kerja', icon: Zap },
@@ -155,6 +156,7 @@ const Navbar = () => {
                 <a
                   key={link.href}
                   href={link.href}
+                  onClick={(e) => handleSmoothScroll(e, link.href)}
                   className="px-4 py-1.5 text-sm font-medium text-text-muted hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-px after:bg-primary after:transition-all hover:after:w-3/4"
                 >
                   {link.label}
@@ -285,7 +287,7 @@ const Navbar = () => {
                         key={link.href}
                         ref={i === 0 ? firstMenuItemRef : undefined}
                         href={link.href}
-                        onClick={() => setIsOpen(false)}
+                        onClick={(e) => handleSmoothScroll(e, link.href, () => setIsOpen(false))}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05, duration: 0.35, ease: 'easeOut' }}

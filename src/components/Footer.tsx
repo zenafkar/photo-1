@@ -1,5 +1,6 @@
 import { ZenLogo } from './ZenLogo';
 import { TikTokIcon } from './MarketplaceIcons';
+import { handleSmoothScroll } from '../utils/smoothScroll';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -42,10 +43,10 @@ const Footer = () => {
           <div>
             <h3 className="font-sans font-bold text-text mb-4">Produk</h3>
             <ul className="space-y-3">
-              <li><a href="#fitur" className="text-text-muted hover:text-primary text-sm transition-colors">AI Studio</a></li>
-              <li><a href="#integrity" className="text-text-muted hover:text-primary text-sm transition-colors">Integrity Engine™</a></li>
-              <li><a href="#fitur" className="text-text-muted hover:text-primary text-sm transition-colors">Marketplace Presets</a></li>
-              <li><a href="#harga" className="text-text-muted hover:text-primary text-sm transition-colors">Harga</a></li>
+              <li><a href="#fitur" onClick={(e) => handleSmoothScroll(e, '#fitur')} className="text-text-muted hover:text-primary text-sm transition-colors">AI Studio</a></li>
+              <li><a href="#integrity" onClick={(e) => handleSmoothScroll(e, '#integrity')} className="text-text-muted hover:text-primary text-sm transition-colors">Integrity Engine™</a></li>
+              <li><a href="#fitur" onClick={(e) => handleSmoothScroll(e, '#fitur')} className="text-text-muted hover:text-primary text-sm transition-colors">Marketplace Presets</a></li>
+              <li><a href="#harga" onClick={(e) => handleSmoothScroll(e, '#harga')} className="text-text-muted hover:text-primary text-sm transition-colors">Harga</a></li>
             </ul>
           </div>
 

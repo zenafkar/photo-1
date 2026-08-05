@@ -14,9 +14,9 @@ const Footer = () => {
     <footer data-component="footer" className="bg-background pt-16 pb-8 border-t border-surface-border text-text">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-10 mb-12">
           {/* Brand */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div className="sm:col-span-2 lg:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
               <ZenLogo className="w-8 h-8" />
               <span className="font-sans text-xl font-bold text-text tracking-tight">ZenStudio</span>
@@ -65,6 +65,19 @@ const Footer = () => {
               <li><a href="#" className="text-text-muted hover:text-primary text-sm transition-colors">Syarat & Ketentuan</a></li>
               <li><a href="#" className="text-text-muted hover:text-primary text-sm transition-colors">Kebijakan Privasi</a></li>
             </ul>
+          </div>
+
+          {/* Pembayaran */}
+          <div>
+            <h3 className="font-sans font-bold text-text mb-4">Pembayaran</h3>
+            <div className="flex flex-wrap gap-2.5">
+              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2024/10/b737877a71b67787615112f4854b30b6_e2190f206776feffdd640a8cc617a45e_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
+              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2020/10/f7fb2e0ab8572355142dba33ddc7b8d6_0747205be87147c03d04217ad4eb06c3_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
+              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2021/03/5db129dbf7357fd4b59fe9fbbf883f74_e82f1494c766508e8bb827c564ccf373_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
+              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2020/09/080278a8b6c1dea174b9109fa539355e_2af5ca82c1d8c4b76219600643ff509a_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
+              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2020/09/b2bbf094c458f87f3f2da2a586e7900f_02a27aedf91f8278ededd199d03fb89b_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
+              <img src="https://midtrans-website.al-mp-id-p.cdn.gtflabs.io/uploads/2021/02/bc8804c570a21f444ff665c5e8882b06_be31feee12a5fd37e039cd951d664959_compressed.png" alt="Payment Method" className="h-6 w-auto object-contain bg-white rounded px-1.5 py-1" />
+            </div>
           </div>
         </div>
 

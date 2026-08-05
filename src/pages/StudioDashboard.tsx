@@ -1,5 +1,5 @@
 import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useAuth } from "@clerk/clerk-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useApiClient } from "../services/api";
 import { Loader2, Upload, Sparkles, Image as ImageIcon, Trash2, Download, Home, Zap, AlertTriangle, RefreshCw, Wand2, CheckCircle2, XCircle } from 'lucide-react';
@@ -57,63 +57,6 @@ export default function StudioDashboard() {
   const { openTopUp } = useTopUp();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // ── Payment return detection ───────────────────────────
-  const [paymentBanner, setPaymentBanner] = useState<"success" | "failed" | null>(null);
-  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
-
-  const paymentStatus = usePaymentStatus(pendingOrderId);
-
-  // Detect ?payment=success or ?payment=failed on mount
-  useEffect(() => {
-    const paymentParam = searchParams.get("payment");
-    if (paymentParam === "success") {
-      // Try to find the orderId from a pending order to poll
-      const storedOrderId = sessionStorage.getItem("lastPaymentOrderId");
-      if (storedOrderId) {
-        setPaymentBanner("success");
-        setPendingOrderId(storedOrderId);
-      } else {
-        // No orderId available — fall back to direct profile refresh
-        loadProfile();
-        setPaymentBanner("success");
-        // Auto-dismiss after 30s since we can't poll without an orderId
-        setTimeout(() => setPaymentBanner(null), 30_000);
-      }
-      // Clean URL
-      const next = new URLSearchParams(searchParams);
-      next.delete("payment");
-      setSearchParams(next, { replace: true });
-    } else if (paymentParam === "failed") {
-      setPaymentBanner("failed");
-      // Auto-dismiss after 30s
-      setTimeout(() => setPaymentBanner(null), 30_000);
-      const next = new URLSearchParams(searchParams);
-      next.delete("payment");
-      setSearchParams(next, { replace: true });
-    }
-  }, []); // Only on mount
-
-  // When polling settles, refresh credits and show success
-  useEffect(() => {
-    if (paymentStatus.status === "settled") {
-      loadProfile();
-      setPaymentBanner("success");
-      sessionStorage.removeItem("lastPaymentOrderId");
-      setPendingOrderId(null);
-      // Auto-dismiss success banner after 8s once settled
-      const timer = setTimeout(() => setPaymentBanner(null), 8_000);
-      return () => clearTimeout(timer);
-    } else if (paymentStatus.status === "expired" || paymentStatus.status === "failed") {
-      setPaymentBanner("failed");
-      sessionStorage.removeItem("lastPaymentOrderId");
-      setPendingOrderId(null);
-      // Auto-dismiss failure banner after 10s
-      const timer = setTimeout(() => setPaymentBanner(null), 10_000);
-      return () => clearTimeout(timer);
-    }
-  }, [paymentStatus.status]);
-
-
   const handleSyncReplicate = useCallback(async (isSilent = true) => {
     if (!isLoaded || !isSignedIn) return;
     try {
@@ -147,20 +90,78 @@ export default function StudioDashboard() {
     } catch (err: any) {
       console.error("Failed to load profile:", err);
       setProfileError(err.message || "Gagal memuat profil & riwayat gambar.");
-      // Keep existing credits state to prevent top-right badge from collapsing to 0 on network errors
     } finally {
       setIsLoadingProfile(false);
     }
   }, [isLoaded, isSignedIn, api, handleSyncReplicate]);
 
-  // Revoke blob URL on unmount to prevent memory leak
+  // ── Payment return detection ───────────────────────────
+  const [paymentBanner, setPaymentBanner] = useState<"success" | "failed" | null>(null);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const paymentReturnHandled = useRef(false);
+
+  const paymentStatus = usePaymentStatus(pendingOrderId);
+
+  // Detect ?payment=success or ?payment=failed on mount (ref-guarded, no stale closure)
+  useEffect(() => {
+    if (paymentReturnHandled.current) return;
+    const paymentParam = searchParams.get("payment");
+    if (!paymentParam) return;
+    paymentReturnHandled.current = true;
+
+    if (paymentParam === "success") {
+      const storedOrderId = sessionStorage.getItem("lastPaymentOrderId");
+      if (storedOrderId) {
+        setPaymentBanner("success");
+        setPendingOrderId(storedOrderId);
+      } else {
+        loadProfile();
+        setPaymentBanner("success");
+        setTimeout(() => setPaymentBanner(null), 30_000);
+      }
+      const next = new URLSearchParams(searchParams);
+      next.delete("payment");
+      setSearchParams(next, { replace: true });
+    } else if (paymentParam === "failed") {
+      setPaymentBanner("failed");
+      setTimeout(() => setPaymentBanner(null), 30_000);
+      const next = new URLSearchParams(searchParams);
+      next.delete("payment");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams, loadProfile]);
+
+  // When polling settles, refresh credits and show success
+  useEffect(() => {
+    if (paymentStatus.status === "settled") {
+      loadProfile();
+      setPaymentBanner("success");
+      sessionStorage.removeItem("lastPaymentOrderId");
+      setPendingOrderId(null);
+      // Auto-dismiss success banner after 8s once settled
+      const timer = setTimeout(() => setPaymentBanner(null), 8_000);
+      return () => clearTimeout(timer);
+    } else if (paymentStatus.status === "expired" || paymentStatus.status === "failed") {
+      setPaymentBanner("failed");
+      sessionStorage.removeItem("lastPaymentOrderId");
+      setPendingOrderId(null);
+      // Auto-dismiss failure banner after 10s
+      const timer = setTimeout(() => setPaymentBanner(null), 10_000);
+      return () => clearTimeout(timer);
+    }
+  }, [paymentStatus.status, loadProfile]);
+
+  // Track latest blob URL via ref so unmount cleanup always revokes the current one
+  const previewUrlRef = useRef<string | null>(null);
+  useEffect(() => {
+    previewUrlRef.current = previewUrl;
+  }, [previewUrl]);
   useEffect(() => {
     return () => {
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(previewUrl);
+      if (previewUrlRef.current?.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrlRef.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

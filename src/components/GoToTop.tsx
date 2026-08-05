@@ -6,16 +6,18 @@ const GoToTop = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    let ticking = false;
     const toggleVisibility = () => {
-      if (window.scrollY > 300) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setIsVisible(window.scrollY > 300);
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
-    window.addEventListener('scroll', toggleVisibility);
-    // Call once initially to check current scroll position on load
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
     toggleVisibility();
 
     return () => window.removeEventListener('scroll', toggleVisibility);

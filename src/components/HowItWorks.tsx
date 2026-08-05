@@ -1,6 +1,5 @@
 import { UploadCloud, Cpu, Download, ShieldCheck, Zap, Droplet, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRef } from 'react';
 
 const steps = [
   {
@@ -65,7 +64,6 @@ const ScoreRing = ({ label, value, color }: { label: string; value: number; colo
 };
 
 const HowItWorks = () => {
-  const ringsRef = useRef<HTMLDivElement>(null);
 
   return (
     <section id="cara-kerja" className="py-16 md:py-24 bg-background relative overflow-hidden">
@@ -113,7 +111,7 @@ const HowItWorks = () => {
         </div>
 
         {/* Trust Rings — Authenticity Scores */}
-        <div ref={ringsRef} className="mt-16 md:mt-20 max-w-4xl mx-auto">
+        <div className="mt-16 md:mt-20 max-w-4xl mx-auto">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-xs font-semibold text-secondary mb-4">
               <ShieldCheck className="w-3.5 h-3.5" />

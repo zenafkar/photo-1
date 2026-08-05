@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { Wand2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { ScrollReveal } from './ScrollReveal';
 
+const FULL_PROMPT = "Professional commercial product photography of a serum bottle on a dark marble pedestal, fine gold dust particles floating gracefully, dramatic cinematic rim light, crisp reflections, moody elegant dark backdrop, ultra-detailed 8k resolution...";
+
 export default function PromptFeatureHighlight() {
-  const fullPrompt = "Professional commercial product photography of a serum bottle on a dark marble pedestal, fine gold dust particles floating gracefully, dramatic cinematic rim light, crisp reflections, moody elegant dark backdrop, ultra-detailed 8k resolution...";
   const [displayedText, setDisplayedText] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -14,8 +15,8 @@ export default function PromptFeatureHighlight() {
       let i = 0;
       setDisplayedText("");
       const typeWriter = setInterval(() => {
-        if (i < fullPrompt.length) {
-          setDisplayedText(fullPrompt.slice(0, i + 1));
+        if (i < FULL_PROMPT.length) {
+          setDisplayedText(FULL_PROMPT.slice(0, i + 1));
           i++;
         } else {
           clearInterval(typeWriter);
@@ -29,7 +30,7 @@ export default function PromptFeatureHighlight() {
       }, 1500);
     }
     return () => clearTimeout(timeout);
-  }, [isGenerating, fullPrompt]);
+  }, [isGenerating]);
 
   return (
     <section className="py-20 bg-background border-y border-surface-border overflow-hidden relative">

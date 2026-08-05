@@ -187,6 +187,8 @@ export default function StudioDashboard() {
   }, [isLoaded, isSignedIn]);
 
   const [imageBase64Array, setImageBase64Array] = useState<string[]>([]);
+  const [imageMetadata, setImageMetadata] = useState<{name: string, size: number}[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const compressImage = (file: File, maxWidth = 1920, maxHeight = 1920, quality = 0.85): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -253,9 +255,11 @@ export default function StudioDashboard() {
 
     const newPreviewUrls: string[] = [];
     const newBase64Array: string[] = [];
+    const newMetadata: {name: string, size: number}[] = [];
 
     for (const file of files) {
       newPreviewUrls.push(URL.createObjectURL(file));
+      newMetadata.push({ name: file.name, size: file.size });
       try {
         const compressedBase64 = await compressImage(file);
         newBase64Array.push(compressedBase64);
@@ -272,7 +276,57 @@ export default function StudioDashboard() {
 
     setPreviewUrls(newPreviewUrls);
     setImageBase64Array(newBase64Array);
+    setImageMetadata(newMetadata);
     e.target.value = '';
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (!e.dataTransfer.files) return;
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length === 0) return;
+
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    const MAX_IMAGES = 3;
+
+    const totalAfterAdd = previewUrls.length + files.length;
+    if (totalAfterAdd > MAX_IMAGES) {
+      alert(`Maksimal ${MAX_IMAGES} gambar. Saat ini sudah ada ${previewUrls.length} gambar.`);
+      return;
+    }
+
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`"${file.name}" terlalu besar! Maksimal 10MB per gambar.`);
+        return;
+      }
+    }
+
+    const newPreviewUrls: string[] = [...previewUrls];
+    const newBase64Array: string[] = [...imageBase64Array];
+    const newMetadata: {name: string, size: number}[] = [...imageMetadata];
+
+    for (const file of files) {
+      newPreviewUrls.push(URL.createObjectURL(file));
+      newMetadata.push({ name: file.name, size: file.size });
+      try {
+        const compressedBase64 = await compressImage(file);
+        newBase64Array.push(compressedBase64);
+      } catch {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        newBase64Array.push(base64);
+      }
+    }
+
+    setPreviewUrls(newPreviewUrls);
+    setImageBase64Array(newBase64Array);
+    setImageMetadata(newMetadata);
   };
 
   const handleRemoveImage = (index: number) => {
@@ -282,6 +336,7 @@ export default function StudioDashboard() {
       return prev.filter((_, i) => i !== index);
     });
     setImageBase64Array(prev => prev.filter((_, i) => i !== index));
+    setImageMetadata(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleGenerate = async () => {
@@ -533,9 +588,19 @@ export default function StudioDashboard() {
                     <div className="space-y-3">
                       <label className="flex items-center text-sm font-bold text-slate-800">
                         Image <span className="text-red-500 ml-1">*</span>
-                        <span className="ml-2 text-xs font-normal text-slate-500">(Maks 3 gambar)</span>
+                        {previewUrls.length > 0 && (
+                          <span className="ml-2 text-xs font-semibold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+                            {previewUrls.length}/3 gambar
+                          </span>
+                        )}
                       </label>
-                      <div className="relative group">
+                      <div 
+                        className={`relative group ${previewUrls.length < 3 ? 'cursor-pointer' : ''}`}
+                        onDragOver={(e) => { e.preventDefault(); if (previewUrls.length < 3) setIsDragOver(true); }}
+                        onDragEnter={(e) => { e.preventDefault(); if (previewUrls.length < 3) setIsDragOver(true); }}
+                        onDragLeave={() => setIsDragOver(false)}
+                        onDrop={handleDrop}
+                      >
                         {previewUrls.length < 3 && (
                           <input
                             type="file"
@@ -545,35 +610,85 @@ export default function StudioDashboard() {
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                           />
                         )}
-                        <div className={`border-2 border-dashed rounded-xl overflow-hidden transition-colors ${previewUrls.length > 0 ? 'border-indigo-300' : 'border-slate-300 group-hover:border-indigo-400 bg-slate-50'}`}>
+                        <div className={`border-2 border-dashed rounded-xl overflow-hidden transition-all duration-200 ${
+                          isDragOver 
+                            ? 'border-indigo-500 bg-indigo-50 scale-[1.02] shadow-lg shadow-indigo-500/20' 
+                            : previewUrls.length > 0 
+                              ? 'border-indigo-300 bg-white' 
+                              : 'border-slate-300 group-hover:border-indigo-400 bg-slate-50'
+                        }`}>
                           {previewUrls.length > 0 ? (
-                            <div className="grid grid-cols-3 gap-2 p-2">
+                            <div className={`grid gap-2 p-2 ${
+                              previewUrls.length === 1 
+                                ? 'grid-cols-1 max-w-[280px] mx-auto' 
+                                : previewUrls.length === 2 
+                                  ? 'grid-cols-2' 
+                                  : 'grid-cols-3'
+                            }`}>
                               {previewUrls.map((url, index) => (
-                                <div key={index} className="relative aspect-square group/img">
-                                  <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover rounded-lg" />
+                                <div key={index} className="relative group/img">
+                                  <div className={`overflow rounded-lg ${
+                                    previewUrls.length === 1 ? 'aspect-[4/3]' : 'aspect-square'
+                                  }`}>
+                                    <img 
+                                      src={url} 
+                                      alt={`Preview ${index + 1}`} 
+                                      className="w-full h-full object-cover" 
+                                    />
+                                  </div>
+                                  {/* Number Badge */}
+                                  <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-md">
+                                    {index + 1}
+                                  </div>
+                                  {/* Remove Button */}
                                   <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); handleRemoveImage(index); }}
-                                    className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md"
+                                    className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md"
                                   >
                                     &times;
                                   </button>
+                                  {/* File Info */}
+                                  {imageMetadata[index] && (
+                                    <div className="mt-1 px-1">
+                                      <p className="text-[10px] text-slate-500 truncate font-medium" title={imageMetadata[index].name}>
+                                        {imageMetadata[index].name}
+                                      </p>
+                                      <p className="text-[9px] text-slate-400 font-medium">
+                                        {imageMetadata[index].size >= 1024 * 1024 
+                                          ? `${(imageMetadata[index].size / (1024 * 1024)).toFixed(1)} MB`
+                                          : `${Math.round(imageMetadata[index].size / 1024)} KB`
+                                        }
+                                      </p>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                               {previewUrls.length < 3 && (
-                                <div className="aspect-square flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50">
+                                <div className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50 ${
+                                  previewUrls.length === 1 ? 'aspect-[4/3]' : 'aspect-square'
+                                }`}>
                                   <span className="text-indigo-400 text-2xl font-light">+</span>
                                   <p className="text-[10px] text-slate-400 mt-1">Tambah</p>
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <div className="aspect-square flex flex-col items-center justify-center p-8 text-center">
-                              <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-4">
-                                <Upload className="w-5 h-5 text-indigo-400" />
+                            <div className={`flex flex-col items-center justify-center p-8 text-center transition-all ${
+                              isDragOver ? 'bg-indigo-100' : ''
+                            }`}>
+                              <div className={`w-12 h-12 rounded-full shadow-sm flex items-center justify-center mb-4 transition-all ${
+                                isDragOver ? 'bg-indigo-200 scale-110' : 'bg-white'
+                              }`}>
+                                <Upload className={`w-5 h-5 transition-colors ${isDragOver ? 'text-indigo-600' : 'text-indigo-400'}`} />
                               </div>
-                              <p className="font-medium text-slate-700 mb-1">Upload gambar</p>
-                              <p className="text-xs text-slate-500 mb-4">Pilih hingga 3 gambar (Maks 10MB per gambar)</p>
+                              <p className="font-medium text-slate-700 mb-1">
+                                {isDragOver ? 'Lepaskan gambar di sini' : 'Upload gambar'}
+                              </p>
+                              <p className="text-xs text-slate-500 mb-1">
+                                {isDragOver ? 'Minimal 1 gambar' : 'Pilih atau seret gambar ke sini'}
+                              </p>
+                              <p className="text-[10px] text-slate-400">Hingga 3 gambar &middot; Maks 10MB per gambar</p>
                             </div>
                           )}
                         </div>

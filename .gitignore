@@ -19,5 +19,5 @@ agent_log.txt
 __pycache__/
 *.pyc
 
-# Deprecated local agent config (superseded by global ~/.config/opencode)
-Agent Smart/
+# Agent Smart node_modules (but track the config files)
+Agent Smart/.opencode/node_modules/

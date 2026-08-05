@@ -77,13 +77,19 @@ const Navbar = () => {
       document.body.style.right = '0';
       document.getElementById('root')?.setAttribute('aria-hidden', 'true');
       return () => {
-        window.scrollTo(0, scrollY);
+        // Clear fixed positioning first so the document regains its scroll height
         document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.left = '';
         document.body.style.right = '';
         document.getElementById('root')?.removeAttribute('aria-hidden');
+
+        // rAF callback runs BEFORE the next paint, so scrollTo happens in the same
+        // paint cycle as the style clear — no visible jump from top to bottom.
+        requestAnimationFrame(() => {
+          window.scrollTo(0, scrollY);
+        });
       };
     }
   }, [isOpen]);

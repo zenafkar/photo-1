@@ -39,7 +39,7 @@
 * Menggunakan *Delay Buffer* 2 detik untuk mengelompokkan *event* beruntun (mencegah *spam*).
 
 ### 4.4. Auto-Rollback & Shadow Backup
-* **Shadow Backup:** Menyimpan maksimal 50 *snapshot* fisik file di folder lokal `.cache/secretary_backups/` sebelum modifikasi diterapkan.
+* **Shadow Backup:** Menyimpan maksimal 60 *snapshot* fisik file di folder lokal `.cache/secretary_backups/` sebelum modifikasi diterapkan (cap otomatis — snapshot tertua dihapus saat melebihi 60).
 * **Granular Restoring:** Memulihkan file spesifik ke titik waktu (*timestamp*) tertentu berdasarkan instruksi API.
 
 ---

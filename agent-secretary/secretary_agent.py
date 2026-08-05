@@ -23,6 +23,7 @@ DATABASE_FILE = "Notulensi.json"
 BACKUP_DIR = ".cache/secretary_backups"
 MAX_HISTORY = 1000
 MAX_FILE_SIZE_DIFF_BYTES = 1024 * 1024  # 1 MB Limit
+MAX_BACKUPS = 60  # Cap jumlah snapshot fisik di .cache/secretary_backups/
 # WEBHOOK_URL: Baca dari environment variable SECRETARY_WEBHOOK_URL
 # Format otomatis dideteksi dari URL:
 #   - discord.com/api/webhooks  → Discord Embed
@@ -122,6 +123,28 @@ def make_shadow_backup(rel_path, lines):
             f.writelines(lines)
     except Exception:
         pass  # Graceful Degradation: Jangan crash jika gagal backup
+    prune_backups()
+
+def prune_backups():
+    """Prune: Batasi jumlah snapshot fisik di BACKUP_DIR sesuai MAX_BACKUPS.
+
+    Backup diurutkan berdasarkan nama file (prefix timestamp %Y%m%d_%H%M%S
+    selalu zero-padded sehingga sort lexicographic == sort kronologis).
+    Snapshot paling lama (paling atas urutan) dihapus hingga tersisa
+    maksimal MAX_BACKUPS. Kegagalan apa pun diabaikan (Graceful Degradation).
+    """
+    try:
+        backups = [f for f in os.listdir(BACKUP_DIR) if os.path.isfile(os.path.join(BACKUP_DIR, f))]
+        backups.sort()
+        excess = len(backups) - MAX_BACKUPS
+        if excess > 0:
+            for old in backups[:excess]:
+                try:
+                    os.remove(os.path.join(BACKUP_DIR, old))
+                except OSError:
+                    pass  # File mungkin sudah dihapus proses lain — abaikan
+    except OSError:
+        pass  # Folder backup belum ada / tidak bisa diakses — abaikan
 
 def save_db():
     """Atomic Save untuk mencegah corrupt file Notulensi.json"""

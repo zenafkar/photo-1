@@ -47,6 +47,24 @@ export default function StudioDashboard() {
   const [generationHistory, setGenerationHistory] = useState<any[]>([]);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [dbWarning, setDbWarning] = useState<string | null>(null);
+  const dbRetryCount = useRef(0);
+
+  const CACHE_KEY = 'zenstudio_profile_cache';
+  const saveCache = (data: any) => {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); } catch {}
+  };
+  const loadCache = (): any => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const { ts, data } = JSON.parse(raw);
+      if (Date.now() - ts > 10 * 60 * 1000) return null;
+      return data;
+    } catch { return null; }
+  };
+  const isDbError = (msg: string) =>
+    /database|connection|timeout|network|fetch|server/i.test(msg);
 
   // UI State
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -77,7 +95,7 @@ export default function StudioDashboard() {
     }
   }, [isLoaded, isSignedIn, api]);
 
-  const loadProfile = useCallback(async () => {
+  const loadProfile = useCallback(async (isRetry = false) => {
     if (!isLoaded || !isSignedIn) return;
     setIsLoadingProfile(true);
     setProfileError(null);
@@ -86,15 +104,31 @@ export default function StudioDashboard() {
       if (res && res.data) {
         setCredits(res.data.credits?.remainingCredits ?? 0);
         setGenerationHistory(res.data.generations || []);
+        saveCache({ credits: res.data.credits?.remainingCredits ?? 0, generations: res.data.generations || [] });
       }
+      if (dbWarning) setDbWarning(null);
+      dbRetryCount.current = 0;
       handleSyncReplicate(true);
     } catch (err: any) {
-      console.error("Failed to load profile:", err);
-      setProfileError(err.message || "Gagal memuat profil & riwayat gambar.");
+      const msg = err.message || "Gagal memuat profil & riwayat gambar.";
+      if (isDbError(msg) && !isRetry && dbRetryCount.current < 1) {
+        dbRetryCount.current++;
+        setDbWarning("Koneksi ke server tidak stabil. Mencoba ulang...");
+        await new Promise(r => setTimeout(r, 3000));
+        return loadProfile(true);
+      }
+      const cached = loadCache();
+      if (cached) {
+        setCredits(cached.credits);
+        setGenerationHistory(cached.generations);
+        setDbWarning("Menggunakan data terakhir. Server sedang tidak tersedia.");
+      } else {
+        setProfileError(msg);
+      }
     } finally {
       setIsLoadingProfile(false);
     }
-  }, [isLoaded, isSignedIn, api, handleSyncReplicate]);
+  }, [isLoaded, isSignedIn, api, handleSyncReplicate, dbWarning]);
 
   // ── Payment return detection ───────────────────────────
   const [paymentBanner, setPaymentBanner] = useState<"success" | "failed" | null>(null);
@@ -561,6 +595,24 @@ export default function StudioDashboard() {
                   className="ml-auto text-red-400 hover:text-red-600"
                 >
                   <XCircle className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {dbWarning && (
+            <div className="bg-amber-50 border-b border-amber-200">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">Koneksi Database</p>
+                  <p className="text-xs text-amber-600">{dbWarning}</p>
+                </div>
+                <button
+                  onClick={() => { setDbWarning(null); loadProfile(); }}
+                  className="ml-auto text-xs font-semibold text-amber-700 hover:text-amber-900 px-2 py-1 bg-amber-100 hover:bg-amber-200 rounded transition-colors flex-shrink-0"
+                >
+                  Coba Lagi
                 </button>
               </div>
             </div>
@@ -1036,7 +1088,7 @@ export default function StudioDashboard() {
                         <span>{profileError}</span>
                       </div>
                       <button
-                        onClick={loadProfile}
+                        onClick={() => loadProfile()}
                         className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-colors flex-shrink-0"
                       >
                         Coba Lagi

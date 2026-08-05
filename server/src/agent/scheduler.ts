@@ -4,25 +4,27 @@ import { telegramBot } from './telegramBot.js';
 import { prisma } from '../config/prisma.js';
 import { reconcilePayments } from '../reconciliation/reconcilePayments.js';
 
-// DB keep-alive failure counter (reset on success)
 let dbFailCount = 0;
-let dbDownAlertSent = false; // prevent alert spam on every tick
+let dbDownAlertSent = false;
+let dbWasDown = false;
 
-// Tier 2: 5-minute and 15-minute Heartbeat
 export function startScheduler() {
   console.log("[Scheduler] Starting AI Agent Cron Scheduler...");
 
-  // Every 4 minutes — keep Neon PostgreSQL from auto-pausing (free tier: 5 min inactivity)
-  cron.schedule('*/4 * * * *', async () => {
+  cron.schedule('*/3 * * * *', async () => {
     try {
       await prisma.$queryRaw`SELECT 1`;
-      dbFailCount = 0; // reset on success
-      dbDownAlertSent = false; // reset alert flag on recovery
-    } catch (err) {
+      if (dbFailCount > 0) {
+        console.log(`[Scheduler] DB wake-up: Database reconnected after ${dbFailCount} failed attempt(s)`);
+      }
+      dbFailCount = 0;
+      dbDownAlertSent = false;
+      dbWasDown = false;
+    } catch (err: any) {
       dbFailCount++;
-      console.error(`[Scheduler] DB keep-alive ping failed (${dbFailCount}/3):`, err);
+      dbWasDown = true;
+      console.error(`[Scheduler] DB keep-alive ping failed (${dbFailCount}/3):`, err?.message || err);
 
-      // After 3 consecutive failures (~12 min), send Telegram alert ONCE
       if (dbFailCount >= 3 && !dbDownAlertSent) {
         dbDownAlertSent = true;
         await telegramBot.sendFullActionReport({

@@ -1,4 +1,4 @@
-import { UploadCloud, Cpu, Download, ShieldCheck, Zap, Droplet, Award } from 'lucide-react';
+import { UploadCloud, Cpu, Download, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const steps = [
@@ -25,43 +25,7 @@ const steps = [
   }
 ];
 
-const scoreItems = [
-  { label: 'Akurasi Bentuk Asli', value: 99.8, color: '#D4452A', icon: ShieldCheck },
-  { label: 'Konsistensi Warna', value: 99.5, color: '#3D8B7D', icon: Droplet },
-  { label: 'Keutuhan Logo', value: 100, color: '#C7823A', icon: Award },
-  { label: 'Ketajaman Teks', value: 99.9, color: '#38BDF8', icon: Zap }
-];
 
-const ScoreRing = ({ label, value, color }: { label: string; value: number; color: string }) => {
-  const circumference = 2 * Math.PI * 40;
-  const offset = circumference * (1 - value / 100);
-
-  return (
-    <div className="flex flex-col items-center p-4 rounded-2xl bg-surface/40 border border-surface-border hover:border-primary/30 transition-colors">
-      <div className="relative w-20 h-20 mb-3">
-        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" className="text-surface-border" strokeWidth="7" />
-          <circle
-            cx="50" cy="50" r="40"
-            fill="none"
-            stroke={color}
-            strokeWidth="7"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            className="transition-all duration-1000 ease-out"
-            style={{ filter: `drop-shadow(0 0 6px ${color})` }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-display text-xl font-bold text-text">{value}%</span>
-          <span className="text-[10px] font-bold text-secondary tracking-wide">LULUS</span>
-        </div>
-      </div>
-      <span className="text-xs sm:text-sm text-text-muted font-semibold text-center leading-tight">{label}</span>
-    </div>
-  );
-};
 
 const HowItWorks = () => {
 
@@ -110,23 +74,7 @@ const HowItWorks = () => {
           })}
         </div>
 
-        {/* Trust Rings — Authenticity Scores */}
-        <div className="mt-16 md:mt-20 max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-xs font-semibold text-secondary mb-4">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              100% AMAN — VERIFIKASI COMPUTER VISION
-            </div>
-            <h3 className="font-display text-2xl md:text-3xl font-bold text-text mb-2">Skor Keaslian Produk</h3>
-            <p className="text-text-muted text-sm">Setiap foto melewati 4 lapis verifikasi otomatis sebelum hasil akhir.</p>
-          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {scoreItems.map((item) => (
-              <ScoreRing key={item.label} label={item.label} value={item.value} color={item.color} />
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );

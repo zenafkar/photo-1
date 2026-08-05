@@ -5,7 +5,7 @@ export const ClerkModalFix = () => {
 
   useEffect(() => {
     // 1. Prevent global href="#" default jump behavior
-    const handleGlobalClick = (e: MouseEvent) => {
+    const handleGlobalClick = (_e: MouseEvent) => {
       // Temporarily bypassed: we found that on mobile, preventing default here
       // might interfere with Clerk's internal routing if they don't explicitly prevent it.
       // If the page jumping bug persists, we will re-enable this.

@@ -11,3 +11,8 @@ coverage
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts
+
+# Agent Secretary runtime data
+.cache/
+Notulensi.json
+agent_log.txt

@@ -182,6 +182,10 @@ def detect_webhook_type(url):
         return "slack"
     return "raw"
 
+def format_wib_iso(dt):
+    """Format datetime WIB ke ISO 8601 dengan offset +07:00 untuk Discord."""
+    return dt.strftime("%Y-%m-%dT%H:%M:%S+07:00")
+
 def format_discord_payload(entry):
     """Bungkus entry jadi Discord Embed format."""
     aksi = entry.get("aksi", "unknown")
@@ -357,7 +361,7 @@ class UltimateSecretaryHandler(FileSystemEventHandler):
         self.last_event_time[rel_path] = now
 
         entry = {
-            "waktu": datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"),
+            "waktu": format_wib_iso(datetime.now(WIB)),
             "aksi": event_type,
             "target": rel_path,
             "jenis": "folder" if is_dir else "file"
@@ -491,7 +495,7 @@ def execute_rollback(req: RollbackRequest, authorization: str = Header(default="
 
         # Catat Log Rollback
         rollback_entry = {
-            "waktu": datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"),
+            "waktu": format_wib_iso(datetime.now(WIB)),
             "aksi": "rollback",
             "target": req.target_file,
             "jenis": "file",

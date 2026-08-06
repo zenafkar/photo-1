@@ -165,11 +165,12 @@
 .cl-rootBox svg,
 .cl-component svg {
   display: inline-block !important;
+  flex: 0 0 auto;
   max-width: 100% !important;
+  pointer-events: none;
 }
 
-.cl-rootBox button,
-.cl-component button {
-  position: relative;
-  z-index: 50;
+/* Keep floating controls out of the touch hit area while Clerk is open. */
+.clerk-modal-open [data-component="go-to-top"] {
+  display: none;
 }

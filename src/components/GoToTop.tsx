@@ -38,6 +38,7 @@ const GoToTop = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.8 }}
           onClick={scrollToTop}
+          data-component="go-to-top"
           className="fixed bottom-6 right-6 md:bottom-8 md:right-8 mb-[env(safe-area-inset-bottom)] z-50 p-3 md:p-4 bg-surface hover:bg-primary text-text-muted hover:text-white rounded-full shadow-lg hover:shadow-xl transition-colors flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-primary/30 border border-surface-border hover:border-primary"
           aria-label="Go to top"
         >

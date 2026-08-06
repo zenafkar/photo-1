@@ -503,7 +503,7 @@ export default function StudioDashboard() {
   return (
     <>
       <SignedIn>
-        <div className="min-h-[100dvh] bg-[#F8FAFC] font-sans text-slate-900 flex flex-col">
+        <div className="bg-[#F8FAFC] font-sans text-slate-900 flex flex-col">
           {/* Header */}
           <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -618,12 +618,12 @@ export default function StudioDashboard() {
             </div>
           )}
 
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
             <div className="grid lg:grid-cols-12 gap-8">
               
               {/* Left Column: Form Inputs (Replicate Style) */}
               <div className="lg:col-span-5">
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full min-h-[600px]">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
                   
                   {/* Header Form */}
                   <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
@@ -1070,7 +1070,7 @@ export default function StudioDashboard() {
 
               {/* Right Column: Gallery */}
               <div className="lg:col-span-7">
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full min-h-[600px] flex flex-col">
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg font-bold text-slate-900">
                       Galeri & Hasil
@@ -1118,7 +1118,7 @@ export default function StudioDashboard() {
                       <p className="text-sm text-slate-400">Upload foto dan klik Generate untuk mulai!</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-[400px] content-start">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 content-start">
                       {isGenerating && (
                         <div className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                           <div className="w-full h-full flex flex-col items-center justify-center bg-indigo-50">

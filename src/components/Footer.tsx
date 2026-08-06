@@ -1,100 +1,92 @@
 import { ZenLogo } from './ZenLogo';
-import { TikTokIcon } from './MarketplaceIcons';
 import { handleSmoothScroll } from '../utils/smoothScroll';
-
-const InstagramIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-  </svg>
-);
-
-const paymentMethods = ['QRIS', 'GoPay', 'OVO', 'DANA', 'Bank Transfer', 'Visa', 'Mastercard'];
+import { ArrowUpRight, CheckCircle2 } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer data-component="footer" className="bg-background pt-10 pb-8 border-t border-surface-border text-text">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Main grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-10 mb-12">
-          {/* Brand */}
-          <div className="sm:col-span-2 lg:col-span-2">
-            <div className="flex items-center gap-2.5 mb-2">
-              <ZenLogo className="h-10" />
+    <footer data-component="footer" className="bg-landing-bg pt-20 pb-10 border-t border-landing-border text-landing-text">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        
+        {/* Main Grid: Blueprint layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 mb-20 border-b border-landing-border pb-20">
+          
+          {/* Brand & Telemetry (Left) */}
+          <div className="lg:col-span-5 flex flex-col justify-between">
+            <div>
+              <div className="mb-6 opacity-80">
+                <ZenLogo className="h-8" />
+              </div>
+              <p className="text-sm font-light text-landing-text-muted max-w-sm leading-relaxed mb-8">
+                Tingkatkan konversi dengan resolusi foto produk kelas dunia dalam hitungan detik. Presisi tingkat piksel. Tanpa kompromi.
+              </p>
             </div>
-            <p className="text-sm text-text-muted leading-relaxed mb-5 max-w-xs">
-              Tingkatkan konversi dengan foto produk kelas dunia dalam hitungan detik. Tanpa studio, tanpa fotografer.
-            </p>
-            <div className="flex gap-3">
-              <span className="w-10 h-10 rounded-full bg-surface flex items-center justify-center text-text-muted border border-surface-border cursor-default" aria-label="Instagram">
-                <InstagramIcon className="w-5 h-5" />
-              </span>
-              <span className="w-10 h-10 rounded-full bg-surface flex items-center justify-center text-text-muted border border-surface-border cursor-default" aria-label="TikTok">
-                <TikTokIcon className="w-5 h-5" />
-              </span>
-              <a href="mailto:hello@zenstudio.my.id" className="w-10 h-10 rounded-full bg-surface flex items-center justify-center text-text-muted hover:text-primary hover:border-primary border border-surface-border transition-all" aria-label="Email">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-              </a>
+            
+            {/* Telemetry Block */}
+            <div className="border border-landing-border p-4 bg-landing-surface/20 w-fit">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full bg-landing-secondary animate-pulse" />
+                <span className="text-[9px] font-mono tracking-widest text-landing-text uppercase">System Status</span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[10px] font-mono text-landing-text-muted">
+                <span>NODE: ASIA-SE</span>
+                <span className="flex items-center gap-1">ENGINE: NANO BANANA <CheckCircle2 className="w-2.5 h-2.5 text-landing-secondary" /></span>
+                <span>LATENCY: 12ms</span>
+                <span>UPTIME: 99.98%</span>
+              </div>
             </div>
           </div>
 
-          {/* Produk */}
-          <div>
-            <h3 className="font-sans font-bold text-text mb-4">Produk</h3>
-            <ul className="space-y-3">
-              <li><a href="#fitur" onClick={(e) => handleSmoothScroll(e, '#fitur')} className="text-text-muted hover:text-primary text-sm transition-colors">AI Studio</a></li>
-              <li><a href="#integrity" onClick={(e) => handleSmoothScroll(e, '#integrity')} className="text-text-muted hover:text-primary text-sm transition-colors">Integrity Engine™</a></li>
-              <li><a href="#fitur" onClick={(e) => handleSmoothScroll(e, '#fitur')} className="text-text-muted hover:text-primary text-sm transition-colors">Marketplace Presets</a></li>
-              <li><a href="#harga" onClick={(e) => handleSmoothScroll(e, '#harga')} className="text-text-muted hover:text-primary text-sm transition-colors">Harga</a></li>
-            </ul>
-          </div>
-
-          {/* Perusahaan */}
-          <div>
-            <h3 className="font-sans font-bold text-text mb-4">Perusahaan</h3>
-            <ul className="space-y-3">
-              <li><a href="#" className="text-text-muted hover:text-primary text-sm transition-colors">Tentang Kami</a></li>
-              <li><a href="#" className="text-text-muted hover:text-primary text-sm transition-colors">Kontak</a></li>
-              <li><a href="mailto:hello@zenstudio.my.id" className="text-text-muted hover:text-primary text-sm transition-colors">hello@zenstudio.my.id</a></li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h3 className="font-sans font-bold text-text mb-4">Legal</h3>
-            <ul className="space-y-3">
-              <li><a href="#" className="text-text-muted hover:text-primary text-sm transition-colors">Syarat & Ketentuan</a></li>
-              <li><a href="#" className="text-text-muted hover:text-primary text-sm transition-colors">Kebijakan Privasi</a></li>
-            </ul>
-          </div>
-
-          {/* Pembayaran */}
-          <div>
-            <h3 className="font-sans font-bold text-text mb-4">Pembayaran</h3>
-            <div className="flex flex-wrap gap-2">
-              {paymentMethods.map((method) => (
-                <span
-                  key={method}
-                  className="text-xs text-text-muted"
-                >
-                  {method}
-                </span>
-              ))}
+          {/* Links Grid (Right) */}
+          <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8 lg:gap-12 lg:pl-12">
+            
+            {/* Architecture (Produk) */}
+            <div>
+              <h3 className="font-mono text-[10px] tracking-widest text-landing-text-muted uppercase border-b border-landing-border pb-3 mb-4">Architecture</h3>
+              <ul className="space-y-4">
+                <li><a href="#fitur" onClick={(e) => handleSmoothScroll(e, '#fitur')} className="text-xs font-light text-landing-text hover:text-landing-primary transition-colors flex items-center justify-between group">AI Studio <span className="opacity-0 group-hover:opacity-100 transition-opacity">/</span></a></li>
+                <li><a href="#integrity" onClick={(e) => handleSmoothScroll(e, '#integrity')} className="text-xs font-light text-landing-text hover:text-landing-primary transition-colors flex items-center justify-between group">Integrity Engine™ <span className="opacity-0 group-hover:opacity-100 transition-opacity">/</span></a></li>
+                <li><a href="#harga" onClick={(e) => handleSmoothScroll(e, '#harga')} className="text-text-xs font-light text-landing-text hover:text-landing-primary transition-colors flex items-center justify-between group">Rate Card <span className="opacity-0 group-hover:opacity-100 transition-opacity">/</span></a></li>
+              </ul>
             </div>
+
+            {/* Entity (Perusahaan) */}
+            <div>
+              <h3 className="font-mono text-[10px] tracking-widest text-landing-text-muted uppercase border-b border-landing-border pb-3 mb-4">Entity</h3>
+              <ul className="space-y-4">
+                <li><a href="#" className="text-xs font-light text-landing-text hover:text-landing-primary transition-colors flex items-center justify-between group">About Us <span className="opacity-0 group-hover:opacity-100 transition-opacity">/</span></a></li>
+                <li><a href="mailto:hello@zenstudio.my.id" className="text-xs font-light text-landing-text hover:text-landing-primary transition-colors flex items-center justify-between group">hello@zenstudio.my.id <span className="opacity-0 group-hover:opacity-100 transition-opacity">/</span></a></li>
+              </ul>
+            </div>
+
+            {/* Protocol (Legal) */}
+            <div>
+              <h3 className="font-mono text-[10px] tracking-widest text-landing-text-muted uppercase border-b border-landing-border pb-3 mb-4">Protocol</h3>
+              <ul className="space-y-4">
+                <li><a href="#" className="text-xs font-light text-landing-text hover:text-landing-primary transition-colors flex items-center justify-between group">Terms of Service <span className="opacity-0 group-hover:opacity-100 transition-opacity">/</span></a></li>
+                <li><a href="#" className="text-xs font-light text-landing-text hover:text-landing-primary transition-colors flex items-center justify-between group">Privacy Policy <span className="opacity-0 group-hover:opacity-100 transition-opacity">/</span></a></li>
+              </ul>
+            </div>
+
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="pt-6 border-t border-surface-border flex flex-col sm:flex-row justify-between items-center gap-3">
-          <p className="text-text-muted text-sm">
-            © {new Date().getFullYear()} ZenStudio. Dibuat untuk UMKM Indonesia.
+        {/* Bottom Bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+          <p className="text-[10px] font-mono tracking-widest text-landing-text-muted uppercase">
+            © {new Date().getFullYear()} ZenStudio. Dibuat di Indonesia.
           </p>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_10px_rgba(61,139,125,0.4)]"></span>
-            <span className="text-text-muted text-xs">Server aktif 99.9%</span>
+          
+          {/* Social Links (Stark Text) */}
+          <div className="flex items-center gap-6">
+            <a href="#" className="flex items-center gap-1 text-[10px] font-mono tracking-widest text-landing-text hover:text-landing-primary transition-colors uppercase">
+              Instagram <ArrowUpRight className="w-3 h-3" />
+            </a>
+            <a href="#" className="flex items-center gap-1 text-[10px] font-mono tracking-widest text-landing-text hover:text-landing-primary transition-colors uppercase">
+              TikTok <ArrowUpRight className="w-3 h-3" />
+            </a>
           </div>
         </div>
+
       </div>
     </footer>
   );

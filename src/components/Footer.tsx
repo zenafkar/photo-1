@@ -4,7 +4,7 @@ import { ArrowUpRight, CheckCircle2 } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer data-component="footer" className="bg-landing-bg pt-14 pb-10 border-t border-landing-border text-landing-text">
+    <footer data-component="footer" className="bg-landing-bg pt-8 pb-10 border-t border-landing-border text-landing-text">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         
         {/* Main Grid: Blueprint layout */}

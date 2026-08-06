@@ -14,7 +14,7 @@ const Footer = () => {
           <div className="lg:col-span-5 flex flex-col justify-between">
             <div>
               <div className="mb-4 opacity-80">
-                <ZenLogo className="h-12" />
+                <ZenLogo className="h-20" />
               </div>
               <p className="text-sm font-light text-landing-text-muted max-w-sm leading-relaxed mb-8">
                 Tingkatkan konversi dengan resolusi foto produk kelas dunia dalam hitungan detik. Presisi tingkat piksel. Tanpa kompromi.

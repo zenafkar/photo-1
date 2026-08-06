@@ -19,4 +19,5 @@ Notulensi.json
 agent_log.txt
 __pycache__/
 *.pyc
-
+*.log
+dev-output.log

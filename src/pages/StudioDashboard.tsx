@@ -623,9 +623,9 @@ export default function StudioDashboard() {
               
               {/* Left Column: Form Inputs (Replicate Style) */}
               <div className="lg:col-span-5">
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                  
-                  {/* Header Form */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col lg:h-full">
+                   
+                   {/* Header Form */}
                   <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                     <h2 className="font-bold text-slate-800 flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-indigo-500" />
@@ -1070,7 +1070,7 @@ export default function StudioDashboard() {
 
               {/* Right Column: Gallery */}
               <div className="lg:col-span-7">
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:h-full flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg font-bold text-slate-900">
                       Galeri & Hasil
@@ -1112,7 +1112,7 @@ export default function StudioDashboard() {
                   )}
                   
                   {generationHistory.length === 0 && !isGenerating ? (
-                    <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl flex-1 transition-all">
+                    <div className="min-h-[200px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl flex-1 transition-all">
                       <ImageIcon className="w-12 h-12 mb-4 opacity-50" />
                       <p className="font-medium text-slate-600">Belum ada hasil generate.</p>
                       <p className="text-sm text-slate-400">Upload foto dan klik Generate untuk mulai!</p>

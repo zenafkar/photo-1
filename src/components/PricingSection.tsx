@@ -145,11 +145,8 @@ const PricingSection = () => {
         {/* Accepted Payment Methods (Monochrome/Technical style) */}
         <div className="mt-20 pt-8 border-t border-landing-border flex flex-col sm:flex-row justify-between items-center gap-6">
           <div className="text-[10px] font-mono tracking-widest text-landing-text-muted uppercase">Secure Transactions Via</div>
-          <div className="flex items-center gap-6 opacity-50 grayscale">
-            <span className="text-xs font-bold tracking-widest">QRIS</span>
-            <span className="text-xs font-bold tracking-widest">GOPAY</span>
-            <span className="text-xs font-bold tracking-widest">OVO</span>
-            <span className="text-xs font-bold tracking-widest">VIRTUAL ACCOUNT</span>
+          <div className="flex items-center gap-6 opacity-60">
+            <img src="/01-xendit_logo.png" alt="Xendit" className="h-6 w-auto" />
           </div>
         </div>
 

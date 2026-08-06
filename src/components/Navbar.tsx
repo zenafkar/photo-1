@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Sparkles, Zap, Layers, Shield, CreditCard, HelpCircle } from 'lucide-react';
+import { ArrowRight, ChevronRight, CreditCard, HelpCircle, Layers, Shield, Sparkles, X, Zap } from 'lucide-react';
 import { UserButton, useAuth, useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -104,27 +104,64 @@ const Navbar = () => {
   const hamburgerRef = useRef<HTMLButtonElement>(null);
   const firstMenuItemRef = useRef<HTMLAnchorElement>(null);
 
-  // Close menu on Escape key
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  const menuPanelRef = useRef<HTMLDivElement>(null);
+  const wasOpenRef = useRef(false);
 
-  // Focus management
+  // Focus management and keyboard focus trap for the modal dropdown.
   useEffect(() => {
     if (isOpen) {
-      requestAnimationFrame(() => firstMenuItemRef.current?.focus());
-    } else {
-      hamburgerRef.current?.focus();
+      wasOpenRef.current = true;
+      const frame = requestAnimationFrame(() => firstMenuItemRef.current?.focus());
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          setIsOpen(false);
+          return;
+        }
+
+        if (e.key !== 'Tab') return;
+
+        const focusableElements = Array.from(
+          menuPanelRef.current?.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          ) ?? []
+        );
+
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        cancelAnimationFrame(frame);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+
+    if (wasOpenRef.current) {
+      wasOpenRef.current = false;
+      const isMobileViewport = typeof window.matchMedia === 'function'
+        && window.matchMedia('(max-width: 1023px)').matches;
+      if (isMobileViewport) {
+        requestAnimationFrame(() => hamburgerRef.current?.focus());
+      }
     }
   }, [isOpen]);
 
   // Close menu if viewport resizes to desktop
   useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
     const mql = window.matchMedia('(min-width: 1024px)');
     const handleChange = (e: MediaQueryListEvent) => {
       if (e.matches) setIsOpen(false);
@@ -139,7 +176,7 @@ const Navbar = () => {
         data-component="nav"
         className={`fixed w-full z-[60] transition-all duration-300 pt-[env(safe-area-inset-top)] ${
           isScrolled
-            ? 'bg-background/90 backdrop-blur-lg border-b border-surface-border py-1.5'
+            ? 'bg-landing-bg/90 backdrop-blur-lg border-b border-landing-border py-1.5'
             : 'bg-transparent py-2'
         }`}
       >
@@ -157,7 +194,7 @@ const Navbar = () => {
                   key={link.href}
                   href={link.href}
                   onClick={(e) => handleSmoothScroll(e, link.href)}
-                  className="px-4 py-1.5 text-sm font-medium text-text-muted hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-px after:bg-primary after:transition-all hover:after:w-3/4"
+                  className="px-4 py-1.5 text-sm font-medium text-landing-text-muted hover:text-landing-text transition-colors relative after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-px after:bg-landing-primary after:transition-all hover:after:w-3/4"
                 >
                   {link.label}
                 </a>
@@ -167,10 +204,10 @@ const Navbar = () => {
             {/* Desktop Auth Buttons */}
             <div className="hidden lg:flex items-center gap-4">
               {!ready ? (
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-2 border-landing-primary border-t-transparent rounded-full animate-spin"></div>
               ) : isSignedIn ? (
                 <>
-                  <Link to="/studio" className="text-text-muted hover:text-primary font-semibold text-sm transition-colors">
+                  <Link to="/studio" className="text-landing-text-muted hover:text-landing-text font-semibold text-sm transition-colors">
                     Studio
                   </Link>
                   <UserButton afterSignOutUrl="/">
@@ -185,13 +222,13 @@ const Navbar = () => {
                 <>
                   <button
                     onClick={handleOpenSignIn}
-                    className="text-text-muted hover:text-primary font-semibold text-sm transition-colors px-3 py-2"
+                    className="text-landing-text-muted hover:text-landing-text font-semibold text-sm transition-colors px-3 py-2"
                   >
                     Masuk
                   </button>
                   <button
                     onClick={handleOpenSignUp}
-                    className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-2 shadow-[0_2px_12px_rgba(212,69,42,0.25)]"
+                    className="bg-landing-text hover:bg-landing-text/90 text-landing-bg px-5 py-2.5 rounded-none text-sm font-medium transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-2"
                   >
                     <Sparkles className="w-4 h-4" />
                     Coba Gratis
@@ -202,25 +239,18 @@ const Navbar = () => {
 
             {/* Mobile Toggle — Animated Hamburger */}
             <div className="flex items-center gap-2 lg:hidden">
-              {!ready ? null : !isSignedIn ? (
-                <button
-                  onClick={handleOpenSignUp}
-                  className="bg-primary text-white px-3 py-2.5 rounded-full text-xs font-bold hidden xs:inline-flex items-center gap-1 shadow-[0_1px_8px_rgba(212,69,42,0.2)] min-h-[44px]"
-                >
-                  <Sparkles className="w-3 h-3" />
-                  3 Foto Gratis
-                </button>
-              ) : null}
               <button
+                type="button"
                 ref={hamburgerRef}
                 onClick={() => setIsOpen(!isOpen)}
-                className={`inline-flex items-center justify-center p-2 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                className={`inline-flex items-center justify-center p-2 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-landing-bg ${
                   isOpen
-                    ? 'bg-primary/10 border border-primary/30 text-primary shadow-[0_0_15px_rgba(212,69,42,0.3)]'
-                    : 'text-text hover:text-primary bg-surface/60 border border-surface-border hover:border-primary/40'
+                    ? 'bg-landing-primary/10 border border-landing-primary/40 text-landing-primary shadow-[0_0_18px_rgba(217,38,169,0.2)]'
+                    : 'text-landing-text hover:text-landing-primary bg-landing-surface/80 border border-landing-border hover:border-landing-primary/40'
                 } ${isOpen ? 'hamburger-open' : ''}`}
                 aria-label={isOpen ? 'Tutup menu' : 'Buka menu'}
                 aria-expanded={isOpen}
+                aria-controls="mobile-menu-panel"
               >
                 <span className="flex flex-col items-center justify-center gap-[5px] w-5 h-5">
                   <span className={`hamburger-bar hamburger-bar-1 ${isOpen ? 'hamburger-bar-1' : ''}`} />
@@ -233,102 +263,110 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Mobile Full-Screen Overlay */}
+      {/* Mobile Dropdown */}
       {createPortal(
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              key="mobile-menu"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Menu navigasi"
+              key="mobile-menu-backdrop"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
-              className="fixed inset-0 z-[70] min-h-[100dvh] bg-background/90 backdrop-blur-3xl lg:hidden overflow-y-auto overscroll-contain flex flex-col"
+              transition={{ duration: 0.18 }}
+              onPointerDown={(event) => {
+                if (event.target === event.currentTarget) setIsOpen(false);
+              }}
+              className="fixed inset-0 z-[70] min-h-[100dvh] bg-black/55 backdrop-blur-[2px] lg:hidden overflow-y-auto overscroll-contain flex items-start justify-end px-3 sm:px-5 pb-4 sm:pb-5"
+              style={{
+                pointerEvents: isOpen ? 'auto' : 'none',
+                paddingTop: 'calc(4.75rem + env(safe-area-inset-top))',
+              }}
             >
-              {/* Ambient glow mesh */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150vw] h-[50vh] bg-[radial-gradient(ellipse_at_top,rgba(212,69,42,0.15)_0%,transparent_70%)] pointer-events-none" />
-              <div className="absolute bottom-0 right-0 w-[100vw] h-[50vh] bg-[radial-gradient(ellipse_at_bottom_right,rgba(61,139,125,0.1)_0%,transparent_70%)] pointer-events-none" />
-
-              {/* Header with close button */}
-              <div
-                className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg px-4 flex items-center justify-between h-12 border-b border-surface-border/50"
-                style={{ paddingTop: 'env(safe-area-inset-top)' }}
+              <motion.div
+                ref={menuPanelRef}
+                id="mobile-menu-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="mobile-menu-title"
+                initial={{ opacity: 0, y: -12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+                onPointerDown={(event) => event.stopPropagation()}
+                className="scrollbar-none relative flex h-fit w-full max-w-[520px] max-h-[calc(100dvh-5.75rem)] flex-col overflow-y-auto overscroll-contain rounded-2xl border border-landing-border bg-landing-surface/95 text-landing-text shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
               >
-                <a href="#" onClick={() => setIsOpen(false)} className="flex items-center gap-2 group shrink-0" aria-label="ZenStudio — Beranda">
-                  <ZenLogo className="h-11" />
-                </a>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className={`inline-flex items-center justify-center p-2 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                    isOpen
-                      ? 'bg-primary/10 border border-primary/30 text-primary shadow-[0_0_12px_rgba(212,69,42,0.25)] close-rotate close-rotate-active'
-                      : 'text-text hover:text-primary bg-surface/60 border border-surface-border hover:border-primary/40 close-rotate'
-                  }`}
-                  aria-label="Tutup menu"
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Menu Content */}
-              <div className="px-6 pb-6 pt-6 flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
-                {/* Nav Links with sleek minimalist style */}
-                <div className="flex flex-col space-y-2">
-                  {navLinks.map((link, i) => {
-                    return (
-                      <motion.a
-                        key={link.href}
-                        ref={i === 0 ? firstMenuItemRef : undefined}
-                        href={link.href}
-                        onClick={(e) => handleSmoothScroll(e, link.href, () => setIsOpen(false))}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05, duration: 0.35, ease: 'easeOut' }}
-                        className="group flex items-center gap-4 px-4 py-3.5 rounded-xl text-text hover:text-primary hover:bg-surface/50 transition-all duration-200 active:scale-[0.98]"
-                      >
-                        <span className="text-xs font-mono text-primary/60 font-semibold tracking-widest group-hover:text-primary transition-colors">
-                          {String(i + 1).padStart(2, '0')}
-                        </span>
-                        <span className="text-xl sm:text-2xl font-bold tracking-tight">
-                          {link.label}
-                        </span>
-                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </motion.a>
-                    );
-                  })}
+                <div className="flex items-start justify-between gap-4 border-b border-landing-border px-5 py-4 sm:px-6">
+                  <div>
+                    <p className="font-mono text-[10px] tracking-[0.2em] text-landing-text-muted uppercase">ZenStudio / Menu</p>
+                    <h2 id="mobile-menu-title" className="mt-1 font-landing-display text-xl font-medium tracking-tight text-landing-text">
+                      Jelajahi Studio
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-landing-border bg-landing-bg/60 text-landing-text-muted transition-colors hover:border-landing-primary/50 hover:text-landing-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-primary/60"
+                    aria-label="Tutup menu"
+                  >
+                    <X className="h-5 w-5" aria-hidden="true" />
+                  </button>
                 </div>
-              </div>
 
-              {/* Auth Section with stagger */}
-              <div className="px-6 pb-10 max-w-md mx-auto w-full">
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.4 }}
-                >
+                <div className="relative px-3 py-4 sm:px-4">
+                  <div
+                    aria-hidden="true"
+                    className="absolute bottom-4 left-4 top-4 w-px bg-gradient-to-b from-landing-primary via-landing-secondary to-transparent sm:left-5"
+                  />
+                  <nav aria-label="Navigasi utama" className="relative flex flex-col gap-1">
+                    {navLinks.map((link, i) => {
+                      const Icon = link.icon;
+                      return (
+                        <motion.a
+                          key={link.href}
+                          ref={i === 0 ? firstMenuItemRef : undefined}
+                          href={link.href}
+                          onClick={(e) => handleSmoothScroll(e, link.href, () => setIsOpen(false))}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.035, duration: 0.2, ease: 'easeOut' }}
+                          className="group flex min-h-[56px] items-center gap-3 rounded-xl px-3 pl-6 text-landing-text-muted transition-colors duration-200 hover:bg-landing-bg/70 hover:text-landing-text active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-landing-primary/60 sm:pl-7"
+                        >
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-landing-border bg-landing-bg/70 text-landing-primary/80 transition-colors group-hover:border-landing-primary/40 group-hover:text-landing-primary">
+                            <Icon className="h-4 w-4" aria-hidden="true" />
+                          </span>
+                          <span className="text-base font-medium tracking-tight sm:text-[17px]">{link.label}</span>
+                          <ChevronRight className="ml-auto h-4 w-4 text-landing-text-muted/50 transition-transform group-hover:translate-x-0.5 group-hover:text-landing-primary" aria-hidden="true" />
+                        </motion.a>
+                      );
+                    })}
+                  </nav>
+                </div>
+
+                <div className="border-t border-landing-border px-4 pb-4 pt-4 sm:px-6 sm:pb-6">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="font-mono text-[10px] tracking-[0.18em] text-landing-text-muted uppercase">Ready to develop</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-landing-primary shadow-[0_0_10px_rgba(217,38,169,0.8)]" aria-hidden="true" />
+                  </div>
+
                   {!ready ? (
                     <div className="flex justify-center py-4">
-                      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-landing-primary border-t-transparent" aria-label="Memuat autentikasi" />
                     </div>
                   ) : isSignedIn ? (
                     <div className="space-y-3">
                       <Link
                         to="/studio"
                         onClick={() => setIsOpen(false)}
-                        className="w-full bg-primary text-white px-4 py-3.5 rounded-xl text-base font-bold flex items-center gap-2.5 justify-center shadow-[0_4px_20px_rgba(212,69,42,0.25)] hover:shadow-[0_6px_25px_rgba(212,69,42,0.35)] active:scale-[0.98] transition-all duration-200"
+                        className="flex w-full items-center justify-center gap-2 bg-landing-text px-4 py-3.5 text-sm font-medium text-landing-bg transition-all hover:bg-landing-text/90 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-primary/60"
                       >
-                        <Sparkles className="w-5 h-5" />
                         Masuk Studio
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
                       </Link>
-                      <div className="flex items-center justify-between px-4 py-3.5 bg-surface/60 backdrop-blur-md rounded-xl border border-surface-border">
-                        <span className="text-sm font-semibold text-text">Profil & Akun</span>
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-landing-border bg-landing-bg/60 px-4 py-3">
+                        <div>
+                          <span className="block font-mono text-[9px] tracking-[0.16em] text-landing-text-muted uppercase">Account</span>
+                          <span className="text-sm font-medium text-landing-text">Profil & Akun</span>
+                        </div>
                         <UserButton afterSignOutUrl="/">
                           <UserButton.MenuItems>
                             <UserButton.Link label="Studio Dashboard" labelIcon={<Sparkles size={15} />} href="/studio" />
@@ -341,36 +379,24 @@ const Navbar = () => {
                   ) : (
                     <div className="space-y-3">
                       <button
+                        type="button"
                         onClick={() => { setIsOpen(false); handleOpenSignUp(); }}
-                        className="w-full bg-primary text-white px-4 py-3.5 rounded-xl text-base font-bold flex items-center gap-2.5 justify-center shadow-[0_4px_20px_rgba(212,69,42,0.25)] hover:shadow-[0_6px_25px_rgba(212,69,42,0.35)] active:scale-[0.98] transition-all duration-200"
+                        className="flex w-full items-center justify-center gap-2 bg-landing-text px-4 py-3.5 text-sm font-medium text-landing-bg transition-all hover:bg-landing-text/90 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-primary/60"
                       >
-                        <Sparkles className="w-5 h-5" />
-                        Coba Gratis — 3 Foto
+                        <Sparkles className="h-4 w-4" aria-hidden="true" />
+                        Coba Gratis · 3 Foto
                       </button>
                       <button
+                        type="button"
                         onClick={() => { setIsOpen(false); handleOpenSignIn(); }}
-                        className="w-full px-4 py-3.5 rounded-xl text-base font-semibold text-text hover:text-primary transition-all duration-200 text-center border border-surface-border bg-surface/40 backdrop-blur-md active:scale-[0.98]"
+                        className="w-full rounded-xl border border-landing-border bg-landing-bg/60 px-4 py-3.5 text-sm font-medium text-landing-text-muted transition-colors hover:border-landing-primary/40 hover:text-landing-text active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-primary/60"
                       >
                         Masuk
                       </button>
                     </div>
                   )}
-                </motion.div>
-
-                {/* Bottom decorative sparkle */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4, duration: 0.4 }}
-                  className="mt-6 flex justify-center pb-2"
-                >
-                  <div className="flex items-center gap-2.5 text-text-muted/30 text-[11px] font-mono tracking-[0.2em] uppercase">
-                    <Sparkles className="w-3 h-3 text-primary/40" />
-                    <span>ZenStudio</span>
-                    <Sparkles className="w-3 h-3 text-secondary/40" />
-                  </div>
-                </motion.div>
-              </div>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>,

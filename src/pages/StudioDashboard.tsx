@@ -675,19 +675,31 @@ export default function StudioDashboard() {
                                 ? 'grid-cols-1 max-w-[280px] mx-auto' 
                                 : previewUrls.length === 2 
                                   ? 'grid-cols-2' 
-                                  : 'grid-cols-3'
+                                  : previewUrls.length === 3 
+                                    ? 'grid-cols-3' 
+                                    : previewUrls.length === 4 
+                                      ? 'grid-cols-2' 
+                                      : 'grid-cols-3'
                             }`}>
                               {previewUrls.map((url, index) => (
                                 <div key={index} className="relative group/img">
-                                  <div className={`overflow rounded-lg ${
-                                    previewUrls.length === 1 ? 'aspect-[4/3]' : 'aspect-square'
-                                  }`}>
-                                    <img 
-                                      src={url} 
-                                      alt={`Preview ${index + 1}`} 
-                                      className="w-full h-full object-cover" 
-                                    />
-                                  </div>
+                                  {previewUrls.length === 1 ? (
+                                    <div className="overflow rounded-lg">
+                                      <img 
+                                        src={url} 
+                                        alt={`Preview ${index + 1}`} 
+                                        className="w-full max-h-[260px] object-contain" 
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="overflow rounded-lg aspect-square">
+                                      <img 
+                                        src={url} 
+                                        alt={`Preview ${index + 1}`} 
+                                        className="w-full h-full object-contain" 
+                                      />
+                                    </div>
+                                  )}
                                   {/* Number Badge */}
                                   <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-md">
                                     {index + 1}
@@ -696,7 +708,7 @@ export default function StudioDashboard() {
                                   <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); handleRemoveImage(index); }}
-                                    className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md"
+                                    className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white rounded-full flex items-center justify-center text-sm font-bold opacity-100 md:opacity-0 md:group-hover/img:opacity-100 transition-opacity shadow-md z-10"
                                   >
                                     &times;
                                   </button>
@@ -718,7 +730,7 @@ export default function StudioDashboard() {
                               ))}
                               {previewUrls.length < 5 && (
                                 <div className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50 ${
-                                  previewUrls.length === 1 ? 'aspect-[4/3]' : 'aspect-square'
+                                  previewUrls.length === 2 || previewUrls.length === 4 ? 'aspect-square' : 'h-[80px]'
                                 }`}>
                                   <span className="text-indigo-400 text-2xl font-light">+</span>
                                   <p className="text-[10px] text-slate-400 mt-1">Tambah</p>

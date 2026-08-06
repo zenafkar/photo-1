@@ -60,7 +60,7 @@ const FeatureShowcase = () => {
                   </div>
                 </div>
                 {/* Mockup Body */}
-                <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="p-4 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                   {/* Sidebar mockup */}
                   <div className="col-span-1 space-y-4">
                     <div className="h-40 rounded-xl bg-landing-bg border border-landing-border flex items-center justify-center relative overflow-hidden">
@@ -93,7 +93,7 @@ const FeatureShowcase = () => {
           </StaggerContainer>
           
           {/* Ambient glow behind mockup */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-[800px] max-h-[400px] bg-landing-secondary/20 blur-[100px] -z-10" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-[800px] max-h-[400px] bg-landing-secondary/20 blur-[60px] md:blur-[100px] transform-gpu -z-10" />
         </div>
 
         {/* Feature Grid */}

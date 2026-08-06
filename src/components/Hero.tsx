@@ -125,8 +125,8 @@ const Hero = () => {
   return (
     <section className="relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden bg-landing-bg">
       {/* Studio Lighting Ambient Glow */}
-      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-landing-primary/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-landing-secondary/10 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-landing-primary/10 rounded-full blur-[80px] md:blur-[120px] transform-gpu pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-landing-secondary/10 rounded-full blur-[100px] md:blur-[150px] transform-gpu pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -141,7 +141,7 @@ const Hero = () => {
             </StaggerItem>
 
             <StaggerItem>
-              <h1 className="font-landing-display text-5xl sm:text-6xl lg:text-7xl font-light tracking-tight text-landing-text mb-6 leading-[1.1]">
+              <h1 className="font-landing-display text-4xl sm:text-5xl lg:text-7xl font-light tracking-tight text-landing-text mb-6 leading-[1.1]">
                 Your Products.<br />
                 <span className="font-medium bg-clip-text text-transparent bg-gradient-to-r from-landing-primary to-landing-secondary">
                   Exposed Perfectly.
@@ -160,7 +160,7 @@ const Hero = () => {
                 <SignedOut>
                   <button
                     onClick={() => openSignUp ? openSignUp({ fallbackRedirectUrl: '/studio' }) : null}
-                    className="px-8 py-4 bg-landing-text text-landing-bg hover:bg-landing-text/90 rounded-none font-medium transition-all flex items-center gap-3 group"
+                    className="w-full sm:w-auto justify-center px-8 py-4 bg-landing-text text-landing-bg hover:bg-landing-text/90 rounded-none font-medium transition-all flex items-center gap-3 group"
                   >
                     Start Developing
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -169,14 +169,14 @@ const Hero = () => {
                 <SignedIn>
                   <Link 
                     to="/studio" 
-                    className="px-8 py-4 bg-landing-text text-landing-bg hover:bg-landing-text/90 rounded-none font-medium transition-all flex items-center gap-3 group"
+                    className="w-full sm:w-auto justify-center px-8 py-4 bg-landing-text text-landing-bg hover:bg-landing-text/90 rounded-none font-medium transition-all flex items-center gap-3 group"
                   >
                     Enter Studio
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </SignedIn>
                 
-                <div className="flex items-center gap-3 px-4 py-4 border border-landing-border text-sm text-landing-text-muted font-mono uppercase tracking-wider">
+                <div className="w-full sm:w-auto flex items-center justify-center gap-3 px-4 py-4 border border-landing-border text-sm text-landing-text-muted font-mono uppercase tracking-wider">
                   <Sparkles className="w-4 h-4 text-landing-primary" />
                   3 Free Exposures
                 </div>

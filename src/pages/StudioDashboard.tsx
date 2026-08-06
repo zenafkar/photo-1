@@ -558,9 +558,9 @@ export default function StudioDashboard() {
   return (
     <>
       <SignedIn>
-        <div className="bg-[#F8FAFC] font-sans text-slate-900 flex flex-col min-h-[100dvh]">
+        <div className="fixed inset-0 bg-[#F8FAFC] font-sans text-slate-900 flex flex-col overflow-y-auto overscroll-none z-0">
           {/* Header */}
-          <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+          <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shrink-0">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <ZenLogo className="w-9 h-9 shadow-sm" />
@@ -673,7 +673,7 @@ export default function StudioDashboard() {
             </div>
           )}
 
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(2rem+env(safe-area-inset-bottom))] flex-1 w-full">
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-[calc(1.5rem_+_env(safe-area-inset-bottom))] sm:pb-[calc(2rem_+_env(safe-area-inset-bottom))] flex-1 w-full shrink-0">
             <div className="grid lg:grid-cols-12 gap-8">
               
               {/* Left Column: Form Inputs (Replicate Style) */}

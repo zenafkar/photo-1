@@ -314,6 +314,54 @@ export default function StudioDashboard() {
     e.target.value = '';
   };
 
+  const handleAppendFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    const MAX_IMAGES = 5;
+
+    const totalAfterAdd = previewUrls.length + files.length;
+    if (totalAfterAdd > MAX_IMAGES) {
+      alert(`Maksimal ${MAX_IMAGES} gambar. Saat ini sudah ada ${previewUrls.length} gambar.`);
+      e.target.value = '';
+      return;
+    }
+
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`"${file.name}" terlalu besar! Maksimal 10MB per gambar.`);
+        e.target.value = '';
+        return;
+      }
+    }
+
+    const newPreviewUrls: string[] = [...previewUrls];
+    const newBase64Array: string[] = [...imageBase64Array];
+    const newMetadata: {name: string, size: number}[] = [...imageMetadata];
+
+    for (const file of files) {
+      newPreviewUrls.push(URL.createObjectURL(file));
+      newMetadata.push({ name: file.name, size: file.size });
+      try {
+        const compressedBase64 = await compressImage(file);
+        newBase64Array.push(compressedBase64);
+      } catch {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        newBase64Array.push(base64);
+      }
+    }
+
+    setPreviewUrls(newPreviewUrls);
+    setImageBase64Array(newBase64Array);
+    setImageMetadata(newMetadata);
+    e.target.value = '';
+  };
+
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragOver(false);
@@ -647,13 +695,13 @@ export default function StudioDashboard() {
                         )}
                       </label>
                       <div 
-                        className={`relative group ${previewUrls.length < 5 ? 'cursor-pointer' : ''}`}
+                        className={`relative group ${previewUrls.length === 0 ? 'cursor-pointer' : ''}`}
                         onDragOver={(e) => { e.preventDefault(); if (previewUrls.length < 5) setIsDragOver(true); }}
                         onDragEnter={(e) => { e.preventDefault(); if (previewUrls.length < 5) setIsDragOver(true); }}
                         onDragLeave={() => setIsDragOver(false)}
                         onDrop={handleDrop}
                       >
-                        {previewUrls.length < 5 && (
+                        {previewUrls.length === 0 && (
                           <input
                             type="file"
                             accept="image/*"
@@ -729,9 +777,16 @@ export default function StudioDashboard() {
                                 </div>
                               ))}
                               {previewUrls.length < 5 && (
-                                <div className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50 ${
+                                <div className={`relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50 ${
                                   previewUrls.length === 2 || previewUrls.length === 4 ? 'aspect-square' : 'h-[80px]'
                                 }`}>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleAppendFiles}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                  />
                                   <span className="text-indigo-400 text-2xl font-light">+</span>
                                   <p className="text-[10px] text-slate-400 mt-1">Tambah</p>
                                 </div>

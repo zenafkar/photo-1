@@ -10,7 +10,6 @@
     @apply bg-background text-text antialiased;
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
-    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 

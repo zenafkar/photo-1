@@ -503,7 +503,7 @@ export default function StudioDashboard() {
   return (
     <>
       <SignedIn>
-        <div className="min-h-[100dvh] bg-[#F8FAFC] font-sans text-slate-900">
+        <div className="min-h-[100dvh] bg-[#F8FAFC] font-sans text-slate-900 flex flex-col">
           {/* Header */}
           <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -1177,6 +1177,16 @@ export default function StudioDashboard() {
 
             </div>
           </main>
+
+          <footer className="border-t border-slate-200 bg-white py-6 mt-auto">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-2 text-center">
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <ZenLogo className="w-5 h-5" />
+                <span>© {new Date().getFullYear()} ZenStudio</span>
+              </div>
+              <p className="text-xs text-slate-400">Dibuat untuk UMKM Indonesia.</p>
+            </div>
+          </footer>
         </div>
 
         {/* Delete Confirmation Modal */}

@@ -4,7 +4,7 @@ import { ArrowUpRight, CheckCircle2 } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer data-component="footer" className="bg-landing-bg pt-20 pb-10 border-t border-landing-border text-landing-text">
+    <footer data-component="footer" className="bg-landing-bg pt-14 pb-10 border-t border-landing-border text-landing-text">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         
         {/* Main Grid: Blueprint layout */}
@@ -13,8 +13,8 @@ const Footer = () => {
           {/* Brand & Telemetry (Left) */}
           <div className="lg:col-span-5 flex flex-col justify-between">
             <div>
-              <div className="mb-6 opacity-80">
-                <ZenLogo className="h-8" />
+              <div className="mb-4 opacity-80">
+                <ZenLogo className="h-12" />
               </div>
               <p className="text-sm font-light text-landing-text-muted max-w-sm leading-relaxed mb-8">
                 Tingkatkan konversi dengan resolusi foto produk kelas dunia dalam hitungan detik. Presisi tingkat piksel. Tanpa kompromi.
@@ -29,7 +29,7 @@ const Footer = () => {
               </div>
               <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[10px] font-mono text-landing-text-muted">
                 <span>NODE: ASIA-SE</span>
-                <span className="flex items-center gap-1">ENGINE: NANO BANANA <CheckCircle2 className="w-2.5 h-2.5 text-landing-secondary" /></span>
+                <span className="flex items-center gap-1">ENGINE: GOOGLE & OPENAI <CheckCircle2 className="w-2.5 h-2.5 text-landing-secondary" /></span>
                 <span>LATENCY: 12ms</span>
                 <span>UPTIME: 99.98%</span>
               </div>

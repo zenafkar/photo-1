@@ -1,13 +1,6 @@
-import {
-  Award,
-  ShieldAlert,
-  Droplet,
-  Image as ImageIcon,
-  Cpu,
-  MousePointer2
-} from 'lucide-react';
+import { Award, ShieldAlert, Droplet, Image as ImageIcon, Cpu, Crosshair, Hexagon } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const IntegrityEngine = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -25,204 +18,222 @@ const IntegrityEngine = () => {
         const nextIndex = (currentIndex + 1) % featureIds.length;
         return featureIds[nextIndex];
       });
-    }, 3500);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
 
-
   const features = [
     {
       id: 'bg',
+      label: 'SCENE GEN',
       title: 'Latar Bebas Diubah',
-      desc: 'Area di luar produk bebas Anda kreasikan. Ganti dari meja kafe ke atas awan dalam 5 detik tanpa merusak produk.',
+      desc: 'Area di luar produk bebas Anda kreasikan. Ganti dari meja kafe ke atas awan dalam 5 detik.',
       icon: ImageIcon,
-      color: 'from-secondary/20 to-teal-500/20 border-secondary/30 text-secondary',
-      activeColor: 'border-secondary bg-secondary/10'
+      accent: 'text-landing-text',
+      border: 'border-landing-text',
+      bg: 'bg-landing-text/10'
     },
     {
       id: 'logo',
+      label: 'OCR LOCK',
       title: 'Keutuhan Logo',
-      desc: 'Tidak ada lagi logo aneh atau teks alien. Mesin OCR kami membaca dan mengunci merek Anda agar tetap tajam.',
+      desc: 'Tidak ada lagi logo aneh atau teks alien. Mesin OCR mengunci merek Anda agar tetap tajam.',
       icon: Award,
-      color: 'from-amber-500/20 to-primary/20 border-amber-500/30 text-amber-400',
-      activeColor: 'border-amber-400 bg-amber-400/10'
+      accent: 'text-landing-secondary',
+      border: 'border-landing-secondary',
+      bg: 'bg-landing-secondary/10'
     },
     {
       id: 'shape',
+      label: 'GEOMETRY',
       title: 'Bentuk Absolut',
-      desc: 'Botol tidak akan tiba-tiba melengkung. Siluet asli produk Anda dikunci secara presisi hingga level piksel terdalam.',
+      desc: 'Botol tidak melengkung. Siluet asli produk dikunci presisi hingga level piksel terdalam.',
       icon: ShieldAlert,
-      color: 'from-sky-500/20 to-cyan-500/20 border-sky-500/30 text-sky-400',
-      activeColor: 'border-sky-400 bg-sky-400/10'
+      accent: 'text-landing-primary',
+      border: 'border-landing-primary',
+      bg: 'bg-landing-primary/10'
     },
     {
       id: 'color',
-      title: 'Akurasi Warna Sejati',
-      desc: 'Merah ya merah, bukan oranye. Pelanggan tidak akan komplain karena barang datang beda warna dengan di foto.',
+      label: 'DELTA-E MATCH',
+      title: 'Akurasi Warna',
+      desc: 'Merah ya merah, bukan oranye. Jaminan warna asli tanpa distorsi grading AI.',
       icon: Droplet,
-      color: 'from-primary/20 to-rose-500/20 border-primary/30 text-primary',
-      activeColor: 'border-primary bg-primary/10'
+      accent: 'text-amber-400',
+      border: 'border-amber-400',
+      bg: 'bg-amber-400/10'
     }
   ];
 
   return (
-    <section data-component="integrity" ref={sectionRef} id="integrity" className="py-16 md:py-24 relative overflow-hidden bg-background border-t border-surface-border text-text">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <section data-component="integrity" ref={sectionRef} id="integrity" className="py-24 lg:py-32 relative overflow-hidden bg-landing-bg border-t border-landing-border text-landing-text">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 lg:mb-24">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-surface-border rounded-full mb-6"
+            className="inline-flex items-center gap-2 px-3 py-1 bg-landing-surface/50 border border-landing-border mb-6"
           >
-            <Cpu className="w-4 h-4 text-secondary animate-pulse" />
-            <span className="text-xs uppercase tracking-widest font-mono text-secondary">Pixel Protection Tech</span>
+            <Cpu className="w-3.5 h-3.5 text-landing-secondary animate-pulse" />
+            <span className="text-[10px] uppercase tracking-widest font-mono text-landing-text-muted">Pixel Protection Tech</span>
           </motion.div>
 
-          <h2 className="font-display text-3xl md:text-5xl font-bold text-text mb-6 tracking-tight">
+          <h2 className="font-landing-display text-4xl md:text-5xl lg:text-6xl font-light text-landing-text mb-6 tracking-tight">
             Ubah Latar Bebas.{" "}
             <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-primary via-amber-400 to-primary bg-clip-text text-transparent">
-              Tapi Jangan Sentuh Produk Saya.
+            <span className="font-medium bg-clip-text text-transparent bg-gradient-to-r from-landing-primary to-landing-secondary">
+              Jangan Sentuh Produk Saya.
             </span>
           </h2>
-          <p className="text-base md:text-xl text-text-muted max-w-3xl mx-auto font-normal leading-relaxed">
-            Sering kesal karena AI merusak bentuk botol atau melengkungkan logo? Kami mengerti.{" "}
-            <strong className="text-primary font-semibold">ZenStudio melindungi bentuk, warna, dan tulisan asli produk Anda 100%.</strong>
+          <p className="text-lg text-landing-text-muted max-w-3xl mx-auto font-light leading-relaxed">
+            Sering kesal AI merusak bentuk botol atau melengkungkan logo?{" "}
+            <strong className="text-landing-text font-normal">ZenStudio mengunci bentuk, warna, dan tulisan asli produk Anda 100%.</strong>
           </p>
         </div>
 
-        {/* Interactive Scanner ("Show, Don't Tell") */}
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-12 items-center mb-24">
-
-          {/* Left Side: Interactive Feature Cards */}
-          <div className="flex-1 w-full space-y-4">
-            <div className="mb-6 lg:mb-8 text-center lg:text-left">
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-surface-border rounded-full text-xs font-mono text-text-muted mb-4">
-                <MousePointer2 className="w-3.5 h-3.5 text-primary" /> Auto-Pilot Aktif (Sentuh/Hover untuk Jeda)
-              </span>
-              <h3 className="font-display text-2xl font-bold text-text mb-2">Anatomi Proteksi AI</h3>
+        {/* The Light Table HUD */}
+        <div className="max-w-5xl mx-auto">
+          <div className="relative bg-landing-surface/30 border border-landing-border p-1">
+            {/* Top Bar HUD */}
+            <div className="h-10 border-b border-landing-border flex items-center justify-between px-4 bg-landing-surface/80">
+              <div className="flex items-center gap-4">
+                <Crosshair className="w-4 h-4 text-landing-text-muted" />
+                <span className="text-[10px] font-mono tracking-widest text-landing-text-muted">ZEN-ENGINE v2.4</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-landing-secondary animate-pulse" />
+                <span className="text-[10px] font-mono text-landing-secondary">SYSTEM ONLINE</span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-              {features.map((f) => {
-                const Icon = f.icon;
-                const isActive = activeFeature === f.id;
-                return (
-                  <div
-                    key={f.id}
-                    onMouseEnter={() => { setActiveFeature(f.id); setIsAutoPlaying(false); }}
-                    onMouseLeave={() => setIsAutoPlaying(true)}
-                    onTouchStart={() => { setActiveFeature(f.id); setIsAutoPlaying(false); }}
-                    onTouchEnd={() => setIsAutoPlaying(true)}
-                    className={`p-5 rounded-2xl border transition-all duration-300 cursor-crosshair flex items-start gap-4
-                      ${isActive ? f.activeColor : 'bg-surface/40 border-surface-border hover:border-primary/30'}`}
-                  >
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${f.color} border shrink-0 transition-transform ${isActive ? 'scale-110' : ''}`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h4 className={`font-sans font-bold mb-1.5 transition-colors ${isActive ? 'text-primary' : 'text-text'}`}>
-                        {f.title}
-                      </h4>
-                      <p className={`text-sm leading-relaxed transition-colors ${isActive ? 'text-text-muted/90' : 'text-text-muted'}`}>
-                        {f.desc}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Right Side: Visual Scanner Simulator */}
-          <div className="flex-1 w-full max-w-lg lg:max-w-none mx-auto relative">
-            <div className="relative aspect-[4/5] sm:aspect-square md:aspect-video lg:aspect-square bg-surface/40 border border-surface-border rounded-[2.5rem] overflow-hidden flex items-center justify-center p-8 group">
-              {/* Subtle Background Patterns */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,69,42,0.06)_0%,transparent_70%)]" />
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-50" />
-
-              {/* Real Product Image Visualizer */}
-              <div className="relative w-full max-w-[280px] aspect-[3/4] mx-auto z-10 transition-all duration-500 rounded-3xl overflow-hidden shadow-2xl border border-surface-border">
-                {/* Images */}
-                <img
-                  src="/hotin-after.jpg"
-                  alt="Product After"
-                  width={280}
-                  height={373}
-                  loading="lazy"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 z-10 hover:scale-105"
-                />
-                <img
-                  src="/hotin-before.jpg"
-                  alt="Product Before"
-                  width={280}
-                  height={373}
-                  loading="lazy"
-                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 z-20 ${activeFeature === 'bg' ? 'opacity-100' : 'opacity-0'}`}
-                />
-
-                {/* Overlays for Highlights */}
-                {/* 1. Shape/Geometry Highlight — tight bounding box around the tube only */}
-                <div
-                  className={`absolute rounded-[1.2rem] border-2 transition-all duration-500 z-30 pointer-events-none ${
-                    activeFeature === 'shape' ? 'border-sky-400 shadow-[0_0_30px_rgba(14,165,233,0.4)] bg-sky-400/10' : 'border-transparent'
-                  }`}
-                  style={{ top: '5%', bottom: '28%', left: '25%', right: '25%' }}
-                >
-                  {activeFeature === 'shape' && (
-                    <>
-                      <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-sky-400 rounded-tl-md" />
-                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-sky-400 rounded-tr-md" />
-                      <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-sky-400 rounded-bl-md" />
-                      <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-sky-400 rounded-br-md" />
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-sky-400 rounded-full animate-ping" />
-                    </>
-                  )}
-                </div>
-
-                {/* 2. Color Match Highlight — only the red body of the tube */}
-                <div
-                  className={`absolute rounded-lg transition-all duration-500 z-30 pointer-events-none ${
-                    activeFeature === 'color' ? 'bg-primary/30 mix-blend-overlay border border-primary shadow-[0_0_25px_rgba(212,69,42,0.4)]' : 'border-transparent'
-                  }`}
-                  style={{ top: '18%', bottom: '38%', left: '30%', right: '30%' }}
-                />
-
-                {/* 3. Logo/OCR Highlight — vertical strip over the brand text */}
-                <div
-                  className={`absolute rounded-lg border-2 border-dashed transition-all duration-500 z-30 pointer-events-none flex items-center justify-center ${
-                    activeFeature === 'logo' ? 'border-amber-400 bg-amber-400/15 backdrop-blur-[1px]' : 'border-transparent'
-                  }`}
-                  style={{ top: '22%', bottom: '40%', left: '35%', right: '38%' }}
-                >
-                  {activeFeature === 'logo' && (
-                    <span className="bg-amber-400 text-amber-950 text-[8px] font-black px-2 py-0.5 rounded-full absolute -top-3">OCR LOCKED</span>
-                  )}
-                </div>
-
-                {/* Ambient Scanning Line */}
-                <motion.div
-                  className="absolute top-0 left-[-10%] right-[-10%] h-[2px] bg-primary shadow-[0_0_15px_rgba(212,69,42,0.8)] z-40 pointer-events-none"
-                  animate={{ y: ['0px', '380px', '0px'] }}
-                  transition={{ duration: 3, ease: "linear", repeat: Infinity }}
-                  style={{ opacity: activeFeature === null ? 0.7 : 0, willChange: 'transform' }}
-                />
+            <div className="flex flex-col md:flex-row">
+              {/* Left Control Panel */}
+              <div className="w-full md:w-[280px] border-b md:border-b-0 md:border-r border-landing-border bg-landing-surface/40 p-4 md:p-6 flex flex-row md:flex-col gap-2 md:gap-4 overflow-x-auto snap-x scrollbar-none">
+                <div className="hidden md:block text-[10px] font-mono text-landing-text-muted mb-2 tracking-widest">ISOLATION PARAMETERS</div>
+                {features.map((f) => {
+                  const isActive = activeFeature === f.id;
+                  const Icon = f.icon;
+                  return (
+                    <button
+                      key={f.id}
+                      onClick={() => { setActiveFeature(f.id); setIsAutoPlaying(false); }}
+                      className={`snap-start shrink-0 w-[200px] md:w-full text-left p-4 border transition-all duration-300 relative overflow-hidden group
+                        ${isActive ? `${f.bg} ${f.border}` : 'bg-landing-bg border-landing-border hover:border-landing-text-muted/50'}`}
+                    >
+                      {isActive && <div className={`absolute top-0 left-0 bottom-0 w-1 ${f.bg.replace('/10', '')}`} />}
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon className={`w-4 h-4 ${isActive ? f.accent : 'text-landing-text-muted group-hover:text-landing-text'}`} />
+                        <span className={`text-[10px] font-mono tracking-widest ${isActive ? f.accent : 'text-landing-text-muted group-hover:text-landing-text'}`}>
+                          {f.label}
+                        </span>
+                      </div>
+                      <div className={`text-sm font-medium mb-1 ${isActive ? 'text-landing-text' : 'text-landing-text-muted'}`}>{f.title}</div>
+                      {isActive && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="text-xs font-light text-landing-text-muted mt-2">
+                          {f.desc}
+                        </motion.div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Status Overlay UI */}
-              <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row justify-between items-center px-5 py-3 bg-surface/60 backdrop-blur-sm border border-surface-border rounded-2xl gap-2 z-50">
-                <span className="text-xs font-semibold text-text-muted tracking-wider">STATUS:</span>
-                <span className="text-xs font-bold text-primary flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                  <span className="w-2 h-2 rounded-full bg-secondary animate-ping" />
-                  {activeFeature === 'logo' && 'OCR LOCK ENGAGED'}
-                  {activeFeature === 'shape' && 'GEOMETRY PRESERVED'}
-                  {activeFeature === 'color' && 'DELTA-E MATCHED'}
-                  {activeFeature === 'bg' && 'SCENE GENERATION'}
-                  {activeFeature === null && 'AWAITING INPUT'}
-                </span>
+              {/* Main Canvas Viewer */}
+              <div className="flex-1 relative aspect-[4/5] sm:aspect-square md:aspect-auto md:min-h-[600px] bg-[#0A0A0C] overflow-hidden flex items-center justify-center p-4 sm:p-8">
+                {/* Calibration Grid Background */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
+                
+                {/* Center Reticle */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] border border-landing-border/50 rounded-full pointer-events-none flex items-center justify-center">
+                  <div className="w-[150px] h-[150px] border border-dashed border-landing-border/30 rounded-full" />
+                </div>
+
+                {/* The Image Container */}
+                <div className="relative w-full max-w-[320px] aspect-[3/4] z-10 border border-landing-border shadow-2xl">
+                  {/* Base AI Output */}
+                  <img src="/hotin-after.jpg" alt="Output" className="absolute inset-0 w-full h-full object-cover" />
+                  
+                  {/* Original Image Mask (Fades in/out) */}
+                  <img 
+                    src="/hotin-before.jpg" 
+                    alt="Original" 
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${activeFeature === 'bg' ? 'opacity-100' : 'opacity-0'}`} 
+                  />
+
+                  {/* Overlays */}
+                  <AnimatePresence>
+                    {activeFeature === 'shape' && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.05 }}
+                        className="absolute z-30 pointer-events-none border-2 border-landing-primary bg-landing-primary/10 shadow-[0_0_30px_rgba(212,69,42,0.4)]"
+                        style={{ top: '5%', bottom: '28%', left: '25%', right: '25%' }}
+                      >
+                        {/* Anchor points */}
+                        <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-landing-bg border border-landing-primary" />
+                        <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-landing-bg border border-landing-primary" />
+                        <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-landing-bg border border-landing-primary" />
+                        <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-landing-bg border border-landing-primary" />
+                      </motion.div>
+                    )}
+
+                    {activeFeature === 'color' && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute z-30 pointer-events-none mix-blend-overlay bg-amber-400/40 border border-amber-400"
+                        style={{ top: '18%', bottom: '38%', left: '30%', right: '30%' }}
+                      >
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] font-mono text-amber-950 bg-amber-400 px-1">#D42A2A</div>
+                      </motion.div>
+                    )}
+
+                    {activeFeature === 'logo' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute z-30 pointer-events-none border border-landing-secondary bg-landing-secondary/20 backdrop-blur-[2px] flex items-start justify-center"
+                        style={{ top: '22%', bottom: '40%', left: '35%', right: '38%' }}
+                      >
+                        <div className="mt-[-20px] bg-landing-secondary text-landing-bg text-[9px] font-mono font-bold px-2 py-0.5 whitespace-nowrap shadow-[0_0_10px_rgba(61,139,125,0.8)]">
+                          OCR.MATCH_100
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Laser Scanner Line */}
+                  <motion.div
+                    className="absolute top-0 left-[-10%] right-[-10%] h-[1px] bg-landing-text shadow-[0_0_20px_#FFFFFF] z-40 pointer-events-none"
+                    animate={{ y: ['0px', '420px', '0px'] }}
+                    transition={{ duration: 4, ease: "linear", repeat: Infinity }}
+                    style={{ opacity: activeFeature === 'bg' ? 0.8 : 0.2 }}
+                  />
+                </div>
+
+                {/* Bottom Overlay Data (Desktop) */}
+                <div className="hidden md:flex absolute bottom-4 left-4 right-4 justify-between items-end pointer-events-none">
+                  <div className="bg-landing-surface/80 border border-landing-border p-3 backdrop-blur-md">
+                    <div className="text-[9px] text-landing-text-muted font-mono mb-1">ANALYSIS LOG</div>
+                    <div className="text-[10px] font-mono text-landing-text">
+                      {activeFeature === 'bg' && '> Initiating background synthesis... OK'}
+                      {activeFeature === 'shape' && '> Mask geometry verified against RAW... OK'}
+                      {activeFeature === 'color' && '> Delta-E color profiling... MATCH'}
+                      {activeFeature === 'logo' && '> Text boundary preserved... 100%'}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Hexagon className="w-8 h-8 text-landing-border/50 animate-spin-slow" />
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>

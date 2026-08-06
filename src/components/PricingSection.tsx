@@ -1,4 +1,4 @@
-import { Sparkles, Zap, Image as ImageIcon, Layers, Aperture, Shield, FastForward, CreditCard } from 'lucide-react';
+import { Zap, FastForward, Check, CreditCard, Sparkles } from 'lucide-react';
 import { SignedOut, SignedIn, useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 import { useTopUp } from '../context/TopUpContext';
@@ -19,147 +19,140 @@ const PricingSection = () => {
     }
   };
 
+  const coreFeatures = [
+    "Akses ke seluruh AI Engine (Termasuk Nano Banana Pro)",
+    "Resolusi ekspor Ultra 4K",
+    "Bebas watermark komersial",
+    "Proteksi OCR & Geometri 100%",
+    "Lisensi komersial penuh"
+  ];
+
   return (
-    <section data-component="pricing" id="harga" className="py-16 md:py-24 bg-background relative overflow-hidden text-text border-t border-surface-border">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-12 md:mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-surface-border text-xs font-semibold text-primary mb-5">
-            <CreditCard className="w-3.5 h-3.5" />
-            <span>KREDIT, BUKAN LANGGANAN</span>
-          </div>
-          <h2 className="font-display text-3xl md:text-5xl font-bold text-text mb-4 tracking-tight">
-            Top Up Sesuai Kebutuhan
-          </h2>
-          <p className="text-lg text-text-muted max-w-2xl mx-auto">
-            <strong className="text-text">1 kredit = 1 foto.</strong> Beli kredit sekali, pakai kapan saja. Tanpa komitmen bulanan — lebih hemat untuk UMKM.
-          </p>
-        </div>
+    <section data-component="pricing" id="harga" className="py-24 lg:py-32 bg-landing-bg relative overflow-hidden text-landing-text border-t border-landing-border">
+      
+      {/* Subtle Grid Background */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
-
-          {/* Free Tier */}
-          <div className="bg-surface/40 border border-surface-border rounded-[28px] p-6 sm:p-8 flex flex-col hover:border-primary/30 transition-all">
-            <h3 className="font-sans text-xl font-bold text-text mb-1">Gratis</h3>
-            <p className="text-text-muted text-sm mb-5">Cocok untuk mencoba dan jualan santai.</p>
-            <div className="mb-6">
-              <span className="font-display text-4xl font-bold text-text">3 Foto</span>
-              <span className="text-text-muted text-sm ml-2">gratis</span>
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
+        
+        {/* Section Header */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 lg:mb-24 gap-8">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-landing-surface/50 border border-landing-border mb-6">
+              <CreditCard className="w-3.5 h-3.5 text-landing-primary" />
+              <span className="text-[10px] uppercase tracking-widest font-mono text-landing-text-muted">Kredit, Bukan Langganan</span>
             </div>
-
-            <ul className="space-y-3 mb-8 flex-grow text-sm">
-              <li className="flex gap-3 text-text-muted"><ImageIcon className="w-5 h-5 text-primary shrink-0" /> 3 kredit gratis saat daftar</li>
-              <li className="flex gap-3 text-text-muted"><Layers className="w-5 h-5 text-primary shrink-0" /> Bebas atur tema & suasana</li>
-              <li className="flex gap-3 text-text-muted"><Aperture className="w-5 h-5 text-primary shrink-0" /> Resolusi 1K / 2K</li>
-              <li className="flex gap-3 text-text-muted"><Shield className="w-5 h-5 text-primary shrink-0" /> Tanpa watermark</li>
-            </ul>
-
-            <SignedOut>
-              <button onClick={handleOpenAuth} className="w-full py-3.5 rounded-xl border-2 border-surface-border hover:border-primary/50 text-text font-bold hover:bg-surface transition-all cursor-pointer min-h-[48px]">
-                Mulai Gratis
-              </button>
-            </SignedOut>
-            <SignedIn>
-              <Link to="/studio" className="w-full py-3.5 rounded-xl border-2 border-surface-border hover:border-primary/50 text-text font-bold flex justify-center hover:bg-surface transition-all min-h-[48px]">
-                Mulai Gratis
-              </Link>
-            </SignedIn>
-          </div>
-
-          {/* Starter Tier */}
-          <div className="bg-surface/40 border border-surface-border rounded-[28px] p-6 sm:p-8 flex flex-col hover:border-primary/30 transition-all">
-            <h3 className="font-sans text-xl font-bold text-text mb-1">Starter</h3>
-            <p className="text-text-muted text-sm mb-5">Untuk UMKM yang ingin hasil profesional.</p>
-            <div className="mb-6">
-              <div className="flex items-baseline gap-2">
-                <span className="font-display text-4xl font-bold text-text">{formatRupiah(PACKAGES.starter.price)}</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="text-primary font-bold text-sm bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
-                  {PACKAGES.starter.credits} Foto
-                </span>
-                <span className="text-text-muted text-xs">Up to {PACKAGES.starter.credits} Foto</span>
-              </div>
-            </div>
-
-            <ul className="space-y-3 mb-8 flex-grow text-sm">
-              <li className="flex gap-3 text-text font-medium"><Zap className="w-5 h-5 text-primary shrink-0" /> <strong>{PACKAGES.starter.credits} kredit</strong></li>
-              <li className="flex gap-3 text-text-muted">Bebas atur tema & suasana</li>
-              <li className="flex gap-3 text-text-muted">Resolusi 1K & 2K</li>
-              <li className="flex gap-3 text-text-muted">Dukungan 4K (2 kredit)</li>
-              <li className="flex gap-3 text-text-muted">Tanpa watermark</li>
-            </ul>
-
-            <SignedOut>
-              <button onClick={handleOpenAuth} className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold transition-all shadow-[0_2px_12px_rgba(212,69,42,0.2)] hover:shadow-[0_4px_16px_rgba(212,69,42,0.3)] cursor-pointer min-h-[48px]">
-                Beli Paket
-              </button>
-            </SignedOut>
-            <SignedIn>
-              <button onClick={() => openTopUp("starter")} className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold flex justify-center transition-all shadow-[0_2px_12px_rgba(212,69,42,0.2)] hover:shadow-[0_4px_16px_rgba(212,69,42,0.3)] cursor-pointer min-h-[48px]">
-                Beli Paket
-              </button>
-            </SignedIn>
-          </div>
-
-          {/* Pro Tier (Featured) */}
-          <div className="bg-surface/40 border-2 border-primary rounded-[28px] p-6 sm:p-8 flex flex-col relative shadow-[0_0_30px_rgba(212,69,42,0.1)] md:-translate-y-2">
-            {/* Popular badge */}
-            <div className="absolute top-0 right-6 sm:right-8 transform -translate-y-1/2 bg-primary px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-[0_4px_12px_rgba(212,69,42,0.3)] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" /> PALING HEMAT
-            </div>
-            <h3 className="font-sans text-xl font-bold text-text mb-1">Pro</h3>
-            <p className="text-text-muted text-sm mb-5">Untuk online shop dengan posting rutin.</p>
-            <div className="mb-6">
-              <div className="flex items-baseline gap-2">
-                <span className="font-display text-4xl font-bold text-text">{formatRupiah(PACKAGES.pro.price)}</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="text-secondary font-bold text-sm bg-secondary/10 border border-secondary/20 px-3 py-1 rounded-full">
-                   {PACKAGES.pro.credits} Foto
-                </span>
-                <span className="text-text-muted text-xs">Up to {PACKAGES.pro.credits} Foto</span>
-              </div>
-            </div>
-
-            <ul className="space-y-3 mb-8 flex-grow text-sm">
-              <li className="flex gap-3 text-text font-medium"><Zap className="w-5 h-5 text-primary shrink-0" /> <strong>{PACKAGES.pro.credits} kredit</strong></li>
-              <li className="flex gap-3 text-text-muted">Bebas atur tema & suasana</li>
-              <li className="flex gap-3 text-text-muted">Resolusi 1K & 2K</li>
-              <li className="flex gap-3 text-text-muted">Dukungan Ultra 4K</li>
-              <li className="flex gap-3 text-text-muted"><FastForward className="w-5 h-5 text-primary shrink-0" /> Priority server (lebih cepat)</li>
-              <li className="flex gap-3 text-text-muted">Tanpa watermark</li>
-            </ul>
-
-            <SignedOut>
-              <button onClick={handleOpenAuth} className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold transition-all shadow-[0_4px_16px_rgba(212,69,42,0.3)] hover:shadow-[0_6px_20px_rgba(212,69,42,0.4)] cursor-pointer min-h-[48px]">
-                Beli Paket Pro
-              </button>
-            </SignedOut>
-            <SignedIn>
-              <button onClick={() => openTopUp("pro")} className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold flex justify-center transition-all shadow-[0_4px_16px_rgba(212,69,42,0.3)] hover:shadow-[0_6px_20px_rgba(212,69,42,0.4)] cursor-pointer min-h-[48px]">
-                Beli Paket Pro
-              </button>
-            </SignedIn>
+            <h2 className="font-landing-display text-4xl lg:text-5xl font-light text-landing-text mb-4 tracking-tight">
+              Rate Card Studio
+            </h2>
+            <p className="text-lg text-landing-text-muted max-w-xl font-light">
+              Beli kredit pemrosesan hanya saat Anda membutuhkannya. Tanpa biaya bulanan tersembunyi. <strong className="text-landing-text font-normal">1 Kredit = 1 Render Final.</strong>
+            </p>
           </div>
         </div>
 
-        {/* Payment methods */}
-        <div className="mt-12 text-center">
-          <p className="text-sm text-text-muted mb-3">Pembayaran mudah via</p>
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">
-              <img src="/icons/xendit.svg" alt="" className="w-4 h-4 brightness-0 invert opacity-70" /> QRIS
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">
-              📱 GoPay / OVO / Dana
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-surface-border text-xs font-medium text-text-muted">
-              🏦 Transfer Bank
-            </span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          
+          {/* Left: Core Specifications */}
+          <div className="lg:col-span-5 border border-landing-border bg-landing-surface/20 p-8 lg:p-10 backdrop-blur-sm">
+            <h3 className="font-mono text-[10px] tracking-widest text-landing-text-muted mb-8 uppercase border-b border-landing-border pb-4">Standard Specifications</h3>
+            <ul className="space-y-6">
+              {coreFeatures.map((feat, idx) => (
+                <li key={idx} className="flex items-start gap-4">
+                  <Check className="w-5 h-5 text-landing-secondary shrink-0 mt-0.5" />
+                  <span className="text-sm font-light text-landing-text/90 leading-relaxed">{feat}</span>
+                </li>
+              ))}
+            </ul>
+            
+            <div className="mt-12 pt-8 border-t border-landing-border">
+              <h4 className="font-mono text-[10px] tracking-widest text-landing-text-muted mb-4 uppercase">Free Trial Allocation</h4>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-landing-display mb-1">3 Credits</div>
+                  <div className="text-xs text-landing-text-muted font-light">Diberikan saat registrasi awal</div>
+                </div>
+                <SignedOut>
+                  <button onClick={handleOpenAuth} className="text-xs font-bold text-landing-primary hover:text-landing-primary/80 uppercase tracking-wider font-mono">
+                    CLAIM NOW &rarr;
+                  </button>
+                </SignedOut>
+                <SignedIn>
+                  <Link to="/studio" className="text-xs font-bold text-landing-primary hover:text-landing-primary/80 uppercase tracking-wider font-mono">
+                    ENTER STUDIO &rarr;
+                  </Link>
+                </SignedIn>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: The Rate Cards */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            
+            {/* Starter Package */}
+            <div className="border border-landing-border bg-landing-surface/40 hover:bg-landing-surface/60 transition-colors p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 group">
+              <div>
+                <div className="font-mono text-[10px] tracking-widest text-landing-text-muted mb-2 uppercase">Volume: {PACKAGES.starter.credits} Renders</div>
+                <h3 className="font-landing-display text-3xl text-landing-text mb-2">Starter Pack</h3>
+                <div className="font-mono text-sm text-landing-text-muted/70">{formatRupiah(PACKAGES.starter.price)}</div>
+              </div>
+              <div className="w-full sm:w-auto shrink-0">
+                <SignedOut>
+                  <button onClick={handleOpenAuth} className="w-full sm:w-[160px] py-4 bg-landing-bg border border-landing-border group-hover:border-landing-text text-landing-text text-xs font-mono tracking-widest uppercase transition-all">
+                    Purchase
+                  </button>
+                </SignedOut>
+                <SignedIn>
+                  <button onClick={() => openTopUp("starter")} className="w-full sm:w-[160px] py-4 bg-landing-bg border border-landing-border group-hover:border-landing-text text-landing-text text-xs font-mono tracking-widest uppercase transition-all">
+                    Purchase
+                  </button>
+                </SignedIn>
+              </div>
+            </div>
+
+            {/* Pro Package */}
+            <div className="border border-landing-primary bg-landing-primary/5 relative p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 group">
+              <div className="absolute top-0 right-8 transform -translate-y-1/2 bg-landing-primary px-3 py-1 text-[9px] font-bold font-mono tracking-widest text-landing-bg uppercase flex items-center gap-1.5 shadow-[0_0_15px_rgba(212,69,42,0.4)]">
+                <Sparkles className="w-3 h-3" /> BEST VALUE
+              </div>
+              <div>
+                <div className="font-mono text-[10px] tracking-widest text-landing-primary mb-2 uppercase flex items-center gap-2">
+                  <Zap className="w-3 h-3" /> Volume: {PACKAGES.pro.credits} Renders
+                </div>
+                <h3 className="font-landing-display text-3xl text-landing-text mb-2">Pro Batch</h3>
+                <div className="font-mono text-sm text-landing-text-muted/70">{formatRupiah(PACKAGES.pro.price)}</div>
+                <div className="mt-3 flex items-center gap-2 text-xs font-light text-landing-text-muted">
+                  <FastForward className="w-3.5 h-3.5 text-landing-secondary" /> Priority GPU Queue
+                </div>
+              </div>
+              <div className="w-full sm:w-auto shrink-0">
+                <SignedOut>
+                  <button onClick={handleOpenAuth} className="w-full sm:w-[160px] py-4 bg-landing-primary hover:bg-landing-primary/90 text-landing-bg text-xs font-mono font-bold tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(212,69,42,0.2)]">
+                    Purchase
+                  </button>
+                </SignedOut>
+                <SignedIn>
+                  <button onClick={() => openTopUp("pro")} className="w-full sm:w-[160px] py-4 bg-landing-primary hover:bg-landing-primary/90 text-landing-bg text-xs font-mono font-bold tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(212,69,42,0.2)]">
+                    Purchase
+                  </button>
+                </SignedIn>
+              </div>
+            </div>
+
           </div>
         </div>
+
+        {/* Accepted Payment Methods (Monochrome/Technical style) */}
+        <div className="mt-20 pt-8 border-t border-landing-border flex flex-col sm:flex-row justify-between items-center gap-6">
+          <div className="text-[10px] font-mono tracking-widest text-landing-text-muted uppercase">Secure Transactions Via</div>
+          <div className="flex items-center gap-6 opacity-50 grayscale">
+            <span className="text-xs font-bold tracking-widest">QRIS</span>
+            <span className="text-xs font-bold tracking-widest">GOPAY</span>
+            <span className="text-xs font-bold tracking-widest">OVO</span>
+            <span className="text-xs font-bold tracking-widest">VIRTUAL ACCOUNT</span>
+          </div>
+        </div>
+
       </div>
     </section>
   );

@@ -598,7 +598,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                       value={customProduct}
                       onChange={(e) => setCustomProduct(e.target.value)}
                       placeholder="Contoh: Botol Serum, Sepatu Sneakers..."
-                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     />
                     <div className="flex flex-wrap gap-2">
                       {QUICK_SUGGESTIONS.map((sug) => (
@@ -754,7 +754,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                     <select
                       value={mqClothingType}
                       onChange={(e) => setMqClothingType(e.target.value)}
-                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none"
+                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none"
                     >
                       {MANNEQUIN_CLOTHING_TYPES.map((type) => (
                         <option key={type.val} value={type.val}>{type.label}</option>
@@ -766,7 +766,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                       value={mqClothingType}
                       onChange={(e) => setMqClothingType(e.target.value)}
                       placeholder="Atau ketik jenis pakaian spesifik..."
-                      className="w-full mt-2 p-3.5 bg-white border border-slate-200 rounded-xl text-base md:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      className="w-full mt-2 p-3.5 bg-white border border-slate-200 rounded-xl text-base md:text-sm font-semibold placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     />
                   </section>
 
@@ -784,9 +784,9 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                         <select
                           value={mqMaterial}
                           onChange={(e) => setMqMaterial(e.target.value)}
-                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none"
+                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none"
                         >
-                          <option value="">-- Pilih Bahan --</option>
+                          <option value="" className="text-slate-400">-- Pilih Bahan --</option>
                           {MANNEQUIN_MATERIALS.map((mat) => (
                             <option key={mat.val} value={mat.val}>{mat.label}</option>
                           ))}
@@ -798,7 +798,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                           value={mqColor}
                           onChange={(e) => setMqColor(e.target.value)}
                           placeholder="Warna dominan (opsional)"
-                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                         />
                       </div>
                     </div>

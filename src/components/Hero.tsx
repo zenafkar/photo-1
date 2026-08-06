@@ -123,7 +123,7 @@ const Hero = () => {
   const { openSignUp } = useClerk();
 
   return (
-    <section className="relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden bg-landing-bg">
+    <section className="relative pt-24 pb-24 lg:pt-32 lg:pb-32 overflow-hidden bg-landing-bg">
       {/* Studio Lighting Ambient Glow */}
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-landing-primary/10 rounded-full blur-[80px] md:blur-[120px] transform-gpu pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-landing-secondary/10 rounded-full blur-[100px] md:blur-[150px] transform-gpu pointer-events-none" />

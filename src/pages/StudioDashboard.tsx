@@ -1177,16 +1177,6 @@ export default function StudioDashboard() {
 
             </div>
           </main>
-
-          <footer className="border-t border-slate-200 bg-white py-6 mt-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-2 text-center">
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <ZenLogo className="w-5 h-5" />
-                <span>© {new Date().getFullYear()} ZenStudio</span>
-              </div>
-              <p className="text-xs text-slate-400">Dibuat untuk UMKM Indonesia.</p>
-            </div>
-          </footer>
         </div>
 
         {/* Delete Confirmation Modal */}

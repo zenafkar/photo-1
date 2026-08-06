@@ -21,7 +21,7 @@ const SectionPlaceholder = () => (
 
 export default function LandingPage() {
   return (
-    <div className="min-h-[100dvh] bg-background selection:bg-primary/30 selection:text-text text-text antialiased overflow-x-hidden">
+    <div className="theme-landing min-h-[100dvh] bg-landing-bg selection:bg-landing-primary/30 selection:text-landing-text text-landing-text font-sans antialiased overflow-x-hidden">
       <Navbar />
       <main>
         {/* Above-fold: sync-loaded for instant first paint */}

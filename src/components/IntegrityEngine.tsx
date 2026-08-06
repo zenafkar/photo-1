@@ -112,7 +112,8 @@ const IntegrityEngine = () => {
 
             <div className="flex flex-col md:flex-row">
               {/* Left Control Panel */}
-              <div className="w-full md:w-[280px] border-b md:border-b-0 md:border-r border-landing-border bg-landing-surface/40 p-4 md:p-6 flex flex-row md:flex-col gap-2 md:gap-4 overflow-x-auto snap-x scrollbar-none">
+              {/* Reserve the tallest mobile card height so autoplay does not reflow later sections. */}
+              <div className="w-full md:w-[280px] min-h-[184px] md:min-h-0 border-b md:border-b-0 md:border-r border-landing-border bg-landing-surface/40 p-4 md:p-6 flex flex-row md:flex-col gap-2 md:gap-4 overflow-x-auto snap-x scrollbar-none">
                 <div className="hidden md:block text-[10px] font-mono text-landing-text-muted mb-2 tracking-widest">ISOLATION PARAMETERS</div>
                 {features.map((f) => {
                   const isActive = activeFeature === f.id;

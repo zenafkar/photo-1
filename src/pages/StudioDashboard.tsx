@@ -44,6 +44,7 @@ export default function StudioDashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStatus, setGenerationStatus] = useState<string | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [generationHistory, setGenerationHistory] = useState<any[]>([]);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
@@ -200,6 +201,12 @@ export default function StudioDashboard() {
   }, []);
 
   useEffect(() => {
+    if (!uploadError) return;
+    const t = setTimeout(() => setUploadError(null), 4000);
+    return () => clearTimeout(t);
+  }, [uploadError]);
+
+  useEffect(() => {
     if (isLoaded && isSignedIn) {
       loadProfile();
 
@@ -270,14 +277,14 @@ export default function StudioDashboard() {
     const MAX_IMAGES = 5;
 
     if (files.length > MAX_IMAGES) {
-      alert(`Maksimal ${MAX_IMAGES} gambar sekaligus.`);
+      setUploadError(`Maksimal ${MAX_IMAGES} gambar sekaligus.`);
       e.target.value = '';
       return;
     }
 
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
-        alert(`"${file.name}" terlalu besar! Maksimal 10MB per gambar.`);
+        setUploadError(`"${file.name}" terlalu besar! Maksimal 10MB per gambar.`);
         e.target.value = '';
         return;
       }
@@ -322,14 +329,14 @@ export default function StudioDashboard() {
 
     const totalAfterAdd = previewUrls.length + files.length;
     if (totalAfterAdd > MAX_IMAGES) {
-      alert(`Maksimal ${MAX_IMAGES} gambar. Saat ini sudah ada ${previewUrls.length} gambar.`);
+      setUploadError(`Maksimal ${MAX_IMAGES} gambar. Saat ini sudah ada ${previewUrls.length} gambar.`);
       e.target.value = '';
       return;
     }
 
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
-        alert(`"${file.name}" terlalu besar! Maksimal 10MB per gambar.`);
+        setUploadError(`"${file.name}" terlalu besar! Maksimal 10MB per gambar.`);
         e.target.value = '';
         return;
       }
@@ -374,13 +381,13 @@ export default function StudioDashboard() {
 
     const totalAfterAdd = previewUrls.length + files.length;
     if (totalAfterAdd > MAX_IMAGES) {
-      alert(`Maksimal ${MAX_IMAGES} gambar. Saat ini sudah ada ${previewUrls.length} gambar.`);
+      setUploadError(`Maksimal ${MAX_IMAGES} gambar. Saat ini sudah ada ${previewUrls.length} gambar.`);
       return;
     }
 
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
-        alert(`"${file.name}" terlalu besar! Maksimal 10MB per gambar.`);
+        setUploadError(`"${file.name}" terlalu besar! Maksimal 10MB per gambar.`);
         return;
       }
     }
@@ -694,6 +701,20 @@ export default function StudioDashboard() {
                           </span>
                         )}
                       </label>
+                      {uploadError && (
+                        <div className="flex items-center justify-between gap-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 font-medium">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                            <span className="truncate">{uploadError}</span>
+                          </div>
+                          <button
+                            onClick={() => setUploadError(null)}
+                            className="text-amber-500 hover:text-amber-700 shrink-0"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                       <div 
                         className={`relative group ${previewUrls.length === 0 ? 'cursor-pointer' : ''}`}
                         onDragOver={(e) => { e.preventDefault(); if (previewUrls.length < 5) setIsDragOver(true); }}

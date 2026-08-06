@@ -13,7 +13,7 @@ const generateSchema = z.object({
     z.string().min(1).max(5000).refine(isAllowedUrl, {
       message: "URL tidak valid. Gunakan HTTPS atau data:image (PNG/JPEG/WebP) base64.",
     })
-  ).min(1).max(3),
+  ).min(1).max(5),
   prompt: z.string().min(3).max(2000),
   provider: z.enum(["replicate", "nanobanana", "nanobanana2", "gptimage"]).optional(),
   aspectRatio: z.string().max(20).optional(),

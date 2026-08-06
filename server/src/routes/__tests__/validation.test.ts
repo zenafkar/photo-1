@@ -3,7 +3,7 @@ import { z } from "zod";
 
 // Same schema as generate.ts
 const generateSchema = z.object({
-  imageUrls: z.array(z.string().min(1)).min(1).max(3),
+  imageUrls: z.array(z.string().min(1)).min(1).max(5),
   prompt: z.string().min(3),
   provider: z.enum(["replicate", "nanobanana", "nanobanana2", "gptimage"]).optional(),
   aspectRatio: z.string().optional(),
@@ -32,25 +32,29 @@ describe("generate payload validation", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts multiple images up to 3", () => {
-    const result = generateSchema.safeParse({
-      imageUrls: [
-        "https://example.com/photo1.jpg",
-        "https://example.com/photo2.jpg",
-        "https://example.com/photo3.jpg",
-      ],
-      prompt: "Studio photo",
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects more than 3 images", () => {
+  it("accepts multiple images up to 5", () => {
     const result = generateSchema.safeParse({
       imageUrls: [
         "https://example.com/photo1.jpg",
         "https://example.com/photo2.jpg",
         "https://example.com/photo3.jpg",
         "https://example.com/photo4.jpg",
+        "https://example.com/photo5.jpg",
+      ],
+      prompt: "Studio photo",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects more than 5 images", () => {
+    const result = generateSchema.safeParse({
+      imageUrls: [
+        "https://example.com/photo1.jpg",
+        "https://example.com/photo2.jpg",
+        "https://example.com/photo3.jpg",
+        "https://example.com/photo4.jpg",
+        "https://example.com/photo5.jpg",
+        "https://example.com/photo6.jpg",
       ],
       prompt: "Studio photo",
     });

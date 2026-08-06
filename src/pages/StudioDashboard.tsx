@@ -267,7 +267,7 @@ export default function StudioDashboard() {
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
-    const MAX_IMAGES = 3;
+    const MAX_IMAGES = 5;
 
     if (files.length > MAX_IMAGES) {
       alert(`Maksimal ${MAX_IMAGES} gambar sekaligus.`);
@@ -322,7 +322,7 @@ export default function StudioDashboard() {
     if (files.length === 0) return;
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
-    const MAX_IMAGES = 3;
+    const MAX_IMAGES = 5;
 
     const totalAfterAdd = previewUrls.length + files.length;
     if (totalAfterAdd > MAX_IMAGES) {
@@ -642,18 +642,18 @@ export default function StudioDashboard() {
                         Image <span className="text-red-500 ml-1">*</span>
                         {previewUrls.length > 0 && (
                           <span className="ml-2 text-xs font-semibold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
-                            {previewUrls.length}/3 gambar
+                            {previewUrls.length}/5 gambar
                           </span>
                         )}
                       </label>
                       <div 
-                        className={`relative group ${previewUrls.length < 3 ? 'cursor-pointer' : ''}`}
-                        onDragOver={(e) => { e.preventDefault(); if (previewUrls.length < 3) setIsDragOver(true); }}
-                        onDragEnter={(e) => { e.preventDefault(); if (previewUrls.length < 3) setIsDragOver(true); }}
+                        className={`relative group ${previewUrls.length < 5 ? 'cursor-pointer' : ''}`}
+                        onDragOver={(e) => { e.preventDefault(); if (previewUrls.length < 5) setIsDragOver(true); }}
+                        onDragEnter={(e) => { e.preventDefault(); if (previewUrls.length < 5) setIsDragOver(true); }}
                         onDragLeave={() => setIsDragOver(false)}
                         onDrop={handleDrop}
                       >
-                        {previewUrls.length < 3 && (
+                        {previewUrls.length < 5 && (
                           <input
                             type="file"
                             accept="image/*"
@@ -716,7 +716,7 @@ export default function StudioDashboard() {
                                   )}
                                 </div>
                               ))}
-                              {previewUrls.length < 3 && (
+                              {previewUrls.length < 5 && (
                                 <div className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50 ${
                                   previewUrls.length === 1 ? 'aspect-[4/3]' : 'aspect-square'
                                 }`}>
@@ -740,7 +740,7 @@ export default function StudioDashboard() {
                               <p className="text-xs text-slate-500 mb-1">
                                 {isDragOver ? 'Minimal 1 gambar' : 'Pilih atau seret gambar ke sini'}
                               </p>
-                              <p className="text-[10px] text-slate-400">Hingga 3 gambar &middot; Maks 10MB per gambar</p>
+                              <p className="text-[10px] text-slate-400">Hingga 5 gambar &middot; Maks 10MB per gambar</p>
                             </div>
                           )}
                         </div>

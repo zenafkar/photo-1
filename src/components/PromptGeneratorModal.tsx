@@ -9,6 +9,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   buildCustomPromptText,
   getPresetPrompt,
+  buildMannequinAutoPrompt,
+  MANNEQUIN_CLOTHING_TYPES,
+  MANNEQUIN_MATERIALS,
+  MANNEQUIN_VIBES,
   type PresetItem,
 } from '../lib/promptBuilder';
 
@@ -305,7 +309,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   onApplyPrompt,
   currentResolution,
 }) => {
-  const [activeTab, setActiveTab] = useState<'presets' | 'custom'>('presets');
+  const [activeTab, setActiveTab] = useState<'presets' | 'custom' | 'mannequin'>('presets');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedPresetId, setExpandedPresetId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -315,6 +319,12 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   const [customPedestal, setCustomPedestal] = useState(PEDESTAL_OPTIONS[0].val);
   const [customLighting, setCustomLighting] = useState(LIGHTING_OPTIONS[0].val);
   const [selectedEffects, setSelectedEffects] = useState<string[]>([EXTRA_EFFECTS[0].val]);
+
+  // Mannequin builder state
+  const [mqClothingType, setMqClothingType] = useState(MANNEQUIN_CLOTHING_TYPES[0].val);
+  const [mqMaterial, setMqMaterial] = useState(MANNEQUIN_MATERIALS[0].val);
+  const [mqColor, setMqColor] = useState('');
+  const [mqVibe, setMqVibe] = useState(MANNEQUIN_VIBES[0].val);
 
   // Ref for scroll container
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -381,6 +391,13 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
     selectedEffects,
     currentResolution
   );
+
+  const mannequinPromptText = buildMannequinAutoPrompt({
+    clothingType: mqClothingType,
+    material: mqMaterial,
+    color: mqColor,
+    vibe: mqVibe,
+  }, currentResolution);
 
   const filteredPresets =
     selectedCategory === 'all'
@@ -455,29 +472,39 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
             </div>
 
             {/* ── Tab Selector ── */}
-            <div className="px-4 py-3 flex items-center gap-2 shrink-0 bg-slate-50/80 border-b border-slate-100">
+            <div className="px-4 py-3 flex items-center gap-2 shrink-0 bg-slate-50/80 border-b border-slate-100 overflow-x-auto scrollbar-none">
               <button
                 onClick={() => setActiveTab('presets')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[14px] transition-all ${
+                className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] transition-all ${
                   activeTab === 'presets'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
                     : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
                 }`}
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Preset Siap Pakai</span>
-                <span className="text-[11px] opacity-70">({PRESETS.length})</span>
+                <Sparkles className="w-4 h-4 shrink-0" />
+                <span className="truncate">Preset</span>
               </button>
               <button
                 onClick={() => setActiveTab('custom')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[14px] transition-all ${
+                className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] transition-all ${
                   activeTab === 'custom'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
                     : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
                 }`}
               >
-                <Palette className="w-4 h-4" />
-                <span>Kustom Builder</span>
+                <Palette className="w-4 h-4 shrink-0" />
+                <span className="truncate">Kustom</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('mannequin')}
+                className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] transition-all ${
+                  activeTab === 'mannequin'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <ShoppingBag className="w-4 h-4 shrink-0" />
+                <span className="truncate">Mannequin</span>
               </button>
             </div>
 
@@ -545,7 +572,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                     </div>
                   )}
                 </div>
-              ) : (
+              ) : activeTab === 'custom' ? (
                 /* ── Custom Builder Tab ── */
                 <div className="p-4 space-y-4 pb-6">
                   {/* Randomize button */}
@@ -703,6 +730,133 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                     <button
                       onClick={() => {
                         onApplyPrompt(customPromptText);
+                        onClose();
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white rounded-xl font-bold text-[14px] transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98]"
+                    >
+                      <Zap className="w-4 h-4" />
+                      Terapkan Prompt Ini ke Studio
+                    </button>
+                  </section>
+                </div>
+              ) : (
+                /* ── Mannequin Builder Tab ── */
+                <div className="p-4 space-y-4 pb-6">
+                  {/* Step 1: Clothing Type */}
+                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
+                      <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black">
+                        1
+                      </span>
+                      <ShoppingBag className="w-4 h-4 text-indigo-500" />
+                      Jenis Pakaian
+                    </label>
+                    <select
+                      value={mqClothingType}
+                      onChange={(e) => setMqClothingType(e.target.value)}
+                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none"
+                    >
+                      {MANNEQUIN_CLOTHING_TYPES.map((type) => (
+                        <option key={type.val} value={type.val}>{type.label}</option>
+                      ))}
+                      <option value="">Lainnya (Ketik sendiri di kolom prompt)</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={mqClothingType}
+                      onChange={(e) => setMqClothingType(e.target.value)}
+                      placeholder="Atau ketik jenis pakaian spesifik..."
+                      className="w-full mt-2 p-3.5 bg-white border border-slate-200 rounded-xl text-base md:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    />
+                  </section>
+
+                  {/* Step 2: Material & Color */}
+                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
+                      <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black">
+                        2
+                      </span>
+                      <Layers className="w-4 h-4 text-indigo-500" />
+                      Bahan & Warna
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <select
+                          value={mqMaterial}
+                          onChange={(e) => setMqMaterial(e.target.value)}
+                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none"
+                        >
+                          <option value="">-- Pilih Bahan --</option>
+                          {MANNEQUIN_MATERIALS.map((mat) => (
+                            <option key={mat.val} value={mat.val}>{mat.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          value={mqColor}
+                          onChange={(e) => setMqColor(e.target.value)}
+                          placeholder="Warna dominan (opsional)"
+                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Step 3: Studio Vibe */}
+                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
+                      <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black">
+                        3
+                      </span>
+                      <Sun className="w-4 h-4 text-indigo-500" />
+                      Studio Vibe
+                    </label>
+                    <div className="space-y-2">
+                      {MANNEQUIN_VIBES.map((item) => (
+                        <OptionChip
+                          key={item.label}
+                          label={item.label}
+                          icon="📸"
+                          isSelected={mqVibe === item.val}
+                          onClick={() => setMqVibe(item.val)}
+                          accentClass="bg-indigo-50 border-indigo-400 text-indigo-700"
+                        />
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* Live Preview */}
+                  <section className="bg-slate-900 rounded-2xl p-4 text-white space-y-3 shadow-xl">
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-[12px] font-bold text-cyan-400 font-mono uppercase tracking-wider">
+                        <Sparkles className="w-4 h-4" />
+                        Live Preview
+                      </span>
+                      <button
+                        onClick={() => handleCopy('mannequin', mannequinPromptText)}
+                        className="flex items-center gap-1.5 text-[12px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg transition-colors"
+                      >
+                        {copiedId === 'mannequin' ? (
+                          <>
+                            <Check className="w-4 h-4 text-emerald-400" />
+                            Tersalin
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4" />
+                            Salin
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-[13px] text-slate-200 leading-relaxed bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80 font-medium">
+                      {mannequinPromptText}
+                    </p>
+                    <button
+                      onClick={() => {
+                        onApplyPrompt(mannequinPromptText);
                         onClose();
                       }}
                       className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white rounded-xl font-bold text-[14px] transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98]"

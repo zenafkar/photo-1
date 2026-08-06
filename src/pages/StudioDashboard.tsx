@@ -618,7 +618,7 @@ export default function StudioDashboard() {
             </div>
           )}
 
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
             <div className="grid lg:grid-cols-12 gap-8">
               
               {/* Left Column: Form Inputs (Replicate Style) */}

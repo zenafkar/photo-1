@@ -36,11 +36,84 @@ const caseStudies = [
 ];
 
 const globalStats = [
-  { value: "10K+", label: "ACTIVE MERCHANTS", icon: Database },
-  { value: "50K+", label: "ASSETS RENDERED", icon: Activity },
-  { value: "99.8%", label: "INTEGRITY SCORE", icon: TrendingUp },
-  { value: "30s", label: "AVG PROCESS TIME", icon: RefreshCw }
+  { value: "10K+", numericTarget: 10000, format: "compact", label: "ACTIVE MERCHANTS", icon: Database },
+  { value: "50K+", numericTarget: 50000, format: "compact", label: "ASSETS RENDERED", icon: Activity },
+  { value: "99.8%", numericTarget: 99.8, format: "decimal", decimals: 1, label: "INTEGRITY SCORE", icon: TrendingUp },
+  { value: "30s", numericTarget: 30, format: "integer", label: "AVG PROCESS TIME", icon: RefreshCw }
 ];
+
+function easeOutExpo(t: number): number {
+  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
+function formatStat(value: number, format: string): string {
+  switch (format) {
+    case 'compact': {
+      const k = value / 1000;
+      return k >= 1 ? `${k}K+` : `${value}`;
+    }
+    case 'decimal':
+      return `${value}%`;
+    case 'integer':
+      return `${value}s`;
+    default:
+      return `${value}`;
+  }
+}
+
+const StatItem = ({ stat, index }: { stat: typeof globalStats[number]; index: number }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  const Icon = stat.icon;
+
+  useEffect(() => {
+    const duration = 2000;
+    const target = stat.numericTarget;
+    const decimals = stat.decimals ?? 0;
+    const delay = index * 200;
+    const startTime = performance.now() + delay;
+    let rafId: number;
+
+    function animate(currentTime: number) {
+      if (currentTime < startTime) {
+        rafId = requestAnimationFrame(animate);
+        return;
+      }
+
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutExpo(progress);
+      const currentValue = easedProgress * target;
+
+      setDisplayValue(Number(currentValue.toFixed(decimals)));
+
+      if (progress < 1) {
+        rafId = requestAnimationFrame(animate);
+      }
+    }
+
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
+  }, [stat.numericTarget, stat.decimals, index]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: index * 0.15, ease: [0.22, 1, 0.36, 1] }}
+      className="flex items-start gap-4"
+    >
+      <div className="mt-1 hidden sm:block">
+        <Icon className="w-5 h-5 text-landing-text-muted/50" />
+      </div>
+      <div>
+        <div className="font-landing-display text-3xl lg:text-4xl font-medium text-landing-text mb-1">
+          {formatStat(displayValue, stat.format)}
+        </div>
+        <div className="text-[10px] font-mono tracking-widest text-landing-text-muted">{stat.label}</div>
+      </div>
+    </motion.div>
+  );
+};
 
 const SocialProof = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -134,20 +207,9 @@ const SocialProof = () => {
 
         {/* Global Technical Stats */}
         <div className="mt-32 pt-12 border-t border-landing-border grid grid-cols-2 md:grid-cols-4 gap-8">
-          {globalStats.map((stat, idx) => {
-            const Icon = stat.icon;
-            return (
-              <div key={idx} className="flex items-start gap-4">
-                <div className="mt-1 hidden sm:block">
-                  <Icon className="w-5 h-5 text-landing-text-muted/50" />
-                </div>
-                <div>
-                  <div className="font-landing-display text-3xl lg:text-4xl font-medium text-landing-text mb-1">{stat.value}</div>
-                  <div className="text-[10px] font-mono tracking-widest text-landing-text-muted">{stat.label}</div>
-                </div>
-              </div>
-            );
-          })}
+          {globalStats.map((stat, idx) => (
+            <StatItem key={idx} stat={stat} index={idx} />
+          ))}
         </div>
 
       </div>

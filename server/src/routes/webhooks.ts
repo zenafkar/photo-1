@@ -230,6 +230,7 @@ router.post("/xendit", async (req: Request, res: Response) => {
       // ── CAS settlement ──────────────────────────────
       // Only settle AFTER credits are granted. CAS prevents double-settling
       // if a concurrent poll/webhook already processed this order.
+      let wasClaimed = false;
       await prisma.$transaction(async (tx) => {
         const claimed = await tx.paymentOrder.updateMany({
           where: {
@@ -248,11 +249,15 @@ router.post("/xendit", async (req: Request, res: Response) => {
           },
         });
 
-        if (claimed.count === 0) {
-          // Credits already granted by concurrent request — no-op
-          return;
+        if (claimed.count > 0) {
+          wasClaimed = true;
         }
       });
+
+      if (!wasClaimed) {
+        // Credits already granted and settled by concurrent request — no-op
+        return res.status(200).json({ success: true, message: "Already settled by concurrent process." });
+      }
 
       console.log(`[Xendit Webhook] Settled: ${xenditInvoiceId} (${order.packageId}, +${order.credits} credits)`);
 
@@ -309,8 +314,8 @@ router.post("/xendit", async (req: Request, res: Response) => {
     return res.status(200).json({ success: true });
   } catch (err: any) {
     console.error("[Xendit Webhook] Error:", err);
-    // Always return 200 to Xendit to prevent retry storms
-    return res.status(200).json({ success: false, message: "Internal error — will reconcile." });
+    // Return 500 so Xendit can retry gracefully. Our idempotency ensures safe retries.
+    return res.status(500).json({ success: false, message: "Internal error — will reconcile or retry." });
   }
 });
 

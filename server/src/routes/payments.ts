@@ -31,10 +31,22 @@ async function ensureUserWithCredits(clerkId: string) {
   });
 
   if (user && !user.credits) {
-    const newCredits = await prisma.userCredit.create({
-      data: { userId: user.id, remainingCredits: 3, planType: "free" },
-    });
-    user.credits = newCredits;
+    try {
+      const newCredits = await prisma.userCredit.create({
+        data: { userId: user.id, remainingCredits: 3, planType: "free" },
+      });
+      user.credits = newCredits;
+    } catch (e: any) {
+      if (e.code === "P2002") {
+        // Handled concurrently by another request
+        const existingCredits = await prisma.userCredit.findUnique({
+          where: { userId: user.id },
+        });
+        if (existingCredits) user.credits = existingCredits;
+      } else {
+        throw e;
+      }
+    }
   }
 
   return user;

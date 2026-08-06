@@ -259,3 +259,139 @@ export const creditOps = {
     });
   },
 };
+
+/**
+ * Transactional versions of credit operations.
+ * Use these when you need to compose credit operations with other database mutations
+ * in a single Prisma transaction (e.g., when creating a generation record).
+ * Note: These do NOT include automatic retry logic for P2002/P2034. You must handle
+ * retries yourself if needed, or rely on the caller's transaction.
+ */
+export const creditOpsTx = {
+  async deduct(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    amount: number,
+    opts: CreditOpOptions,
+  ): Promise<{ remainingCredits: number; transactionId: string }> {
+    if (amount <= 0) throw new Error("creditOpsTx.deduct: amount must be positive");
+    if (!userId) throw new Error("creditOpsTx.deduct: userId is required");
+
+    if (opts.idempotencyKey) {
+      const existing = await tx.creditTransaction.findFirst({
+        where: { userId, idempotencyKey: opts.idempotencyKey },
+      });
+      if (existing) {
+        if (existing.userId === userId && existing.type === opts.type) {
+          const current = await tx.userCredit.findUnique({ where: { userId } });
+          return {
+            remainingCredits: current?.remainingCredits ?? 0,
+            transactionId: existing.id,
+          };
+        }
+        throw new Error(
+          `Idempotency key conflict: key ${opts.idempotencyKey} already used by another user or operation.`
+        );
+      }
+    }
+
+    const credit = await tx.userCredit.updateMany({
+      where: {
+        userId,
+        remainingCredits: { gte: amount },
+      },
+      data: {
+        remainingCredits: { decrement: amount },
+        version: { increment: 1 },
+      },
+    });
+
+    if (credit.count === 0) {
+      const current = await tx.userCredit.findUnique({ where: { userId } });
+      if (!current) {
+        throw new Error("Credit record not found. Please contact support.");
+      }
+      throw new Error(
+        `Kredit tidak cukup. Dibutuhkan ${amount}, tersedia ${current.remainingCredits}.`,
+      );
+    }
+
+    const updated = await tx.userCredit.findUnique({ where: { userId } });
+    if (!updated) throw new Error("Credit record disappeared during deduction.");
+
+    const txn = await tx.creditTransaction.create({
+      data: {
+        userId,
+        orderId: opts.orderId || null,
+        type: opts.type,
+        amount: -amount,
+        balanceAfter: updated.remainingCredits,
+        reason: opts.reason,
+        idempotencyKey: opts.idempotencyKey || null,
+        operatorId: opts.operatorId || null,
+        metadata: (opts.metadata || undefined) as Prisma.InputJsonValue,
+      },
+    });
+
+    return { remainingCredits: updated.remainingCredits, transactionId: txn.id };
+  },
+
+  async refund(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    amount: number,
+    opts: CreditOpOptions,
+  ): Promise<{ remainingCredits: number; transactionId: string; partial: boolean }> {
+    if (amount <= 0) throw new Error("creditOpsTx.refund: amount must be positive");
+    if (!userId) throw new Error("creditOpsTx.refund: userId is required");
+
+    if (opts.idempotencyKey) {
+      const existing = await tx.creditTransaction.findFirst({
+        where: { userId, idempotencyKey: opts.idempotencyKey },
+      });
+      if (existing) {
+        if (existing.userId === userId && existing.type === opts.type) {
+          const current = await tx.userCredit.findUnique({ where: { userId } });
+          return {
+            remainingCredits: current?.remainingCredits ?? 0,
+            transactionId: existing.id,
+            partial: false,
+          };
+        }
+        throw new Error(
+          `Idempotency key conflict: key ${opts.idempotencyKey} already used by another user or operation.`
+        );
+      }
+    }
+
+    const current = await tx.userCredit.findUnique({ where: { userId } });
+    if (!current) throw new Error("Credit record not found.");
+
+    await tx.userCredit.update({
+      where: { userId },
+      data: {
+        remainingCredits: { increment: amount },
+        version: { increment: 1 },
+      },
+    });
+
+    const updated = await tx.userCredit.findUnique({ where: { userId } });
+    if (!updated) throw new Error("Credit record disappeared during refund.");
+
+    const txn = await tx.creditTransaction.create({
+      data: {
+        userId,
+        orderId: opts.orderId || null,
+        type: opts.type,
+        amount: amount, // positive for refund
+        balanceAfter: updated.remainingCredits,
+        reason: opts.reason,
+        idempotencyKey: opts.idempotencyKey || null,
+        operatorId: opts.operatorId || null,
+        metadata: { ...opts.metadata, requestedAmount: amount } as Prisma.InputJsonValue,
+      },
+    });
+
+    return { remainingCredits: updated.remainingCredits, transactionId: txn.id, partial: false };
+  }
+};

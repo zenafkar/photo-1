@@ -5,6 +5,7 @@ import { z } from "zod";
 import { AIService } from "../services/aiProvider";
 import { saveRemoteImageLocally, saveBase64Locally, deleteLocalImage } from "../services/storage";
 import { isAllowedUrl } from "../services/urlSafety";
+import { creditOpsTx } from "../services/credits";
 
 const router = Router();
 
@@ -54,14 +55,25 @@ router.post("/", async (req: Request, res: Response) => {
     }
 
     if (user && !user.credits) {
-      const newCredits = await prisma.userCredit.create({
-        data: {
-          userId: user.id,
-          remainingCredits: 3,
-          planType: "free"
+      try {
+        const newCredits = await prisma.userCredit.create({
+          data: {
+            userId: user.id,
+            remainingCredits: 3,
+            planType: "free"
+          }
+        });
+        user.credits = newCredits;
+      } catch (e: any) {
+        if (e.code === "P2002") {
+          const existingCredits = await prisma.userCredit.findUnique({
+            where: { userId: user.id },
+          });
+          if (existingCredits) user.credits = existingCredits;
+        } else {
+          throw e;
         }
-      });
-      user.credits = newCredits;
+      }
     }
 
     const resString = (resolution || "").toLowerCase();
@@ -85,37 +97,9 @@ router.post("/", async (req: Request, res: Response) => {
     let deductionResult: { credits: { remainingCredits: number }; generation: any };
     try {
       deductionResult = await prisma.$transaction(async (tx) => {
-        const deducted = await tx.userCredit.updateMany({
-          where: {
-            userId: user!.id,
-            remainingCredits: { gte: creditsToDeduct },
-          },
-          data: {
-            remainingCredits: { decrement: creditsToDeduct },
-            version: { increment: 1 },
-          },
-        });
-
-        if (deducted.count === 0) {
-          const current = await tx.userCredit.findUnique({ where: { userId: user!.id } });
-          throw new Error(
-            `Kredit tidak cukup. Dibutuhkan ${creditsToDeduct}, tersedia ${current?.remainingCredits ?? 0}.`
-          );
-        }
-
-        // Re-fetch updated balance
-        const updated = await tx.userCredit.findUnique({ where: { userId: user!.id } });
-        if (!updated) throw new Error("Credit record disappeared during deduction.");
-
-        // Immutable audit log
-        await tx.creditTransaction.create({
-          data: {
-            userId: user!.id,
-            type: "generation_spend",
-            amount: -creditsToDeduct,
-            balanceAfter: updated.remainingCredits,
-            reason: `Generasi gambar: ${prompt.slice(0, 60)}`,
-          },
+        const result = await creditOpsTx.deduct(tx, user!.id, creditsToDeduct, {
+          type: "generation_spend",
+          reason: `Generasi gambar: ${prompt.slice(0, 60)}`,
         });
 
         // Save generation record with "pending" status
@@ -129,7 +113,7 @@ router.post("/", async (req: Request, res: Response) => {
           },
         });
 
-        return { credits: updated, generation: gen };
+        return { credits: { remainingCredits: result.remainingCredits }, generation: gen };
       });
     } catch (dbError: any) {
       if (dbError?.message?.includes("Kredit tidak cukup")) {
@@ -184,26 +168,13 @@ router.post("/", async (req: Request, res: Response) => {
 
           // Refund the credits we just deducted
           const refundResult = await prisma.$transaction(async (tx) => {
-            await tx.userCredit.update({
-              where: { userId: user!.id },
-              data: {
-                remainingCredits: { increment: creditsToDeduct },
-                version: { increment: 1 },
-              },
-            });
-            const updated = await tx.userCredit.findUnique({ where: { userId: user!.id } });
-            await tx.creditTransaction.create({
-              data: {
-                userId: user!.id,
-                type: "refund",
-                amount: creditsToDeduct,
-                balanceAfter: updated!.remainingCredits,
-                reason: "Refund: duplicate replicateId — generation already exists",
-              },
+            const refund = await creditOpsTx.refund(tx, user!.id, creditsToDeduct, {
+              type: "refund",
+              reason: "Refund: duplicate replicateId — generation already exists",
             });
             // Clean up the pending generation row
             await tx.generation.delete({ where: { id: deductionResult.generation.id } });
-            return updated;
+            return refund;
           });
 
           return res.status(200).json({
@@ -250,25 +221,9 @@ router.post("/", async (req: Request, res: Response) => {
       let refunded = false;
       try {
         await prisma.$transaction(async (tx) => {
-          // Refund the spent credits
-          await tx.userCredit.update({
-            where: { userId: user!.id },
-            data: {
-              remainingCredits: { increment: creditsToDeduct },
-              version: { increment: 1 },
-            },
-          });
-
-          // Audit the refund
-          const updated = await tx.userCredit.findUnique({ where: { userId: user!.id } });
-          await tx.creditTransaction.create({
-            data: {
-              userId: user!.id,
-              type: "refund",
-              amount: creditsToDeduct,
-              balanceAfter: updated!.remainingCredits,
-              reason: `Refund: AI generation gagal — ${(aiError?.message || "unknown error").slice(0, 60)}`,
-            },
+          await creditOpsTx.refund(tx, user!.id, creditsToDeduct, {
+            type: "refund",
+            reason: `Refund: AI generation gagal — ${(aiError?.message || "unknown error").slice(0, 60)}`,
           });
 
           // Mark generation as failed
@@ -332,7 +287,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
     if (generation.processedUrl) {
       await deleteLocalImage(generation.processedUrl);
     }
-    if (generation.originalUrl) {
+    if (generation.originalUrl && generation.originalUrl.trim() !== "") {
       try {
         const parsed = JSON.parse(generation.originalUrl);
         if (Array.isArray(parsed)) {

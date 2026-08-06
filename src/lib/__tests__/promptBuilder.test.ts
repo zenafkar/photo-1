@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { buildCustomPromptText, getPresetPrompt, filterPresets } from "../promptBuilder";
+import { buildCustomPromptText, buildMannequinAutoPrompt, getPresetPrompt, filterPresets } from "../promptBuilder";
 import type { PresetItem } from "../promptBuilder";
 
 const mockPedestal = "a polished black marble pedestal";
@@ -76,5 +76,36 @@ describe("filterPresets", () => {
 
   it("returns empty array for non-matching category", () => {
     expect(filterPresets(presets, "tech")).toHaveLength(0);
+  });
+});
+
+describe("buildMannequinAutoPrompt", () => {
+  it("includes the selected surface and lighting", () => {
+    const result = buildMannequinAutoPrompt({
+      clothingType: "a classic t-shirt",
+      material: "cotton fabric",
+      color: "black",
+      surface: "a rustic dark oak wood tabletop",
+      lighting: "warm golden hour sunlight with soft long shadows",
+    });
+
+    expect(result).toContain("ghost mannequin photography");
+    expect(result).toContain("placed on a rustic dark oak wood tabletop");
+    expect(result).toContain("lit with warm golden hour sunlight with soft long shadows");
+    expect(result).toContain("8k resolution");
+  });
+
+  it("uses clean studio defaults when surface and lighting are empty", () => {
+    const result = buildMannequinAutoPrompt({
+      clothingType: "",
+      material: "",
+      color: "",
+      surface: "",
+      lighting: "",
+    });
+
+    expect(result).toContain("A fashion item");
+    expect(result).toContain("placed on a seamless pure white studio surface");
+    expect(result).toContain("lit with soft diffused 3-point softbox studio lighting");
   });
 });

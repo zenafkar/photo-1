@@ -12,7 +12,6 @@ import {
   buildMannequinAutoPrompt,
   MANNEQUIN_CLOTHING_TYPES,
   MANNEQUIN_MATERIALS,
-  MANNEQUIN_VIBES,
   type PresetItem,
 } from '../lib/promptBuilder';
 
@@ -324,7 +323,8 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   const [mqClothingType, setMqClothingType] = useState(MANNEQUIN_CLOTHING_TYPES[0].val);
   const [mqMaterial, setMqMaterial] = useState(MANNEQUIN_MATERIALS[0].val);
   const [mqColor, setMqColor] = useState('');
-  const [mqVibe, setMqVibe] = useState(MANNEQUIN_VIBES[0].val);
+  const [mqSurface, setMqSurface] = useState(PEDESTAL_OPTIONS[0].val);
+  const [mqLighting, setMqLighting] = useState(LIGHTING_OPTIONS[0].val);
 
   // Ref for scroll container
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -396,7 +396,8 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
     clothingType: mqClothingType,
     material: mqMaterial,
     color: mqColor,
-    vibe: mqVibe,
+    surface: mqSurface,
+    lighting: mqLighting,
   }, currentResolution);
 
   const filteredPresets =
@@ -804,24 +805,47 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                     </div>
                   </section>
 
-                  {/* Step 3: Studio Vibe */}
+                  {/* Step 3: Latar & Surface */}
                   <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
                     <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
                       <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black">
                         3
                       </span>
-                      <Sun className="w-4 h-4 text-indigo-500" />
-                      Studio Vibe
+                      <Layers className="w-4 h-4 text-indigo-500" />
+                      Latar & Surface
                     </label>
-                    <div className="space-y-2">
-                      {MANNEQUIN_VIBES.map((item) => (
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {PEDESTAL_OPTIONS.map((item) => (
                         <OptionChip
                           key={item.label}
                           label={item.label}
-                          icon="📸"
-                          isSelected={mqVibe === item.val}
-                          onClick={() => setMqVibe(item.val)}
+                          icon={item.icon}
+                          isSelected={mqSurface === item.val}
+                          onClick={() => setMqSurface(item.val)}
                           accentClass="bg-indigo-50 border-indigo-400 text-indigo-700"
+                        />
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* Step 4: Mood Pencahayaan */}
+                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
+                      <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-black">
+                        4
+                      </span>
+                      <Sun className="w-4 h-4 text-amber-500" />
+                      Mood Pencahayaan
+                    </label>
+                    <div className="space-y-2">
+                      {LIGHTING_OPTIONS.map((item) => (
+                        <OptionChip
+                          key={item.label}
+                          label={item.label}
+                          icon={item.icon}
+                          isSelected={mqLighting === item.val}
+                          onClick={() => setMqLighting(item.val)}
+                          accentClass="bg-amber-50 border-amber-400 text-amber-700"
                         />
                       ))}
                     </div>

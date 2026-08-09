@@ -14,6 +14,7 @@ import { requireAuth } from "./middleware/auth";
 import { errorHandler } from "./middleware/error";
 import healthRoutes from "./routes/health";
 import userRoutes from "./routes/user";
+import userEventsRoutes from "./routes/userEvents.js";
 import generateRoutes from "./routes/generate";
 import webhookRoutes from "./routes/webhooks.js";
 import telemetryRoutes from "./routes/telemetry.js";
@@ -74,6 +75,8 @@ export function createApp() {
   app.use("/api/v1/health", healthRoutes);
   app.use("/api/v1/webhooks", webhookRoutes);
   app.use("/api/v1/telemetry", telemetryLimiter, telemetryRoutes);
+  // SSE authenticates with a short-lived ticket, so only ticket creation is protected.
+  app.use("/api/v1/user/events", userEventsRoutes);
 
   // Protected Routes (Require Clerk Auth) — with stricter rate limits
   app.use("/api/v1/user", requireAuth, userRoutes);

@@ -15,6 +15,25 @@ const RETRYABLE_PATTERNS = [
   "P1017",
 ];
 
+const SAFE_READ_OPERATIONS = new Set([
+  "findUnique",
+  "findUniqueOrThrow",
+  "findFirst",
+  "findFirstOrThrow",
+  "findMany",
+  "count",
+  "aggregate",
+  "groupBy",
+  "$queryRaw",
+  "$queryRawUnsafe",
+]);
+
+export function isDatabaseUnavailable(error: unknown): boolean {
+  const code = (error as any)?.code;
+  const message = (error as any)?.message || "";
+  return code === "P1001" || code === "P1017" || RETRYABLE_PATTERNS.some(pattern => message.includes(pattern));
+}
+
 function createPrisma() {
   const client = new PrismaClient({
     log: process.env.NODE_ENV === 'production' ? ['error'] : ['query'],
@@ -23,21 +42,17 @@ function createPrisma() {
   return client.$extends({
     query: {
       $allOperations: async ({ operation, args, query }) => {
-        const maxRetries = 4;
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        const maxAttempts = SAFE_READ_OPERATIONS.has(operation) ? 3 : 1;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
           try {
             return await query(args);
           } catch (error: any) {
-            if (attempt === maxRetries) throw error;
-            const msg = error?.message || '';
-            const isRetryable = RETRYABLE_PATTERNS.some(p => msg.includes(p));
-            if (isRetryable) {
-              const delay = Math.min(2000 * Math.pow(2, attempt - 1), 8000);
-              console.warn(`[Prisma] DB connection error, retry ${attempt}/${maxRetries} in ${delay}ms (${operation}): ${msg.slice(0, 80)}`);
-              await new Promise(r => setTimeout(r, delay));
-              continue;
-            }
-            throw error;
+            if (attempt === maxAttempts || !SAFE_READ_OPERATIONS.has(operation) || !isDatabaseUnavailable(error)) throw error;
+
+            const baseDelay = Math.min(750 * Math.pow(2, attempt - 1), 3000);
+            const delay = baseDelay + Math.floor(Math.random() * 250);
+            console.warn(`[Prisma] Read connection error, retry ${attempt}/${maxAttempts - 1} in ${delay}ms (${operation})`);
+            await new Promise(r => setTimeout(r, delay));
           }
         }
       },

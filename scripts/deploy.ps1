@@ -1,6 +1,6 @@
 param (
     [string]$VpsIp = "160.19.166.129",
-    [string]$VpsUser = "root",
+    [string]$VpsUser = "zen-deploy",
     [string]$TargetDir = "/var/www/zen-dev",
     [switch]$SkipBuild,
     [switch]$SkipTest,
@@ -258,7 +258,34 @@ echo "HEALTH_LOCAL_OK"
 
     # ---------- REMOTE (pasang + restart) ----------
     Phase "remote"
-    $dbCmd = if ($DbPush -and -not $NoDb) { "npx prisma db push --skip-generate" } else { "echo DB_SKIPPED" }
+    # Snippet bash yang dijalankan di VPS dari folder server/ (mirror deploy.sh):
+    # backup pg_dump WAJIB sukses sebelum prisma db push; fail bila pg_dump atau
+    # DATABASE_URL tidak tersedia.
+    $dbCmd = if ($DbPush -and -not $NoDb) {
+        @'
+# Guardrail F3 (fail-closed): prisma db push hanya boleh jalan setelah backup pg_dump berhasil.
+if ! command -v pg_dump >/dev/null 2>&1; then
+    echo "DB_GATE_BLOCKED: pg_dump tidak tersedia di VPS; schema produksi tidak boleh berubah tanpa backup"
+    exit 26
+fi
+if [ -z "${DATABASE_URL:-}" ] && [ -f ./.env ]; then
+    DATABASE_URL="$(grep -E '^DATABASE_URL=' ./.env | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" || true)"
+    export DATABASE_URL
+fi
+if [ -z "${DATABASE_URL:-}" ]; then
+    echo "DB_GATE_BLOCKED: DATABASE_URL tidak tersedia; schema produksi tidak boleh berubah tanpa backup"
+    exit 26
+fi
+mkdir -p /var/backups/zen-dev-database
+BACKUP_FILE="/var/backups/zen-dev-database/db-$(date +%Y%m%d-%H%M%S).dump"
+if ! pg_dump -Fc "$DATABASE_URL" -f "$BACKUP_FILE" 2>/dev/null; then
+    echo "DB_GATE_BLOCKED: pg_dump gagal; prisma db push dihentikan untuk menjaga rollback safety"
+    exit 11
+fi
+echo "DATABASE_BACKUP_OK: $BACKUP_FILE"
+npx prisma db push --skip-generate
+'@
+    } else { "echo DB_SKIPPED" }
 
     # Script bash dijalankan di VPS. Gunakan placeholder yang di-replace di bawah.
     $remoteScript = @'

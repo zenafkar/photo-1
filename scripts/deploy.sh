@@ -162,6 +162,16 @@ do_rollback() {
 preflight() {
     phase "preflight"
 
+    # Guardrail F3 (fail-closed): --db hanya boleh berjalan bila operator
+    # mengeksplisitkan DEPLOY_DB_ENABLED=true. JANGAN downgrade diam-diam ke
+    # --no-db — perubahan schema produksi tanpa izin berarti diblokir.
+    # Hierarki argumen sudah diselesaikan di atas (NO_DB_SEEN menang), jadi
+    # gate ini hanya berlaku bila DB_PUSH tetap true.
+    if [ "$DB_PUSH" = true ] && [ "${DEPLOY_DB_ENABLED:-}" != "true" ] && [ "${DEPLOY_DB_ENABLED:-}" != "1" ]; then
+        fail "prisma db push diblokir: set DEPLOY_DB_ENABLED=true untuk mengizinkan perubahan schema produksi" 26
+        return 26
+    fi
+
     local node_ver
     node_ver=$(node --version 2>/dev/null || echo "NOT_FOUND")
     log "Node.js: $node_ver"

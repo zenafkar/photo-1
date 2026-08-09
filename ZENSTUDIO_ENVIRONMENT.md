@@ -44,7 +44,7 @@
 ### ✨ Fitur Utama
 
 - 🖼️ **Generasi Gambar AI**: Penggantian latar belakang, peningkatan resolusi, dan penyesuaian gaya (restyling).
-- 🤖 **Multi-AI Providers**: Integrasi API Replicate (Nano Banana Pro, Nano Banana 2, GPT Image 1.5).
+- 🤖 **Multi-AI Providers**: Integrasi API Replicate (Nano Banana Pro, Nano Banana 2, GPT Image 2).
 - 💳 **Sistem Monetisasi Kredit**: Pembayaran otomatis menggunakan *payment gateway* Xendit.
 - 💰 **Paket *Pay-as-you-go***: **Starter** (10 kredit = Rp 75.000) dan **Pro** (30 kredit = Rp 215.000).
 - 🛡️ **Agen AI SRE (*Self-Healing*)**: Deteksi anomali mandiri, notifikasi Telegram, dan perbaikan otomatis (remediasi interaktif).
@@ -240,7 +240,8 @@ Sistem warna menggunakan tema modern dengan varian terang dan gelap (Glassmorphi
 - **Logika Pemotongan**:
   - GPT Image 1K/2K: 1 Kredit
   - GPT Image 4K: 2 Kredit
-  - Nano Banana Pro / 2: 2 Kredit
+  - Nano Banana Pro: 2 Kredit (3 Kredit pada resolusi 4K)
+  - Nano Banana 2: 2 Kredit
 - **Audit Transaksi**: Semua pengeluaran dan pemasukan dicatat ke `CreditTransaction` yang menjadi buku besar mutlak (*ledger*).
 
 ---
@@ -335,7 +336,12 @@ Digunakan untuk operasi di balik layar secara asinkron menggunakan Node-cron.
 
 - **VPS Server (Linux)** menggunakan **Nginx** sebagai *Reverse Proxy* dan mengatur SSL/TLS (HTTPS).
 - Nginx melayani statis bundel Vite di Port 80/443, serta meneruskan *(proxy pass)* rute `/api/v1/*` ke port `5000` (Node.js/Express).
-- **PM2** digunakan sebagai pengawas (*process manager*) aplikasi Node.js. Aplikasi otomatis *reboot* apabila terjadi *crash*.
+- `scripts/deploy.sh` adalah jalur deploy VPS yang canonical: checkout di-reset ke `origin/<branch>`, artefak deployment wajib tracked dan blob-nya diverifikasi, lalu dependency direproduksi dengan `npm ci`.
+- Lock bersama berada di `/run/zen-deploy/deploy.lock` sebagai `deploy.lock/pid`. DeployManager membuat lock lebih dulu; shell script hanya mengadopsinya dari parent PID yang tepat. `--force` tidak melewati lock aktif.
+- **PM2** dijalankan sebagai user non-root `zen-deploy` melalui `server/ecosystem.config.js` dengan script, cwd, Node interpreter, dan lokasi log absolute. Lifecycle menggunakan `startOrRestart` lalu `pm2 save`.
+- Setelah build, permission `dist` dinormalisasi ke direktori `0755` dan file `0644` agar Nginx dapat membaca tanpa write access.
+- Setiap deploy memiliki health gate lokal dan eksternal (`/api/v1/health/ready`). Kegagalan memulihkan backup artifact atomik yang tervalidasi dan mengulang kedua gate. Rollback binary tidak membatalkan perubahan database.
+- Bot `zen-deploy-bot.service` berjalan sebagai `zen-deploy` dengan hardening systemd (`ProtectSystem`, `ProtectHome`, `NoNewPrivileges`, `PrivateTmp`, dan capability kosong). Provisioning serta prosedur operasional lengkap ada di `deploy-bot/README.md`.
 
 ---
 

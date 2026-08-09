@@ -112,7 +112,8 @@ def format_deploy_help() -> str:
         "• /deploy — Mulai deploy ke VPS (muncul tombol konfirmasi)\n"
         "• /deploy --skip-build — Deploy tanpa build ulang\n"
         "• /deploy --no-db — Deploy tanpa menyentuh database\n"
-        "• /deploy --db — Jalankan prisma db push\n"
+        "• /deploy --db — Jalankan prisma db push (NONAKTIF secara default; "
+        "set DEPLOY_DB_ENABLED=true untuk mengaktifkan)\n"
         "• /deploy --skip-test — Lewati npm test\n"
         "• /deploy --force — Tidak melewati deploy aktif; hanya kompatibilitas\n"
         "• /status — Cek status deploy\n"
@@ -344,6 +345,22 @@ async def cmd_deploy(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if db_push and no_db:
         await update.message.reply_text(
             "⚠️ Flag <code>--db</code> dan <code>--no-db</code> saling bertentangan. Gunakan salah satu saja.",
+            parse_mode="HTML",
+        )
+        return
+
+    # Guardrail F3 (fail-closed): perubahan schema produksi tidak boleh terjadi
+    # tanpa izin eksplisit DEPLOY_DB_ENABLED=true. Flag --db tetap dikenal,
+    # tetapi ditolak sebelum konfirmasi dibuat selama belum diaktifkan.
+    if db_push and not cfg.deploy_db_enabled:
+        await update.message.reply_text(
+            "⛔ <b><code>--db</code> dinonaktifkan</b> (fail-closed).\n\n"
+            "Flag <code>--db</code> TIDAK mengizinkan perubahan schema produksi "
+            "selama <code>DEPLOY_DB_ENABLED</code> belum bernilai "
+            "<code>true</code> di <code>deploy-bot/.env</code>.\n\n"
+            "Untuk mengaktifkan: set <code>DEPLOY_DB_ENABLED=true</code>, lalu "
+            "restart bot. Tanpa izin itu, gunakan <code>/deploy</code> atau "
+            "<code>/deploy --no-db</code>.",
             parse_mode="HTML",
         )
         return

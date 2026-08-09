@@ -46,6 +46,9 @@ class Config:
     deploy_script: Path = REPO_DIR / "scripts" / "deploy.sh"
     require_private_chat: bool = True
     vps_local: bool = False
+    # Guardrail F3 (fail-closed): --db/prisma db push hanya boleh dijalankan
+    # bila operator mengeksplisitkan DEPLOY_DB_ENABLED=true di .env.
+    deploy_db_enabled: bool = False
     deploy_timeout_seconds: int | None = None
     log_dir: Path | None = None
     lock_path: Path | None = None
@@ -94,12 +97,14 @@ def load_config() -> Config:
         bot_token=token,
         allowed_user_ids=user_ids,
         vps_ip=os.getenv("VPS_IP", "160.19.166.129").strip() or "160.19.166.129",
-         vps_user=os.getenv("VPS_USER", "zen-deploy").strip() or "zen-deploy",
+        vps_user=os.getenv("VPS_USER", "zen-deploy").strip() or "zen-deploy",
         vps_target_dir=os.getenv("VPS_TARGET_DIR", "/var/www/zen-dev").strip()
         or "/var/www/zen-dev",
         repo_dir=repo_dir,
         deploy_script=deploy_script,
         vps_local=os.getenv("VPS_LOCAL", "false").strip().lower() in {"1", "true", "yes"},
+        deploy_db_enabled=os.getenv("DEPLOY_DB_ENABLED", "false").strip().lower()
+        in {"1", "true", "yes"},
         deploy_timeout_seconds=deploy_timeout_seconds,
         log_dir=Path(os.getenv("DEPLOY_LOG_DIR", str(RUN_DIR / "logs"))),
         lock_path=Path(os.getenv("DEPLOY_LOCK_PATH", str(DEFAULT_LOCK_FILE))),

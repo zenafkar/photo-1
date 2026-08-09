@@ -1,29 +1,28 @@
-name: Deploy to VPS
+name: CI (Test Only)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - master # Workflow otomatis berjalan ketika Anda push ke branch 'main'
+  # push trigger disabled — deployment handled by Telegram deploy bot on VPS
+  # Uncomment the lines below to re-enable auto-deploy:
+  # push:
+  #   branches:
+  #     - main
+  #     - master
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest # Menggunakan server gratis dari GitHub (Linux)
+  test:
+    runs-on: ubuntu-latest
 
     steps:
-      # 1. Mengambil kode dari repositori GitHub Anda
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Menyiapkan Node.js di server GitHub
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Ganti dengan versi Node yang Anda pakai
+          node-version: '20'
           cache: 'npm'
 
-      # 3. Proses Build Frontend & Backend di Server GitHub
       - name: Install and Build
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
@@ -36,7 +35,6 @@ jobs:
           npx prisma generate
           npm run build
 
-      # 3.5. Test Gate — block deploy if any test fails
       - name: Run Tests (Gate)
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY }}
@@ -44,185 +42,10 @@ jobs:
           npm test
           cd server && npm test
 
-      # 3.6. Telegram alert if tests failed
       - name: Notify Telegram on Test Failure
         if: failure()
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
             -d parse_mode="HTML" \
-            -d text="<b>🚫 Deploy Blocked — Tests Failed</b>%0A%0A──────────────────────────%0A<b>Who</b>    ${{ github.actor }}%0A<b>Branch</b>  ${{ github.ref_name }}%0A──────────────────────────%0A%0A<b>Commit</b>%0A${{ github.event.head_commit.message }}%0A%0A<b>ID</b>  <code>${{ github.sha }}</code>%0A%0A──────────────────────────%0A🟢 Production still running last good version.%0A──────────────────────────%0A%0A<a href='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'>🔗 View on GitHub</a>"
-
-      # 4. Mengirim hasil Build dari GitHub ke VPS Anda
-      - name: Copy files to VPS via SCP
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.VPS_IP }}
-          username: ${{ secrets.VPS_USERNAME }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist,server/dist,server/package.json,server/prisma,package.json"
-          target: "/var/www/zen-dev"
-          rm: false
-
-      # 5. Menjalankan perintah di dalam VPS setelah file terkirim
-      - name: Execute SSH Commands on VPS
-        uses: appleboy/ssh-action@master
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.VITE_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SECRET: ${{ secrets.CLERK_WEBHOOK_SECRET }}
-          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_REPORT_LEVEL: ${{ secrets.TELEGRAM_REPORT_LEVEL }}
-          ENABLE_AUTO_RESTART_PM2: ${{ secrets.ENABLE_AUTO_RESTART_PM2 }}
-          ENABLE_AUTO_GITHUB_ISSUE: ${{ secrets.ENABLE_AUTO_GITHUB_ISSUE }}
-          ENABLE_CACHE_FLUSH: ${{ secrets.ENABLE_CACHE_FLUSH }}
-          ENABLE_AUTO_GIT_PUSH: ${{ secrets.ENABLE_AUTO_GIT_PUSH }}
-          REQUIRE_APPROVAL_FOR_GIT_PUSH: ${{ secrets.REQUIRE_APPROVAL_FOR_GIT_PUSH }}
-          XENDIT_API_KEY: ${{ secrets.XENDIT_API_KEY }}
-          XENDIT_WEBHOOK_TOKEN: ${{ secrets.XENDIT_WEBHOOK_TOKEN }}
-          XENDIT_IS_PRODUCTION: ${{ secrets.XENDIT_IS_PRODUCTION }}
-          TELEGRAM_ADMIN_CHAT_IDS: ${{ secrets.TELEGRAM_ADMIN_CHAT_IDS }}
-        with:
-          host: ${{ secrets.VPS_IP }}
-          username: ${{ secrets.VPS_USERNAME }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          envs: DATABASE_URL,CLERK_PUBLISHABLE_KEY,CLERK_SECRET_KEY,CLERK_WEBHOOK_SECRET,REPLICATE_API_TOKEN,GEMINI_API_KEY,GITHUB_TOKEN,TELEGRAM_BOT_TOKEN,TELEGRAM_CHAT_ID,TELEGRAM_REPORT_LEVEL,ENABLE_AUTO_RESTART_PM2,ENABLE_AUTO_GITHUB_ISSUE,ENABLE_CACHE_FLUSH,ENABLE_AUTO_GIT_PUSH,REQUIRE_APPROVAL_FOR_GIT_PUSH,XENDIT_API_KEY,XENDIT_WEBHOOK_TOKEN,XENDIT_IS_PRODUCTION,TELEGRAM_ADMIN_CHAT_IDS
-          script: |
-            mkdir -p /var/www/zen-dev/server
-            cd /var/www/zen-dev/server
-            
-            # Auto-create server/.env if missing
-            if [ ! -f .env ]; then
-              echo "Creating server/.env file..."
-              echo "PORT=5000" > .env
-            fi
-            
-            # Helper to set or update env vars in server/.env (automatically strips accidental quotes)
-            set_env() {
-              key=$1
-              val=$2
-              # Strip outer double/single quotes if present
-              val=$(echo "$val" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
-              if [ -n "$val" ]; then
-                if grep -q "^${key}=" .env; then
-                  # Escape & \ and | for sed replacement (DATABASE_URL contains &)
-                  escaped_val=$(echo "$val" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g' -e 's/|/\\|/g')
-                  sed -i "s|^${key}=.*|${key}=\"${escaped_val}\"|" .env
-                else
-                  echo "${key}=\"${val}\"" >> .env
-                fi
-              fi
-            }
-
-            set_env "DATABASE_URL" "$DATABASE_URL"
-            set_env "CLERK_PUBLISHABLE_KEY" "$CLERK_PUBLISHABLE_KEY"
-            set_env "CLERK_SECRET_KEY" "${CLERK_SECRET_KEY}"
-            set_env "CLERK_WEBHOOK_SECRET" "${CLERK_WEBHOOK_SECRET}"
-            set_env "REPLICATE_API_TOKEN" "$REPLICATE_API_TOKEN"
-            set_env "GEMINI_API_KEY" "$GEMINI_API_KEY"
-            set_env "GITHUB_TOKEN" "$GITHUB_TOKEN"
-            set_env "TELEGRAM_BOT_TOKEN" "$TELEGRAM_BOT_TOKEN"
-            set_env "TELEGRAM_CHAT_ID" "$TELEGRAM_CHAT_ID"
-            set_env "TELEGRAM_REPORT_LEVEL" "${TELEGRAM_REPORT_LEVEL:-WARNING_AND_ABOVE}"
-            set_env "XENDIT_API_KEY" "$XENDIT_API_KEY"
-            set_env "XENDIT_WEBHOOK_TOKEN" "$XENDIT_WEBHOOK_TOKEN"
-            set_env "XENDIT_IS_PRODUCTION" "${XENDIT_IS_PRODUCTION:-false}"
-            set_env "TELEGRAM_ADMIN_CHAT_IDS" "$TELEGRAM_ADMIN_CHAT_IDS"
-            set_env "ENABLE_AUTO_RESTART_PM2" "${ENABLE_AUTO_RESTART_PM2:-true}"
-            set_env "ENABLE_AUTO_GITHUB_ISSUE" "${ENABLE_AUTO_GITHUB_ISSUE:-true}"
-            set_env "ENABLE_CACHE_FLUSH" "${ENABLE_CACHE_FLUSH:-true}"
-            set_env "ENABLE_AUTO_GIT_PUSH" "${ENABLE_AUTO_GIT_PUSH:-false}"
-            set_env "REQUIRE_APPROVAL_FOR_GIT_PUSH" "${REQUIRE_APPROVAL_FOR_GIT_PUSH:-true}"
-
-            npm install --production
-            ./node_modules/.bin/prisma generate
-            ./node_modules/.bin/prisma db push
-            pm2 restart backend-api || pm2 start dist/index.js --name "backend-api"
-
-            # ── Fix SEO: ensure robots.txt & sitemap.xml are served by Nginx ──
-            echo "=== SEO Fix: Starting ==="
-
-            # 1. Verify the SEO files exist in dist after build
-            for f in robots.txt sitemap.xml; do
-              if [ -f "/var/www/zen-dev/dist/$f" ]; then
-                echo "OK: /var/www/zen-dev/dist/$f found ($(wc -c < /var/www/zen-dev/dist/$f) bytes)"
-              else
-                echo "ERROR: /var/www/zen-dev/dist/$f MISSING!"
-              fi
-            done
-            sudo chmod 644 /var/www/zen-dev/dist/robots.txt /var/www/zen-dev/dist/sitemap.xml 2>/dev/null || true
-
-            # 2. Create nginx snippet — uses alias so it works regardless of the root directive
-            sudo mkdir -p /etc/nginx/snippets
-            sudo tee /etc/nginx/snippets/seo-files.conf > /dev/null <<'NGINX_SNIPPET'
-            # Exact-match location blocks for SEO crawlers
-            # alias points directly to the known file paths — independent of the root directive
-            location = /robots.txt {
-                alias /var/www/zen-dev/dist/robots.txt;
-                default_type text/plain;
-                add_header Cache-Control "public, max-age=86400";
-            }
-            location = /sitemap.xml {
-                alias /var/www/zen-dev/dist/sitemap.xml;
-                default_type application/xml;
-                add_header Cache-Control "public, max-age=3600";
-            }
-            NGINX_SNIPPET
-            echo "Snippet content:"
-            cat /etc/nginx/snippets/seo-files.conf
-
-            # 3. Find the nginx config that serves zenstudio
-            NGINX_CONF=""
-            for f in /etc/nginx/sites-enabled/*; do
-              if grep -qE "zenstudio|zen-dev" "$f" 2>/dev/null; then
-                NGINX_CONF="$f"
-                break
-              fi
-            done
-            [ -z "$NGINX_CONF" ] && NGINX_CONF="/etc/nginx/sites-enabled/default"
-            echo "Using config: $NGINX_CONF"
-
-            # 4. Remove any old SEO includes (prevent duplicates)
-            sudo sed -i '/include \/etc\/nginx\/snippets\/seo-files\.conf/d' "$NGINX_CONF" 2>/dev/null
-
-            # 5. Insert the include right after the server_name line that mentions zenstudio (or the first server_name as fallback)
-            if grep -q "server_name.*zenstudio" "$NGINX_CONF"; then
-              # Insert after the specific zenstudio server_name line
-              sudo sed -i '/server_name.*zenstudio/ s/$/\n    include \/etc\/nginx\/snippets\/seo-files.conf;/' "$NGINX_CONF"
-              echo "Inserted include after zenstudio server_name line"
-            else
-              # Fallback: insert after first server_name
-              sudo sed -i '0,/server_name.*/s//&\n    include \/etc\/nginx\/snippets\/seo-files.conf;/' "$NGINX_CONF"
-              echo "Inserted include after first server_name line (fallback)"
-            fi
-
-            # 6. Test and reload nginx
-            sudo nginx -t 2>&1
-            if sudo nginx -t 2>&1; then
-              sudo systemctl reload nginx 2>&1 && echo "=== Nginx reloaded OK ===" || echo "WARNING: reload failed but config is valid"
-            else
-              echo "FATAL: nginx config test failed — removing snippet include to recover"
-              sudo sed -i '/include \/etc\/nginx\/snippets\/seo-files\.conf/d' "$NGINX_CONF"
-              sudo systemctl reload nginx 2>/dev/null || true
-              exit 1
-            fi
-
-            # 7. Verify the URLs are reachable
-            echo "Verifying SEO URLs..."
-            sleep 2
-            for url in "https://zenstudio.my.id/robots.txt" "https://zenstudio.my.id/sitemap.xml"; do
-              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null || echo "000")
-              if [ "$HTTP_CODE" = "200" ]; then
-                echo "  OK: $url → $HTTP_CODE"
-              else
-                echo "  WARN: $url → $HTTP_CODE (expected 200)"
-              fi
-            done
-
+            -d text="<b>🚫 Tests Failed</b>%0A%0A──────────────────────────%0A<b>Who</b>    ${{ github.actor }}%0A<b>Branch</b>  ${{ github.ref_name }}%0A──────────────────────────%0A%0A<b>Commit</b>%0A${{ github.event.head_commit.message }}%0A%0A<a href='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'>🔗 View on GitHub</a>"

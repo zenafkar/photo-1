@@ -17,7 +17,7 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'logo-icon.png'],
+      includeAssets: ['favicon.png'],
       manifest: {
         short_name: 'ZenStudio',
         name: 'ZenStudio: AI Foto Produk Profesional untuk UMKM',

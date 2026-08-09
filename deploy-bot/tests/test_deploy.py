@@ -1,6 +1,8 @@
 """Tests for deploy-bot lock file management and deploy logic."""
 import asyncio
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -14,6 +16,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import deploy as deploy_module
 from deploy import DeployManager
 from config import Config
+
+
+def _to_posix(path: Path) -> str:
+    """Konversi path ke bentuk POSIX agar bisa dipakai Git Bash/msys di Windows."""
+    s = str(path.resolve()).replace("\\", "/")
+    drive, rest = os.path.splitdrive(s)
+    if drive:
+        return "/" + drive.rstrip(":").lower() + rest
+    return s
 
 
 @pytest.fixture
@@ -389,3 +400,93 @@ class TestTimeoutAndProcessTree:
             capture_output=True,
             timeout=10,
         )
+
+
+def _find_bash() -> str | None:
+    """Lokasi bash (Git Bash fallback untuk Windows) atau None."""
+    p = shutil.which("bash")
+    if p:
+        return p
+    for cand in (
+        r"C:\Program Files\Git\bin\bash.exe",
+        r"C:\Program Files (x86)\Git\bin\bash.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Programs\Git\bin\bash.exe"),
+    ):
+        if os.path.exists(cand):
+            return cand
+    return None
+
+
+class TestDeployShDbGuardrail:
+    """Guardrail fail-closed F3 di scripts/deploy.sh (diuji end-to-end via bash)."""
+
+    def _run_deploy_sh(self, tmp, *args, env_extra=None, timeout=90):
+        bash = _find_bash()
+        if bash is None:
+            pytest.skip("bash tidak tersedia; deploy.sh tidak dapat dijalankan")
+
+        repo = Path(__file__).resolve().parent.parent.parent
+        script = repo / "scripts" / "deploy.sh"
+        target = Path(tmp) / "target"
+        target.mkdir(parents=True, exist_ok=True)
+
+        env = os.environ.copy()
+        env.update(
+            {
+                "TARGET_DIR": _to_posix(target),
+                "DEPLOY_LOCK_PATH": _to_posix(Path(tmp) / "lock" / "deploy.lock"),
+                "DEPLOY_LOG_DIR": _to_posix(Path(tmp) / "logs"),
+                "DEPLOY_BACKUP_DIR": _to_posix(Path(tmp) / "backups"),
+                "DEPLOY_DATABASE_BACKUP_DIR": _to_posix(Path(tmp) / "db-backups"),
+                "PM2_BIN": "/usr/bin/true",
+                "DEPLOY_HEALTH_RETRIES": "6",
+                "DEPLOY_HEALTH_INTERVAL": "5",
+            }
+        )
+        env.pop("DEPLOY_DB_ENABLED", None)
+        if env_extra:
+            env.update(env_extra)
+
+        proc = subprocess.run(
+            [bash, _to_posix(script), *args],
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=str(tmp),
+        )
+        return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+
+    def test_db_blocked_without_deploy_db_enabled(self, temp_dir):
+        """(a) deploy.sh --db tanpa DEPLOY_DB_ENABLED => blocked (exit 26)."""
+        code, out = self._run_deploy_sh(temp_dir, "--db")
+        assert code == 26
+        assert "diblokir" in out
+        assert "DEPLOY_DB_ENABLED=true" in out
+
+    def test_db_allowed_when_deploy_db_enabled_true(self, temp_dir):
+        """(b) deploy.sh --db dengan DEPLOY_DB_ENABLED=true => gate lolos."""
+        code, out = self._run_deploy_sh(
+            temp_dir, "--db", env_extra={"DEPLOY_DB_ENABLED": "true"}
+        )
+        assert code != 26
+        assert "diblokir" not in out
+
+    def test_no_db_wins_even_with_deploy_db_enabled_true(self, temp_dir):
+        """(c) --no-db menang walau env true; gate tidak memblokir, db_push=false."""
+        code, out = self._run_deploy_sh(
+            temp_dir,
+            "--db",
+            "--no-db",
+            env_extra={"DEPLOY_DB_ENABLED": "true"},
+        )
+        assert "db_push=false" in out
+        assert "diblokir" not in out
+        assert code != 26
+
+    def test_rollback_does_not_touch_database(self, temp_dir):
+        """(d) --rollback tidak menyentuh DB dan tidak terkena gate --db."""
+        code, out = self._run_deploy_sh(temp_dir, "--rollback", "--db")
+        assert code != 26
+        assert "diblokir" not in out
+        assert "[PHASE] database" not in out

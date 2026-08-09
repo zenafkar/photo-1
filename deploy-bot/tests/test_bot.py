@@ -53,11 +53,12 @@ class FakeQuery:
         self.edits.append((args, kwargs))
 
 
-def context_for(manager) -> SimpleNamespace:
+def context_for(manager, deploy_db_enabled: bool = False) -> SimpleNamespace:
     cfg = Config(
         bot_token="test-token",
         allowed_user_ids=[42],
         require_private_chat=True,
+        deploy_db_enabled=deploy_db_enabled,
     )
     return SimpleNamespace(
         application=SimpleNamespace(bot_data={"cfg": cfg, "manager": manager})
@@ -95,6 +96,60 @@ async def test_unknown_flag_is_html_escaped_in_rejection_message():
     text, _ = update.message.replies[0]
     assert "&lt;b&gt;forged&lt;/b&gt;" in text
     assert "<b>forged</b>" not in text
+
+
+@pytest.mark.asyncio
+async def test_db_flag_rejected_when_deploy_db_enabled_false():
+    """--db ditolak (fail-closed) tanpa izin eksplisit DEPLOY_DB_ENABLED=true."""
+    update = FakeUpdate("/deploy --db")
+    manager = MagicMock()
+
+    await cmd_deploy(update, context_for(manager, deploy_db_enabled=False))
+
+    assert len(update.message.replies) == 1
+    text, kwargs = update.message.replies[0]
+    assert "--db" in text
+    assert "dinonaktifkan" in text
+    assert "DEPLOY_DB_ENABLED=true" in text
+    assert "/deploy --no-db" in text
+    assert kwargs["parse_mode"] == "HTML"
+    assert PENDING == {}
+    assert manager.run.call_count == 0
+
+
+@pytest.mark.asyncio
+async def test_db_flag_reaches_confirmation_when_deploy_db_enabled_true():
+    """--db diteruskan ke konfirmasi hanya bila DEPLOY_DB_ENABLED=true."""
+    update = FakeUpdate("/deploy --db")
+    manager = MagicMock()
+    manager.is_running.return_value = False
+    manager.external_lock_active.return_value = False
+
+    await cmd_deploy(update, context_for(manager, deploy_db_enabled=True))
+
+    assert any(
+        "Prisma db push: YES" in text for text, _ in update.message.replies
+    )
+    assert len(PENDING) == 1
+    flags = next(iter(PENDING.values()))["flags"]
+    assert flags["db_push"] is True
+    assert manager.run.call_count == 0  # belum ada konfirmasi
+
+
+@pytest.mark.asyncio
+async def test_no_db_still_works_when_deploy_db_enabled_false():
+    """Alur rutin --no-db tidak berubah: tetap membuat konfirmasi."""
+    update = FakeUpdate("/deploy --no-db")
+    manager = MagicMock()
+    manager.is_running.return_value = False
+    manager.external_lock_active.return_value = False
+
+    await cmd_deploy(update, context_for(manager, deploy_db_enabled=False))
+
+    assert any(
+        "Prisma db push: NO" in text for text, _ in update.message.replies
+    )
+    assert len(PENDING) == 1
 
 
 def test_progress_tail_is_html_escaped():

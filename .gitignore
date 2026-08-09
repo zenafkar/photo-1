@@ -21,3 +21,20 @@ __pycache__/
 *.pyc
 *.log
 dev-output.log
+
+# Local Deploy Script
+release.zip
+deploy_temp/
+test_*.zip
+test_*.ps1
+release_test.zip
+/test_src/
+/test_dest/
+/test_unzip*/
+/test_zip*/
+/unzipped*/
+
+# Deploy Bot
+deploy-bot/.env
+deploy-bot/.venv/
+!deploy-bot/.env.example

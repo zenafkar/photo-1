@@ -99,8 +99,8 @@ cd deploy-bot
 | `/deploy` | Mulai deploy → muncul tombol `✅ Deploy` / `❌ Batal` (kadaluarsa 5 menit) |
 | `/deploy --skip-build` | Deploy tanpa build ulang (pakai `dist` yang sudah ada) |
 | `/deploy --no-db` | Deploy tanpa menjalankan prisma db push |
-| `/deploy --db` | Sertakan `prisma db push` (HATI-HATI — menyentuh skema produksi) |
-| `/deploy --force` | Dipertahankan untuk kompatibilitas; tidak membunuh deploy aktif |
+| `/deploy --db` | Sertakan `prisma db push` — **NONAKTIF secara default** (fail-closed). Set `DEPLOY_DB_ENABLED=true` untuk mengaktifkan. Menyentuh skema produksi; backup `pg_dump` wajib sukses dulu |
+| `/deploy --force` | Hanya kompatibilitas; **TIDAK membunuh/menggantikan deploy aktif** |
 | `/status` | Status deploy (idle / sedang jalan / fase aktif) |
 | `/cancel` | Batalkan konfirmasi deploy yang belum disetujui |
 | `/logs [N]` | Lihat N baris log deploy terakhir |
@@ -139,6 +139,10 @@ balasan apa pun.
 - Rollback aplikasi tidak membatalkan perubahan database dari `--db`/Prisma.
   Gunakan backup database dan prosedur migrasi terpisah; jangan menganggap
   rollback binary sebagai rollback schema.
+- Guardrail `DEPLOY_DB_ENABLED`: `--db` ditolak secara default (fail-closed),
+  baik oleh bot maupun `scripts/deploy.sh` (exit 26). Set `DEPLOY_DB_ENABLED=true`
+  hanya bila perubahan schema produksi memang diizinkan. `--no-db` selalu menang
+  atas `--db`; rollback tidak pernah menyentuh database.
 
 ## Menjalankan deploy secara manual (safety net)
 
@@ -147,7 +151,7 @@ Script `scripts/deploy.sh` tetap bisa dipakai manual di VPS:
 ```bash
 ./scripts/deploy.sh                      # build + deploy, tanpa db push
 ./scripts/deploy.sh --skip-build --no-db # hotfix cepat
-./scripts/deploy.sh --db                 # sertakan prisma db push
+./scripts/deploy.sh --db                 # prisma db push (WAJIB DEPLOY_DB_ENABLED=true)
 ```
 
 Deployment memerlukan commit yang sudah dipush ke `origin`. Jalankan sebagai

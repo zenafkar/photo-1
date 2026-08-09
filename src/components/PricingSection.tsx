@@ -20,7 +20,7 @@ const PricingSection = () => {
   };
 
   const coreFeatures = [
-    "Akses ke seluruh AI Engine (Termasuk OpenAI Image 1.5 & Nano Banana Pro)",
+    "Akses ke seluruh AI Engine (Termasuk OpenAI GPT Image 2 & Nano Banana Pro)",
     "Resolusi ekspor Ultra 4K",
     "Bebas watermark komersial",
     "Proteksi OCR & Geometri 100%",

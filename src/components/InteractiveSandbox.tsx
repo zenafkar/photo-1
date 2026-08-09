@@ -64,7 +64,7 @@ const InteractiveSandbox = () => {
       id: 'gptimage',
       name: 'OpenAI GPT-Image',
       subtitle: 'Standar Industri Terkini',
-      prompt: 'Menggunakan model tercanggih dari OpenAI (GPT-Image 1.5) untuk hasil paling fotorealistik dan akurat.',
+      prompt: 'Menggunakan model tercanggih dari OpenAI (GPT-Image 2) untuk hasil paling fotorealistik dan akurat.',
       icon: <OpenAIIcon className="w-4 h-4 text-emerald-400" />,
       beforeImage: '/fanta-before.jpg',
       afterImage: '/fanta-after.jpg',

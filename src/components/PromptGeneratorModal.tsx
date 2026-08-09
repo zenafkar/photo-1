@@ -3,7 +3,7 @@ import {
   Sparkles, Wand2, X, Copy, Check, RefreshCw,
   ShoppingBag, Layers, Sun, Camera, CheckCircle2,
   ArrowRight, Lightbulb, ChevronDown, ChevronUp,
-  Zap, Palette, ZapOff
+  Zap, Palette, ZapOff, Box, Table2, Square, PanelTop, Frame
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -32,10 +32,10 @@ const PRESETS: PresetItem[] = [
     badge: 'High Conversion',
     badgeColor: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
     description:
-      'Tampilan alami & segar cocok untuk produk botol serum, lotion, dan kosmetik dengan sentuhan daun botanical.',
+      'Tampilan alami & segar cocok untuk produk kosmetik dengan sentuhan daun botanical.',
     prompt:
       'Professional commercial product photograph of a product placed on a smooth beige stone pedestal, surrounded by soft green eucalyptus leaves and translucent water droplets, soft morning sunbeams filtering through, clean pastel background, 8k resolution, photorealistic, Vogue editorial aesthetic',
-    tags: ['Soft Light', 'Botanical', 'Water Droplets', 'Pastel'],
+    tags: ['Soft Light', 'Botanical', 'Water Droplets'],
   },
   {
     id: 'luxury-1',
@@ -47,16 +47,16 @@ const PRESETS: PresetItem[] = [
       'Tampilan premium & mewah dengan marmer hitam, efek emas glowing, dan pencahayaan sinematik.',
     prompt:
       'High-end luxury studio photograph of a product resting on a polished dark black marble pedestal, fine gold dust particles floating gracefully, dramatic cinematic rim light, crisp reflections, moody elegant dark backdrop, ultra-detailed 8k resolution',
-    tags: ['Dark Marble', 'Gold Particles', 'Moody', 'Cinematic'],
+    tags: ['Dark Marble', 'Gold Particles', 'Moody'],
   },
   {
     id: 'marketplace-1',
     title: 'Tokopedia & Shopee Clean Studio',
     category: 'marketplace',
     badge: 'Clean & Sharp',
-    badgeColor: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/30',
+    badgeColor: 'bg-blue-500/10 text-blue-600 border-blue-500/30',
     description:
-      'Latar polos studio dengan softbox lighting 3-titik untuk etalase jualan yang bersih & profesional.',
+      'Latar polos studio dengan softbox lighting untuk etalase jualan yang bersih & profesional.',
     prompt:
       'Professional studio product photo on a seamless clean white background, soft diffused 3-point softbox studio lighting, subtle soft contact shadow beneath the product, sharp focus on product details, high conversion marketplace advertisement look',
     tags: ['Pure White BG', 'Softbox Light', 'Zero Distraction'],
@@ -68,7 +68,7 @@ const PRESETS: PresetItem[] = [
     badge: 'Appetizing',
     badgeColor: 'bg-orange-500/10 text-orange-600 border-orange-500/30',
     description:
-      'Pencahayaan hangat dengan latar meja kayu rustic & efek bokeh kafe yang menggugah selera.',
+      'Pencahayaan hangat dengan latar meja kayu rustic & efek bokeh kafe.',
     prompt:
       'Commercial food photography of a product on a rustic dark oak wooden tabletop, warm ambient sunlight, shallow depth of field with beautiful cozy cafe background bokeh, scattered fresh ingredients, golden hour glow, highly detailed 8k',
     tags: ['Wood Table', 'Cozy Bokeh', 'Warm Sunlight'],
@@ -83,43 +83,19 @@ const PRESETS: PresetItem[] = [
       'Tampilan dinamis & modern untuk sepatu sneakers, tas, dan pakaian gaya anak muda.',
     prompt:
       'Dynamic commercial photography of product placed on an industrial concrete podium, dramatic high-contrast studio strobe lighting, subtle motion smoke particles, sharp crisp textures, urban streetwear magazine photoshoot',
-    tags: ['Concrete', 'High Contrast', 'Urban', 'Strobe'],
+    tags: ['Concrete', 'High Contrast', 'Urban'],
   },
   {
     id: 'tech-1',
     title: 'Futuristic Cyber Tech',
     category: 'tech',
     badge: 'High Tech',
-    badgeColor: 'bg-purple-500/10 text-purple-600 border-purple-500/30',
+    badgeColor: 'bg-violet-500/10 text-violet-600 border-violet-500/30',
     description:
-      'Pencahayaan neon cyan & magenta pada permukaan matte gelap untuk gadget & barang elektronik.',
+      'Pencahayaan neon cyan & magenta pada permukaan matte gelap untuk gadget.',
     prompt:
       'Sleek tech product photography of product resting on a dark matte acrylic surface, futuristic neon cyan and purple ambient glow, subtle sharp reflection, modern minimalist tech aesthetic, 8k resolution, ultra-clean studio framing',
-    tags: ['Neon Glow', 'Matte Acrylic', 'Cyberpunk', 'Modern'],
-  },
-  {
-    id: 'beauty-2',
-    title: 'Silk & Satin Elegance',
-    category: 'beauty',
-    badge: 'Elegant',
-    badgeColor: 'bg-pink-500/10 text-pink-600 border-pink-500/30',
-    description:
-      'Kain sutra lembut bergelombang dengan sinar lembut cocok untuk parfum & perhiasan wanita.',
-    prompt:
-      'Elegant product photography showcasing product nestled on flowing champagne pink silk fabric, soft gentle ambient highlights, dreamy aesthetic backdrop, ethereal lighting, high-end perfume advertisement visual',
-    tags: ['Pink Silk', 'Soft Highlights', 'Dreamy', 'Parfume'],
-  },
-  {
-    id: 'marketplace-2',
-    title: 'Minimalist Scandinavian Interior',
-    category: 'marketplace',
-    badge: 'Lifestyle',
-    badgeColor: 'bg-teal-500/10 text-teal-600 border-teal-500/30',
-    description:
-      'Latar ruangan rumah gaya Skandinavia yang hangat untuk produk dekorasi rumah & gaya hidup.',
-    prompt:
-      'Lifestyle product photograph on a natural oak coffee table in a sunlit Scandinavian living room, soft cozy ambient blurred background, warm natural window light, aesthetic pastel interior tones, 8k photorealistic',
-    tags: ['Lifestyle', 'Oak Wood', 'Sunlit Room', 'Nordic'],
+    tags: ['Neon Glow', 'Cyberpunk', 'Modern'],
   },
 ];
 
@@ -127,20 +103,20 @@ const QUICK_SUGGESTIONS = [
   'Botol Serum Skincare',
   'Sepatu Sneakers',
   'Jam Tangan Pria',
-  'Kopi Bubuk / Drink',
+  'Kopi Bubuk',
   'Tas Kulit Wanita',
   'Botol Parfum',
-  'Hijab & Fashion Item',
-  'Earphone / Gadget',
+  'Hijab & Fashion',
+  'Earphone TWS',
 ];
 
 const PEDESTAL_OPTIONS = [
-  { label: 'Podium Marmer Hitam', val: 'a polished black marble pedestal with subtle white veining', icon: '🪨' },
-  { label: 'Meja Kayu Oak Rustic', val: 'a rustic dark oak wood tabletop', icon: '🪵' },
-  { label: 'Batu Beige Organik', val: 'a smooth beige natural stone pedestal', icon: '🪨' },
-  { label: 'Studio Putih Polos', val: 'a seamless pure white studio surface', icon: '⬜' },
-  { label: 'Akrilik Kaca Gelap', val: 'a sleek dark matte acrylic reflective surface', icon: '🪞' },
-  { label: 'Kain Sutra Lembut', val: 'draped soft champagne silk fabric waves', icon: '🧵' },
+  { label: 'Podium Marmer Hitam', val: 'a polished black marble pedestal with subtle white veining', icon: <Box className="w-4 h-4" strokeWidth={1.8} /> },
+  { label: 'Meja Kayu Oak Rustic', val: 'a rustic dark oak wood tabletop', icon: <Table2 className="w-4 h-4" strokeWidth={1.8} /> },
+  { label: 'Batu Beige Organik', val: 'a smooth beige natural stone pedestal', icon: <Square className="w-4 h-4" strokeWidth={1.8} /> },
+  { label: 'Studio Putih Polos', val: 'a seamless pure white studio surface', icon: <PanelTop className="w-4 h-4" strokeWidth={1.8} /> },
+  { label: 'Akrilik Kaca Gelap', val: 'a sleek dark matte acrylic reflective surface', icon: <Frame className="w-4 h-4" strokeWidth={1.8} /> },
+  { label: 'Kain Sutra Lembut', val: 'draped soft champagne silk fabric waves', icon: <Layers className="w-4 h-4" strokeWidth={1.8} /> },
 ];
 
 const LIGHTING_OPTIONS = [
@@ -171,7 +147,10 @@ const CATEGORIES = [
 
 // ── Sub-components ─────────────────────────────────────
 
-/** Preset card with expandable prompt preview */
+/** 
+ * New PresetCard Design: 
+ * Sleek, high-contrast, edge-to-edge layout inside the modal.
+ */
 const PresetCard: React.FC<{
   preset: PresetItem;
   isExpanded: boolean;
@@ -182,31 +161,29 @@ const PresetCard: React.FC<{
   resolvedPrompt: string;
 }> = ({ preset, isExpanded, onToggleExpand, onCopy, onApply, copied, resolvedPrompt }) => (
   <motion.div
-    layout
-    className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-indigo-200 transition-all"
+    className="bg-white border border-slate-200/70 rounded-[1.25rem] overflow-hidden shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_20px_-6px_rgba(0,0,0,0.08)] hover:border-slate-300 transition-all duration-300"
   >
-    {/* Card Header — always visible */}
-    <div className="p-4">
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <h3 className="font-extrabold text-slate-800 text-[15px] leading-snug flex-1">
+    <div className="p-4 md:p-5">
+      <div className="flex items-start justify-between gap-3 mb-2.5">
+        <h3 className="font-extrabold text-slate-900 text-[15px] md:text-[16px] leading-snug flex-1">
           {preset.title}
         </h3>
         <span
-          className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${preset.badgeColor}`}
+          className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0 ${preset.badgeColor}`}
         >
           {preset.badge}
         </span>
       </div>
-      <p className="text-[13px] text-slate-500 font-medium mb-3 leading-relaxed">
+      <p className="text-[13px] md:text-[14px] text-slate-500 font-medium mb-4 leading-relaxed">
         {preset.description}
       </p>
 
       {/* Tags */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
+      <div className="flex flex-wrap gap-2 mb-4">
         {preset.tags.map((tag) => (
           <span
             key={tag}
-            className="bg-slate-100 text-slate-600 text-[11px] font-semibold px-2.5 py-1 rounded-lg"
+            className="bg-slate-50 text-slate-600 border border-slate-100 text-[11px] font-bold px-2.5 py-1 rounded-lg"
           >
             #{tag}
           </span>
@@ -216,16 +193,16 @@ const PresetCard: React.FC<{
       {/* Expand/collapse prompt preview */}
       <button
         onClick={onToggleExpand}
-        className="w-full flex items-center justify-between gap-2 text-[12px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2.5 rounded-xl transition-colors"
+        className="w-full flex items-center justify-between gap-2 text-[12px] md:text-[13px] font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 px-4 py-3 rounded-xl transition-colors border border-slate-100"
       >
-        <span className="flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5" />
-          {isExpanded ? 'Sembunyikan Prompt' : 'Lihat Detail Prompt'}
+        <span className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-slate-400" />
+          {isExpanded ? 'Tutup Detail Prompt' : 'Lihat Detail Prompt'}
         </span>
         {isExpanded ? (
-          <ChevronUp className="w-4 h-4" />
+          <ChevronUp className="w-4 h-4 text-slate-400" />
         ) : (
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="w-4 h-4 text-slate-400" />
         )}
       </button>
 
@@ -239,7 +216,7 @@ const PresetCard: React.FC<{
             transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="bg-slate-900 text-slate-200 p-3.5 rounded-xl text-[12px] font-mono leading-relaxed border border-slate-800">
+            <div className="bg-slate-900 text-slate-200 p-4 rounded-xl text-[12px] md:text-[13px] font-mono leading-relaxed shadow-inner">
               {resolvedPrompt}
             </div>
           </motion.div>
@@ -248,28 +225,28 @@ const PresetCard: React.FC<{
     </div>
 
     {/* Action Buttons */}
-    <div className="flex items-center gap-2 px-4 pb-4 pt-0">
+    <div className="flex items-center gap-2 px-4 pb-4 md:px-5 md:pb-5 pt-0">
       <button
         onClick={onCopy}
-        className="flex items-center justify-center gap-1.5 px-3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors text-[13px] font-bold shrink-0"
+        className="flex items-center justify-center gap-2 px-4 py-3.5 bg-white border border-slate-200 hover:bg-slate-50 active:bg-slate-100 text-slate-700 rounded-xl transition-all text-[13px] font-bold shrink-0"
         title="Salin Prompt"
       >
         {copied ? (
           <>
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span>Tersalin</span>
+            <Check className="w-4 h-4 text-emerald-500" />
+            <span className="hidden md:inline">Tersalin</span>
           </>
         ) : (
           <>
             <Copy className="w-4 h-4" />
-            <span>Salin</span>
+            <span className="hidden md:inline">Salin</span>
           </>
         )}
       </button>
 
       <button
         onClick={onApply}
-        className="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-[14px] shadow-sm hover:shadow-indigo-500/25 transition-all"
+        className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-slate-900 hover:bg-slate-800 active:bg-black text-white rounded-xl font-bold text-[14px] transition-all shadow-md hover:shadow-lg hover:shadow-slate-900/20"
       >
         <span>Gunakan Prompt</span>
         <ArrowRight className="w-4 h-4" />
@@ -278,10 +255,10 @@ const PresetCard: React.FC<{
   </motion.div>
 );
 
-/** Option chip for custom builder */
+/** New OptionChip Design */
 const OptionChip: React.FC<{
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   isSelected: boolean;
   onClick: () => void;
   accentClass: string;
@@ -289,15 +266,19 @@ const OptionChip: React.FC<{
   <button
     type="button"
     onClick={onClick}
-    className={`flex items-center gap-2.5 p-3.5 rounded-xl border text-left text-[13px] font-bold transition-all min-h-[48px] ${
+    className={`flex items-center gap-3 p-3 md:p-3.5 rounded-[1.25rem] border text-left text-[13px] font-bold transition-all duration-300 min-h-[52px] md:min-h-[56px] ${
       isSelected
-        ? `${accentClass} border-current shadow-sm`
-        : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300 active:bg-slate-100'
+        ? `${accentClass} shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)] scale-[0.98]`
+        : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
     }`}
   >
-    <span className="text-lg shrink-0">{icon}</span>
+    <span className="w-5 h-5 shrink-0 flex items-center justify-center">{icon}</span>
     <span className="leading-snug">{label}</span>
-    {isSelected && <CheckCircle2 className="w-4 h-4 ml-auto shrink-0" />}
+    <div className={`ml-auto shrink-0 flex items-center justify-center w-5 h-5 rounded-full border-2 transition-colors ${
+      isSelected ? 'border-current bg-current' : 'border-slate-300 bg-transparent'
+    }`}>
+      {isSelected && <Check className="w-3 h-3 text-white" />}
+    </div>
   </button>
 );
 
@@ -312,6 +293,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedPresetId, setExpandedPresetId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
 
   // Custom builder state
   const [customProduct, setCustomProduct] = useState('Botol Serum Skincare');
@@ -325,13 +307,15 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   const [mqColor, setMqColor] = useState('');
   const [mqSurface, setMqSurface] = useState(PEDESTAL_OPTIONS[0].val);
   const [mqLighting, setMqLighting] = useState(LIGHTING_OPTIONS[0].val);
+  const [mqSelectedEffects, setMqSelectedEffects] = useState<string[]>([EXTRA_EFFECTS[0].val]);
 
   // Ref for scroll container
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Reset scroll when tab changes
+  // Reset scroll and preview when tab changes
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    setIsPreviewExpanded(false);
   }, [activeTab]);
 
   // Prevent body scroll when open
@@ -346,12 +330,16 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   // ── Handlers ──────────────────────────────────────────
   const toggleEffect = (val: string) => {
     setSelectedEffects((prev) =>
       prev.includes(val) ? prev.filter((e) => e !== val) : [...prev, val]
+    );
+  };
+
+  const toggleMannequinEffect = (val: string) => {
+    setMqSelectedEffects((prev) =>
+      prev.includes(val) ? prev.filter((effect) => effect !== val) : [...prev, val]
     );
   };
 
@@ -370,7 +358,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      // Fallback for older browsers
+      // Fallback
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.style.position = 'fixed';
@@ -398,7 +386,15 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
     color: mqColor,
     surface: mqSurface,
     lighting: mqLighting,
+    effects: mqSelectedEffects,
   }, currentResolution);
+
+  const applyPrompt = (value: string) => {
+    const normalizedPrompt = value.trim();
+    if (normalizedPrompt.length < 3) return;
+    onApplyPrompt(normalizedPrompt);
+    onClose();
+  };
 
   const filteredPresets =
     selectedCategory === 'all'
@@ -413,111 +409,110 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-[100] flex items-end md:items-start md:pt-[5vh] justify-center p-0 md:px-4">
+          {/* Backdrop (solid semi-transparent for better performance on mobile) */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-slate-900/60"
+            style={{ willChange: 'opacity' }}
             onClick={onClose}
           />
 
-          {/* Sheet / Modal Container */}
+          {/* Modal Container */}
           <motion.div
-            initial={{ y: '100%', opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '100%', opacity: 0 }}
-            transition={{
-              type: 'spring',
-              damping: 30,
-              stiffness: 300,
-              mass: 0.8,
-            }}
-            className="relative z-10 w-full md:max-w-lg lg:max-w-2xl max-h-[88vh] max-h-[92dvh] md:max-h-[88vh] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            initial={{ y: '100%', opacity: 0, scale: 0.95 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: '100%', opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="relative w-full md:w-[95vw] lg:w-[min(768px,92vw)] h-[92dvh] md:h-[min(85vh,800px)] bg-[#f8fafc] rounded-t-[2rem] md:rounded-[2rem] shadow-2xl flex flex-col overflow-hidden ring-1 ring-slate-900/5"
+            style={{ willChange: 'transform, opacity' }}
           >
-            {/* ── Drag Handle (mobile only) ── */}
-            <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-10 h-1.5 bg-slate-300 rounded-full" />
+            {/* Drag Handle (Mobile) */}
+            <div className="md:hidden flex justify-center pt-4 pb-2 shrink-0 bg-white">
+              <div className="w-12 h-1.5 bg-slate-200 rounded-full" />
             </div>
 
-            {/* ── Header ── */}
-            <div className="px-5 py-3.5 flex items-center justify-between gap-3 shrink-0 border-b border-slate-100">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 p-[2px] shadow-lg shadow-indigo-500/20 shrink-0">
-                  <div className="w-full h-full bg-white rounded-[9px] flex items-center justify-center">
-                    <Wand2 className="w-5 h-5 text-indigo-600" />
-                  </div>
+            {/* Header */}
+            <div className="px-5 py-4 md:py-5 flex items-center justify-between gap-3 shrink-0 bg-white border-b border-slate-100 z-10">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-11 h-11 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-md shrink-0 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-violet-500/20" />
+                  <Wand2 className="w-5 h-5 relative z-10 text-blue-400" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-[16px] font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <h2 className="text-[17px] font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                     AI Prompt Studio
-                    <span className="text-[10px] font-bold bg-gradient-to-r from-indigo-600 to-cyan-500 text-white px-2 py-0.5 rounded-full whitespace-nowrap">
+                    <span className="text-[9px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-md whitespace-nowrap uppercase tracking-wider">
                       PRO
                     </span>
                   </h2>
-                  <p className="text-[12px] text-slate-500 font-medium truncate">
-                    Formula prompt fotografi profesional otomatis
+                  <p className="text-[12px] text-slate-500 font-medium truncate mt-0.5">
+                    Formula fotografi otomatis
                   </p>
                 </div>
               </div>
 
               <button
                 onClick={onClose}
-                className="p-2.5 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors shrink-0"
+                className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-slate-900 bg-slate-50 hover:bg-slate-200 active:bg-slate-300 rounded-full transition-colors shrink-0"
                 aria-label="Tutup"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* ── Tab Selector ── */}
-            <div className="px-4 py-3 flex items-center gap-2 shrink-0 bg-slate-50/80 border-b border-slate-100 overflow-x-auto scrollbar-none">
-              <button
-                onClick={() => setActiveTab('presets')}
-                className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] transition-all ${
-                  activeTab === 'presets'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <Sparkles className="w-4 h-4 shrink-0" />
-                <span className="truncate">Preset</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('custom')}
-                className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] transition-all ${
-                  activeTab === 'custom'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <Palette className="w-4 h-4 shrink-0" />
-                <span className="truncate">Kustom</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('mannequin')}
-                className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] transition-all ${
-                  activeTab === 'mannequin'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <ShoppingBag className="w-4 h-4 shrink-0" />
-                <span className="truncate">Mannequin</span>
-              </button>
+            {/* Tab Selector (Floating Pill Style) */}
+            <div className="px-4 md:px-5 py-3 md:py-3.5 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-100 z-10 sticky top-0">
+              <div className="flex items-center p-1 bg-slate-100/80 rounded-2xl relative">
+                {['presets', 'custom', 'mannequin'].map((tab) => {
+                  const isActive = activeTab === tab;
+                  const icons = {
+                    presets: <Sparkles className="w-4 h-4" />,
+                    custom: <Palette className="w-4 h-4" />,
+                    mannequin: <ShoppingBag className="w-4 h-4" />
+                  };
+                  const labels = {
+                    presets: 'Preset',
+                    custom: 'Kustom',
+                    mannequin: 'Mannequin'
+                  };
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab as typeof activeTab)}
+                      className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[14px] font-bold text-[13px] transition-colors z-10 ${
+                        isActive ? 'text-white' : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeTabIndicator"
+                          className="absolute inset-0 bg-slate-900 rounded-[14px] shadow-sm"
+                          transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                        />
+                      )}
+                      <span className="relative z-10 flex items-center gap-1.5">
+                        {icons[tab as keyof typeof icons]}
+                        <span className="truncate">{labels[tab as keyof typeof labels]}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* ── Scrollable Content ── */}
+            {/* Scrollable Content */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto overscroll-contain"
+              className="flex-1 overflow-y-auto overscroll-contain bg-slate-50 relative min-h-0"
             >
               {activeTab === 'presets' ? (
-                <div className="p-4 space-y-4">
+                <div className="p-4 md:p-5 space-y-4">
                   {/* Category Filter */}
-                  <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none">
                     {CATEGORIES.map((cat) => (
                       <button
                         key={cat.id}
@@ -525,31 +520,26 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                           setSelectedCategory(cat.id);
                           setExpandedPresetId(null);
                         }}
-                        className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-all shrink-0 ${
+                        className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-all duration-300 shrink-0 border ${
                           selectedCategory === cat.id
-                            ? 'bg-slate-900 text-white shadow-md'
-                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 active:bg-slate-100'
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                            : 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50'
                         }`}
                       >
                         <span className="text-[15px]">{cat.emoji}</span>
                         {cat.label}
-                        {cat.id !== 'all' && (
-                          <span className="text-[10px] opacity-60 ml-0.5">
-                            {PRESETS.filter((p) => p.category === cat.id).length}
-                          </span>
-                        )}
                       </button>
                     ))}
                   </div>
 
                   {/* Presets Grid */}
                   {filteredPresets.length === 0 ? (
-                    <div className="py-16 text-center">
-                      <ZapOff className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                    <div className="py-20 text-center">
+                      <ZapOff className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                       <p className="text-slate-500 font-medium">Tidak ada preset untuk kategori ini.</p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {filteredPresets.map((preset) => (
                         <PresetCard
                           key={preset.id}
@@ -563,8 +553,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                             )
                           }
                           onApply={() => {
-                            onApplyPrompt(getPresetPrompt(preset.prompt, currentResolution));
-                            onClose();
+                            applyPrompt(getPresetPrompt(preset.prompt, currentResolution));
                           }}
                           copied={copiedId === preset.id}
                           resolvedPrompt={getPresetPrompt(preset.prompt, currentResolution)}
@@ -575,41 +564,44 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                 </div>
               ) : activeTab === 'custom' ? (
                 /* ── Custom Builder Tab ── */
-                <div className="p-4 space-y-4 pb-6">
-                  {/* Randomize button */}
-                  <button
-                    onClick={handleRandomizeCustom}
-                    className="w-full flex items-center justify-center gap-2 py-3 text-[13px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all active:scale-[0.98]"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    🎲 Acak Semua Kombinasi
-                  </button>
+                <div className="p-4 md:p-5">
+                  <div className="flex justify-end mb-4">
+                    <button
+                      onClick={handleRandomizeCustom}
+                      className="flex items-center gap-2 px-4 py-2 text-[12px] font-bold text-blue-600 bg-blue-50/50 hover:bg-blue-100/80 rounded-full transition-all active:scale-95"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Acak Kombinasi
+                    </button>
+                  </div>
 
-                  {/* Step 1: Product Name */}
-                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
-                      <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black">
+                  {/* Step 1 */}
+                  <section className="pb-5 mb-5 border-b border-slate-200/60">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
                         1
-                      </span>
-                      <ShoppingBag className="w-4 h-4 text-indigo-500" />
-                      Nama Produk Anda
-                    </label>
+                      </div>
+                      <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                        <ShoppingBag className="w-4 h-4 text-slate-400" />
+                        Nama Produk
+                      </h3>
+                    </div>
                     <input
                       type="text"
                       value={customProduct}
                       onChange={(e) => setCustomProduct(e.target.value)}
-                      placeholder="Contoh: Botol Serum, Sepatu Sneakers..."
-                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      placeholder="Contoh: Botol Serum..."
+                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-[1.25rem] text-[15px] font-bold placeholder:text-slate-500 placeholder:font-medium outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all shadow-inner"
                     />
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mt-3">
                       {QUICK_SUGGESTIONS.map((sug) => (
                         <button
                           key={sug}
                           onClick={() => setCustomProduct(sug)}
-                          className={`text-[12px] font-semibold px-3 py-2 rounded-lg border transition-colors ${
+                          className={`text-[12px] font-bold px-3.5 py-2 rounded-xl transition-all ${
                             customProduct === sug
-                              ? 'bg-indigo-50 text-indigo-700 border-indigo-300'
-                              : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                              ? 'bg-slate-900 text-white shadow-md'
+                              : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
                           }`}
                         >
                           {sug}
@@ -618,16 +610,18 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                     </div>
                   </section>
 
-                  {/* Step 2: Pedestal / Surface */}
-                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
-                      <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black">
-                        2
-                      </span>
-                      <Layers className="w-4 h-4 text-indigo-500" />
-                      Latar & Surface
-                    </label>
-                    <div className="grid grid-cols-2 gap-2.5">
+                   {/* Step 2 */}
+                   <section className="pb-5 mb-5 border-b border-slate-200/60">
+                     <div className="flex items-center gap-3 mb-3">
+                       <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
+                         2
+                       </div>
+                       <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                         <Layers className="w-4 h-4 text-slate-400" />
+                         Latar & Permukaan
+                       </h3>
+                     </div>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 md:gap-3">
                       {PEDESTAL_OPTIONS.map((item) => (
                         <OptionChip
                           key={item.label}
@@ -635,22 +629,24 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                           icon={item.icon}
                           isSelected={customPedestal === item.val}
                           onClick={() => setCustomPedestal(item.val)}
-                          accentClass="bg-indigo-50 border-indigo-400 text-indigo-700"
+                          accentClass="bg-blue-50/50 border-blue-500 text-blue-900 ring-1 ring-blue-500/20"
                         />
                       ))}
                     </div>
                   </section>
 
-                  {/* Step 3: Lighting */}
-                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
-                      <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-black">
-                        3
-                      </span>
-                      <Sun className="w-4 h-4 text-amber-500" />
-                      Mood Pencahayaan
-                    </label>
-                    <div className="space-y-2">
+                   {/* Step 3 */}
+                   <section className="pb-5 mb-5 border-b border-slate-200/60">
+                     <div className="flex items-center gap-3 mb-3">
+                       <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
+                         3
+                       </div>
+                       <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                         <Sun className="w-4 h-4 text-slate-400" />
+                         Pencahayaan
+                       </h3>
+                     </div>
+                     <div className="space-y-2 md:space-y-2.5">
                       {LIGHTING_OPTIONS.map((item) => (
                         <OptionChip
                           key={item.label}
@@ -658,25 +654,29 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                           icon={item.icon}
                           isSelected={customLighting === item.val}
                           onClick={() => setCustomLighting(item.val)}
-                          accentClass="bg-amber-50 border-amber-400 text-amber-700"
+                          accentClass="bg-amber-50/50 border-amber-500 text-amber-900 ring-1 ring-amber-500/20"
                         />
                       ))}
                     </div>
                   </section>
 
-                  {/* Step 4: Effects */}
-                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
-                      <span className="w-6 h-6 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs font-black">
-                        4
+                  {/* Step 4 */}
+                  <section className="pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
+                          4
+                        </div>
+                        <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                          <Camera className="w-4 h-4 text-slate-400" />
+                          Efek (Opsional)
+                        </h3>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md uppercase tracking-wider">
+                        Multi
                       </span>
-                      <Camera className="w-4 h-4 text-cyan-500" />
-                      Efek Tambahan
-                      <span className="text-[11px] font-medium text-slate-400 normal-case tracking-normal ml-auto">
-                        Bisa pilih lebih dari satu
-                      </span>
-                    </label>
-                    <div className="grid grid-cols-2 gap-2.5">
+                    </div>
+                    <div className="grid grid-cols-2 gap-2.5 md:gap-3">
                       {EXTRA_EFFECTS.map((item) => {
                         const isSelected = selectedEffects.includes(item.val);
                         return (
@@ -684,137 +684,113 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                             key={item.label}
                             type="button"
                             onClick={() => toggleEffect(item.val)}
-                            className={`flex flex-col items-center gap-2 p-3.5 rounded-xl border text-center transition-all min-h-[80px] ${
+                            className={`relative flex flex-col items-center gap-2 md:gap-3 p-3 md:p-4 rounded-[1rem] md:rounded-[1.25rem] border text-center transition-all duration-300 min-h-[80px] md:min-h-[88px] ${
                               isSelected
-                                ? 'bg-cyan-50 border-cyan-400 text-cyan-800 shadow-sm'
-                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300 active:bg-slate-100'
+                                ? 'bg-violet-50/50 border-violet-500 text-violet-900 shadow-[0_4px_12px_-4px_rgba(139,92,246,0.15)] ring-1 ring-violet-500/20 scale-[0.98]'
+                                : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
                             }`}
                           >
-                            <span className="text-2xl">{item.icon}</span>
+                            <span className="text-2xl drop-shadow-sm">{item.icon}</span>
                             <span className="text-[12px] font-bold leading-tight">{item.label}</span>
                             {isSelected && (
-                              <CheckCircle2 className="w-4 h-4 text-cyan-600 shrink-0" />
+                              <div className="absolute top-2 right-2">
+                                <CheckCircle2 className="w-4 h-4 text-violet-600" />
+                              </div>
                             )}
                           </button>
                         );
                       })}
-                    </div>
+                   </div>
                   </section>
 
-                  {/* Live Preview */}
-                  <section className="bg-slate-900 rounded-2xl p-4 text-white space-y-3 shadow-xl">
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5 text-[12px] font-bold text-cyan-400 font-mono uppercase tracking-wider">
-                        <Sparkles className="w-4 h-4" />
-                        Live Preview
-                      </span>
-                      <button
-                        onClick={() => handleCopy('custom', customPromptText)}
-                        className="flex items-center gap-1.5 text-[12px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg transition-colors"
-                      >
-                        {copiedId === 'custom' ? (
-                          <>
-                            <Check className="w-4 h-4 text-emerald-400" />
-                            Tersalin
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4 h-4" />
-                            Salin
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <p className="text-[13px] text-slate-200 leading-relaxed bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80 font-medium">
-                      {customPromptText}
-                    </p>
-                    <button
-                      onClick={() => {
-                        onApplyPrompt(customPromptText);
-                        onClose();
-                      }}
-                      className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white rounded-xl font-bold text-[14px] transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98]"
-                    >
-                      <Zap className="w-4 h-4" />
-                      Terapkan Prompt Ini ke Studio
-                    </button>
-                  </section>
                 </div>
               ) : (
                 /* ── Mannequin Builder Tab ── */
-                <div className="p-4 space-y-4 pb-6">
-                  {/* Step 1: Clothing Type */}
-                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
-                      <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black">
+                <div className="p-4 md:p-5">
+                  {/* Step 1 */}
+                  <section className="pb-5 mb-5 border-b border-slate-200/60">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
                         1
-                      </span>
-                      <ShoppingBag className="w-4 h-4 text-indigo-500" />
-                      Jenis Pakaian
-                    </label>
-                    <select
-                      value={mqClothingType}
-                      onChange={(e) => setMqClothingType(e.target.value)}
-                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none"
-                    >
-                      {MANNEQUIN_CLOTHING_TYPES.map((type) => (
-                        <option key={type.val} value={type.val}>{type.label}</option>
-                      ))}
-                      <option value="">Lainnya (Ketik sendiri di kolom prompt)</option>
-                    </select>
-                    <input
-                      type="text"
-                      value={mqClothingType}
-                      onChange={(e) => setMqClothingType(e.target.value)}
-                      placeholder="Atau ketik jenis pakaian spesifik..."
-                      className="w-full mt-2 p-3.5 bg-white border border-slate-200 rounded-xl text-base md:text-sm font-semibold placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                    />
+                      </div>
+                      <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                        <ShoppingBag className="w-4 h-4 text-slate-400" />
+                        Jenis Pakaian
+                      </h3>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <select
+                          value={mqClothingType}
+                          onChange={(e) => setMqClothingType(e.target.value)}
+                          className="w-full p-4 bg-slate-50 border border-slate-200 rounded-[1.25rem] text-[15px] font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all appearance-none shadow-inner"
+                        >
+                          {MANNEQUIN_CLOTHING_TYPES.map((type) => (
+                            <option key={type.val} value={type.val}>{type.label}</option>
+                          ))}
+                          <option value="">Lainnya (Ketik Manual)</option>
+                        </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                      </div>
+                      
+                      <input
+                        type="text"
+                        value={mqClothingType}
+                        onChange={(e) => setMqClothingType(e.target.value)}
+                        placeholder="Cth: a button-up shirt..."
+                        className="w-full p-4 bg-white border border-slate-200 rounded-[1.25rem] text-[15px] font-bold placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-inner"
+                      />
+                    </div>
                   </section>
 
-                  {/* Step 2: Material & Color */}
-                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
-                      <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black">
+                  {/* Step 2 */}
+                  <section className="pb-5 mb-5 border-b border-slate-200/60">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
                         2
-                      </span>
-                      <Layers className="w-4 h-4 text-indigo-500" />
-                      Bahan & Warna
-                    </label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
+                      </div>
+                      <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-slate-400" />
+                        Bahan & Warna
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="relative">
                         <select
                           value={mqMaterial}
                           onChange={(e) => setMqMaterial(e.target.value)}
-                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none"
+                          className="w-full p-4 bg-slate-50 border border-slate-200 rounded-[1.25rem] text-[15px] font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all appearance-none shadow-inner"
                         >
                           <option value="" className="text-slate-400">-- Pilih Bahan --</option>
                           {MANNEQUIN_MATERIALS.map((mat) => (
                             <option key={mat.val} value={mat.val}>{mat.label}</option>
                           ))}
                         </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                       </div>
-                      <div>
-                        <input
-                          type="text"
-                          value={mqColor}
-                          onChange={(e) => setMqColor(e.target.value)}
-                          placeholder="Warna dominan (opsional)"
-                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base md:text-sm font-semibold placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        />
-                      </div>
+                      
+                      <input
+                        type="text"
+                        value={mqColor}
+                        onChange={(e) => setMqColor(e.target.value)}
+                        placeholder="Warna dominan (opsional)"
+                        className="w-full p-4 bg-white border border-slate-200 rounded-[1.25rem] text-[15px] font-bold placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-inner"
+                      />
                     </div>
                   </section>
 
-                  {/* Step 3: Latar & Surface */}
-                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
-                      <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black">
+                  {/* Step 3 */}
+                  <section className="pb-5 mb-5 border-b border-slate-200/60">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
                         3
-                      </span>
-                      <Layers className="w-4 h-4 text-indigo-500" />
-                      Latar & Surface
-                    </label>
-                    <div className="grid grid-cols-2 gap-2.5">
+                      </div>
+                      <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-slate-400" />
+                        Latar Belakang
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 md:gap-3">
                       {PEDESTAL_OPTIONS.map((item) => (
                         <OptionChip
                           key={item.label}
@@ -822,22 +798,24 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                           icon={item.icon}
                           isSelected={mqSurface === item.val}
                           onClick={() => setMqSurface(item.val)}
-                          accentClass="bg-indigo-50 border-indigo-400 text-indigo-700"
+                          accentClass="bg-blue-50/50 border-blue-500 text-blue-900 ring-1 ring-blue-500/20"
                         />
                       ))}
                     </div>
                   </section>
 
-                  {/* Step 4: Mood Pencahayaan */}
-                  <section className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-                    <label className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 uppercase tracking-wide">
-                      <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-black">
+                  {/* Step 4 */}
+                  <section className="pb-5 mb-5 border-b border-slate-200/60">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
                         4
-                      </span>
-                      <Sun className="w-4 h-4 text-amber-500" />
-                      Mood Pencahayaan
-                    </label>
-                    <div className="space-y-2">
+                      </div>
+                      <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                        <Sun className="w-4 h-4 text-slate-400" />
+                        Pencahayaan
+                      </h3>
+                    </div>
+                    <div className="space-y-2 md:space-y-2.5">
                       {LIGHTING_OPTIONS.map((item) => (
                         <OptionChip
                           key={item.label}
@@ -845,61 +823,129 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                           icon={item.icon}
                           isSelected={mqLighting === item.val}
                           onClick={() => setMqLighting(item.val)}
-                          accentClass="bg-amber-50 border-amber-400 text-amber-700"
-                        />
-                      ))}
-                    </div>
+                          accentClass="bg-amber-50/50 border-amber-500 text-amber-900 ring-1 ring-amber-500/20"
+                       />
+                     ))}
+                   </div>
                   </section>
-
-                  {/* Live Preview */}
-                  <section className="bg-slate-900 rounded-2xl p-4 text-white space-y-3 shadow-xl">
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5 text-[12px] font-bold text-cyan-400 font-mono uppercase tracking-wider">
-                        <Sparkles className="w-4 h-4" />
-                        Live Preview
+                  {/* Step 5 */}
+                  <section className="pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
+                          5
+                        </div>
+                        <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                          <Camera className="w-4 h-4 text-slate-400" />
+                          Efek (Opsional)
+                        </h3>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md uppercase tracking-wider">
+                        Multi
                       </span>
-                      <button
-                        onClick={() => handleCopy('mannequin', mannequinPromptText)}
-                        className="flex items-center gap-1.5 text-[12px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg transition-colors"
-                      >
-                        {copiedId === 'mannequin' ? (
-                          <>
-                            <Check className="w-4 h-4 text-emerald-400" />
-                            Tersalin
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4 h-4" />
-                            Salin
-                          </>
-                        )}
-                      </button>
                     </div>
-                    <p className="text-[13px] text-slate-200 leading-relaxed bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80 font-medium">
-                      {mannequinPromptText}
-                    </p>
-                    <button
-                      onClick={() => {
-                        onApplyPrompt(mannequinPromptText);
-                        onClose();
-                      }}
-                      className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white rounded-xl font-bold text-[14px] transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98]"
-                    >
-                      <Zap className="w-4 h-4" />
-                      Terapkan Prompt Ini ke Studio
-                    </button>
+                    <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                      {EXTRA_EFFECTS.map((item) => {
+                        const isSelected = mqSelectedEffects.includes(item.val);
+                        return (
+                          <button
+                            key={item.label}
+                            type="button"
+                            onClick={() => toggleMannequinEffect(item.val)}
+                            className={`relative flex flex-col items-center gap-2 md:gap-3 p-3 md:p-4 rounded-[1rem] md:rounded-[1.25rem] border text-center transition-all duration-300 min-h-[80px] md:min-h-[88px] ${
+                              isSelected
+                                ? 'bg-violet-50/50 border-violet-500 text-violet-900 shadow-[0_4px_12px_-4px_rgba(139,92,246,0.15)] ring-1 ring-violet-500/20 scale-[0.98]'
+                                : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                            }`}
+                          >
+                            <span className="text-2xl drop-shadow-sm">{item.icon}</span>
+                            <span className="text-[12px] font-bold leading-tight">{item.label}</span>
+                            {isSelected && (
+                              <div className="absolute top-2 right-2">
+                                <CheckCircle2 className="w-4 h-4 text-violet-600" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </section>
                 </div>
               )}
             </div>
 
-            {/* ── Footer ── */}
-            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 text-slate-500 text-[12px] flex items-center justify-between gap-2 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-              <span className="flex items-center gap-1.5 font-medium min-w-0 truncate">
-                <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
-                <span className="truncate">Gunakan prompt bahasa Inggris untuk hasil AI terbaik.</span>
+            {/* Sleek Minimalist Live Preview Footer */}
+            {activeTab !== 'presets' && (
+              <div className="p-3 md:p-4 bg-white border-t border-slate-200/60 shrink-0 z-20 flex flex-col gap-3 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] relative">
+                
+                {/* Expandable Preview Area */}
+                <AnimatePresence>
+                  {isPreviewExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0, scale: 0.95 }}
+                      animate={{ height: 'auto', opacity: 1, scale: 1 }}
+                      exit={{ height: 0, opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="bg-slate-900 rounded-[1.25rem] p-3 text-white relative overflow-hidden"
+                    >
+                      <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+                      <div className="flex items-center justify-between mb-2 relative z-10">
+                        <span className="flex items-center gap-2 text-[11px] font-black text-blue-400 font-mono uppercase tracking-widest">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          Live Preview
+                        </span>
+                        <button
+                          onClick={() => handleCopy(activeTab, activeTab === 'custom' ? customPromptText : mannequinPromptText)}
+                          className="flex items-center gap-1.5 text-[11px] font-bold text-slate-300 hover:text-white bg-white/10 hover:bg-white/20 active:bg-white/30 px-2.5 py-1.5 rounded-lg transition-all"
+                        >
+                          {copiedId === activeTab ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              Tersalin
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              Salin
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="text-[12px] md:text-[13px] text-slate-200 leading-relaxed bg-black/50 p-3 rounded-xl border border-white/10 font-mono max-h-[80px] overflow-y-auto scrollbar-none relative z-10">
+                        {activeTab === 'custom' ? customPromptText : mannequinPromptText}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Primary Action Button & Hint */}
+                <div className="flex items-center gap-2 w-full">
+                  <button
+                    onClick={() => setIsPreviewExpanded(!isPreviewExpanded)}
+                    className="w-12 h-12 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition-colors shrink-0"
+                    title={isPreviewExpanded ? "Tutup Preview" : "Lihat Preview"}
+                  >
+                    {isPreviewExpanded ? <ChevronDown className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+                  </button>
+                  <button
+                    onClick={() => applyPrompt(activeTab === 'custom' ? customPromptText : mannequinPromptText)}
+                    className="flex-1 flex items-center justify-center gap-2 h-12 bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white rounded-xl font-extrabold text-[13px] md:text-[14px] transition-all shadow-md"
+                  >
+                    <Zap className="w-4 h-4" />
+                    Terapkan ke Studio
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Safe Area Footer */}
+            <div className="px-4 md:px-5 py-2 md:py-2 bg-slate-100 border-t border-slate-200 flex justify-center shrink-0 z-30 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+              <span className="flex items-center gap-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+                Prompt bahasa Inggris direkomendasikan
               </span>
             </div>
+
           </motion.div>
         </div>
       )}

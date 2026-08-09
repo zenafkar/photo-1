@@ -21,7 +21,10 @@ const API_BASE_URL = getApiBaseUrl();
 export const useApiClient = () => {
   const { getToken } = useAuth();
 
-  const request = useCallback(async (endpoint: string, options: RequestInit = {}, isRetry = false, timeoutMs = 30_000): Promise<any> => {
+  const request = useCallback(async (endpoint: string, options: RequestInit = {}, isRetry = false, timeoutMs = 30_000, availabilityAttempt = 0): Promise<any> => {
+    const method = (options.method || "GET").toString().toUpperCase();
+    const canRetryAvailability = method === "GET" && availabilityAttempt < 2;
+
     try {
       // Fetch a valid token with retry logic
       let token: string | null = null;
@@ -65,6 +68,15 @@ export const useApiClient = () => {
         signal: controller.signal,
       }).finally(() => clearTimeout(timeoutId));
 
+      if (canRetryAvailability && [502, 503, 504].includes(response.status)) {
+        const retryAfter = Number(response.headers.get("Retry-After"));
+        const delay = Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.min(retryAfter * 1000, 10_000)
+          : 750 * (availabilityAttempt + 1);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return request(endpoint, options, isRetry, timeoutMs, availabilityAttempt + 1);
+      }
+
       const contentType = response.headers.get("content-type") || "";
       const isJson = contentType.includes("application/json");
 
@@ -87,7 +99,25 @@ export const useApiClient = () => {
           if (response.status === 401) {
             throw new Error("Sesi Anda telah berakhir atau belum login. Silakan refresh halaman dan login kembali.");
           }
-          throw new Error(errorData.message || `Terjadi kesalahan pada server (${response.status})`);
+          const validationDetails = Array.isArray(errorData.errors)
+            ? errorData.errors
+              .map((issue: any) => {
+                const path = Array.isArray(issue?.path) ? issue.path.join(".") : "";
+                return path ? `${path}: ${issue.message}` : issue?.message;
+              })
+              .filter(Boolean)
+              .join("; ")
+            : "";
+          const message = errorData.message || `Terjadi kesalahan pada server (${response.status})`;
+          const apiError = new Error(validationDetails ? `${message}: ${validationDetails}` : message) as Error & {
+            code?: string;
+            status?: number;
+            retryable?: boolean;
+          };
+          apiError.code = errorData.code;
+          apiError.status = response.status;
+          apiError.retryable = errorData.retryable ?? response.status >= 500;
+          throw apiError;
         } else {
           if (response.status === 401) {
             throw new Error("Sesi Anda telah berakhir atau belum login. Silakan refresh halaman dan login kembali.");
@@ -119,6 +149,11 @@ export const useApiClient = () => {
 
       // Normalize raw browser network error strings (e.g. TypeError: Failed to fetch)
       const message = error?.message || "";
+      if (canRetryAvailability && (error?.name === "AbortError" || message.includes("Failed to fetch") || message.includes("NetworkError") || error?.name === "TypeError")) {
+        const delay = 750 * (availabilityAttempt + 1);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return request(endpoint, options, isRetry, timeoutMs, availabilityAttempt + 1);
+      }
       if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
         throw new Error("Permintaan timeout — server tidak merespon dalam waktu yang ditentukan. Silakan coba lagi.");
       }
@@ -131,7 +166,7 @@ export const useApiClient = () => {
   }, [getToken]);
 
   return useMemo(() => ({
-    getProfile: () => request("/user/me"),
+    getProfile: () => request("/user/me", {}, false, 12_000),
     generateImage: (payload: {
       imageUrls: string[];
       prompt: string;
@@ -139,9 +174,11 @@ export const useApiClient = () => {
       aspectRatio?: string;
       resolution?: string;
       outputFormat?: string;
+      idempotencyKey?: string;
     }) =>
       request("/generate", {
         method: "POST",
+        headers: payload.idempotencyKey ? { "Idempotency-Key": payload.idempotencyKey } : undefined,
         body: JSON.stringify(payload),
       }, false, 180_000), // 3 min timeout for AI generation
     deleteGeneration: (id: string) =>
@@ -159,5 +196,9 @@ export const useApiClient = () => {
       }),
     getPaymentOrder: (orderId: string) =>
       request(`/payments/orders/${orderId}`),
+    getEventTicket: () =>
+      request("/user/events/ticket", { method: "POST" }),
   }), [request]);
 };
+
+export { API_BASE_URL };

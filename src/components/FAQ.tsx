@@ -33,7 +33,7 @@ const faqs = [
     items: [
       {
         question: "Bagaimana sistem kredit (billing) di ZenStudio?",
-        answer: "ZenStudio beroperasi dengan model pay-as-you-go. 1 kredit = 1 eksekusi render foto. Kredit Anda tidak memiliki masa berlaku (no expiry) dan tidak ada sistem langganan (subscription) tersembunyi. Mode Ultra 4K menggunakan 2 kredit per render."
+         answer: "ZenStudio beroperasi dengan model pay-as-you-go. 1 kredit = 1 eksekusi render foto. Kredit Anda tidak memiliki masa berlaku (no expiry) dan tidak ada sistem langganan (subscription) tersembunyi. Biaya render bergantung pada AI Engine dan resolusi; Nano Banana Pro pada mode Ultra 4K menggunakan 3 kredit."
       },
       {
         question: "Apakah tersedia alokasi trial gratis?",

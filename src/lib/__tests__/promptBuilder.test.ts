@@ -87,11 +87,13 @@ describe("buildMannequinAutoPrompt", () => {
       color: "black",
       surface: "a rustic dark oak wood tabletop",
       lighting: "warm golden hour sunlight with soft long shadows",
+      effects: ["subtle floating gold dust sparkle particles"],
     });
 
     expect(result).toContain("ghost mannequin photography");
     expect(result).toContain("placed on a rustic dark oak wood tabletop");
     expect(result).toContain("lit with warm golden hour sunlight with soft long shadows");
+    expect(result).toContain("with subtle floating gold dust sparkle particles");
     expect(result).toContain("8k resolution");
   });
 

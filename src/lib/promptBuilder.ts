@@ -42,6 +42,7 @@ export interface MannequinOptions {
   color: string;
   surface: string;
   lighting: string;
+  effects?: string[];
 }
 
 export const MANNEQUIN_CLOTHING_TYPES = [
@@ -69,6 +70,7 @@ export function buildMannequinAutoPrompt(options: MannequinOptions, currentResol
   const color = options.color.trim() ? `in ${options.color.trim()} color` : '';
   const surface = options.surface.trim() || 'a seamless pure white studio surface';
   const lighting = options.lighting.trim() || 'soft diffused 3-point softbox studio lighting';
+  const effects = options.effects?.filter(Boolean) ?? [];
   
   const resText = currentResolution ? `${currentResolution.toLowerCase()} resolution` : "8k resolution";
 
@@ -79,6 +81,7 @@ export function buildMannequinAutoPrompt(options: MannequinOptions, currentResol
     `ghost mannequin photography, invisible mannequin effect, flat front view`,
     `placed on ${surface}`,
     `lit with ${lighting}`,
+    effects.length > 0 ? `with ${effects.join(', ')}` : '',
     `macro texture photography, highly detailed, professional commercial fashion photography, ${resText}`
   ];
 

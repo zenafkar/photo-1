@@ -162,6 +162,38 @@
   pointer-events: none;
 }
 
+@keyframes ai-guide-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ai-guide-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-guide-panel {
+  animation: ai-guide-pop 180ms ease-out both;
+}
+
+@media (max-width: 767px) {
+  .ai-guide-panel {
+    animation-name: ai-guide-sheet-in;
+  }
+}
+
 /* Keep floating controls out of the touch hit area while Clerk is open. */
 .clerk-modal-open [data-component="go-to-top"] {
   display: none;

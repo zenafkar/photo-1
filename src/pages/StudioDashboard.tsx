@@ -2,12 +2,14 @@ import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useAuth } from "@cle
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useApiClient } from "../services/api";
-import { Loader2, Upload, Sparkles, Image as ImageIcon, Trash2, Download, Home, Zap, AlertTriangle, RefreshCw, Wand2, CheckCircle2, XCircle, Copy, Check } from 'lucide-react';
+import { Loader2, Upload, Sparkles, Image as ImageIcon, Trash2, Home, Zap, AlertTriangle, RefreshCw, Wand2, CheckCircle2, XCircle, Copy, Check } from 'lucide-react';
 import ZoomableImage from '../components/ZoomableImage';
 import { ZenLogo } from '../components/ZenLogo';
 import { PromptGeneratorModal } from '../components/PromptGeneratorModal';
+import { AIEngineGuide } from '../components/AIEngineGuide';
 import { useTopUp } from "../context/TopUpContext";
 import { usePaymentStatus } from "../hooks/usePaymentStatus";
+import { useDashboardRealtime, type DashboardRealtimeEvent } from "../hooks/useDashboardRealtime";
 
 const OpenAIIcon = ({ className }: { className?: string }) => (
   <svg 
@@ -32,11 +34,19 @@ const GoogleIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const getCreditsToDeduct = (provider: string, resolution: string) => {
+  const normalizedResolution = resolution.toLowerCase();
+  if (provider === "nanobanana") return normalizedResolution === "4k" ? 3 : 2;
+  if (provider === "nanobanana2") return 2;
+  return normalizedResolution === "4k" ? 2 : 1;
+};
+
 export default function StudioDashboard() {
   const [credits, setCredits] = useState<number | null>(null);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [prompt, setPrompt] = useState("");
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [isAiGuideOpen, setIsAiGuideOpen] = useState(false);
   const [provider, setProvider] = useState("gptimage");
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [resolution, setResolution] = useState("1k");
@@ -51,50 +61,84 @@ export default function StudioDashboard() {
   const [dbWarning, setDbWarning] = useState<string | null>(null);
   const dbRetryCount = useRef(0);
 
-  const CACHE_KEY = 'zenstudio_profile_cache';
+  const { isLoaded, isSignedIn, userId } = useAuth();
+  const CACHE_KEY = userId ? `zenstudio_profile_cache:${userId}` : null;
   const saveCache = (data: any) => {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); } catch {}
-  };
-  const loadCache = (): any => {
     try {
+      if (CACHE_KEY && data && typeof data.credits === "number" && data.credits >= 0) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+      }
+    } catch {}
+  };
+  const loadCache = (): { data: any; ts: number } | null => {
+    try {
+      if (!CACHE_KEY) return null;
       const raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return null;
       const { ts, data } = JSON.parse(raw);
-      if (Date.now() - ts > 10 * 60 * 1000) return null;
-      return data;
+      if (!data || typeof data.credits !== "number" || data.credits < 0) return null;
+      return { data, ts };
     } catch { return null; }
   };
-  const isDbError = (msg: string) =>
-    /database|connection|timeout|network|fetch|server/i.test(msg);
+  const isDbError = (error: any) =>
+    error?.code === "DATABASE_UNAVAILABLE" || error?.retryable === true || /database|connection|timeout|network|fetch/i.test(error?.message || "");
+
+  const creditsVersionRef = useRef(0);
+  const generationsLatestTsRef = useRef<string | null>(null);
+  const generationHistoryRef = useRef<any[]>([]);
+  const watchdogTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // UI State
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
 
-  const { isLoaded, isSignedIn } = useAuth();
+  useEffect(() => {
+    generationHistoryRef.current = generationHistory;
+  }, [generationHistory]);
+
   const api = useApiClient();
   const { openTopUp } = useTopUp();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const handleSyncReplicate = useCallback(async (isSilent = true) => {
-    if (!isLoaded || !isSignedIn) return;
-    try {
-      const res: any = await api.syncReplicate();
-      if (res && res.success) {
-        if (res.generations) {
-          setGenerationHistory(res.generations);
-        }
-        if (typeof res.remainingCredits === "number") {
-          setCredits(res.remainingCredits);
-        }
-      }
-    } catch (err: any) {
-      if (!isSilent) {
-        console.warn("Background sync error:", err);
-      }
+  const shouldApplyCredits = useCallback((incomingVersion: number | undefined) => {
+    if (incomingVersion === undefined) return true;
+    if (incomingVersion >= creditsVersionRef.current) {
+      creditsVersionRef.current = incomingVersion;
+      return true;
     }
-  }, [isLoaded, isSignedIn, api]);
+    return false;
+  }, []);
+
+  const shouldApplyGenerations = useCallback((incomingTs: string | null | undefined) => {
+    if (!incomingTs) return true;
+    if (!generationsLatestTsRef.current || incomingTs >= generationsLatestTsRef.current) {
+      generationsLatestTsRef.current = incomingTs;
+      return true;
+    }
+    return false;
+  }, []);
+
+  const applyProfileResponse = useCallback((res: any) => {
+    if (!res?.data) return;
+    const credits = res.data.credits?.remainingCredits;
+    const creditsVersion = res.data.credits?.version;
+    const generations = res.data.generations || [];
+    const generationsLatestTs = res.data.generationsLatestTs || null;
+
+    if (credits !== null && credits !== undefined && shouldApplyCredits(creditsVersion)) {
+      setCredits(credits);
+    }
+    const canReplaceWithIncomingGenerations =
+      generations.length > 0 || generationsLatestTs !== null || generationHistoryRef.current.length === 0;
+    if (canReplaceWithIncomingGenerations && shouldApplyGenerations(generationsLatestTs)) {
+      setGenerationHistory(generations.filter((g: any) => g.status === "completed" && g.processedUrl));
+    }
+    if (credits !== null && credits !== undefined) {
+      saveCache({ credits, generations: generations.filter((g: any) => g.status === "completed" && g.processedUrl) });
+    }
+  }, [userId, shouldApplyCredits, shouldApplyGenerations]);
 
   const loadProfile = useCallback(async (isRetry = false) => {
     if (!isLoaded || !isSignedIn) return;
@@ -102,17 +146,13 @@ export default function StudioDashboard() {
     setProfileError(null);
     try {
       const res: any = await api.getProfile();
-      if (res && res.data) {
-        setCredits(res.data.credits?.remainingCredits ?? 0);
-        setGenerationHistory(res.data.generations || []);
-        saveCache({ credits: res.data.credits?.remainingCredits ?? 0, generations: res.data.generations || [] });
-      }
-      if (dbWarning) setDbWarning(null);
+      applyProfileResponse(res);
+      setDbWarning(null);
+      setProfileError(null);
       dbRetryCount.current = 0;
-      handleSyncReplicate(true);
     } catch (err: any) {
       const msg = err.message || "Gagal memuat profil & riwayat gambar.";
-      if (isDbError(msg) && !isRetry && dbRetryCount.current < 1) {
+      if (isDbError(err) && !isRetry && dbRetryCount.current < 1) {
         dbRetryCount.current++;
         setDbWarning("Koneksi ke server tidak stabil. Mencoba ulang...");
         await new Promise(r => setTimeout(r, 3000));
@@ -120,16 +160,76 @@ export default function StudioDashboard() {
       }
       const cached = loadCache();
       if (cached) {
-        setCredits(cached.credits);
-        setGenerationHistory(cached.generations);
-        setDbWarning("Menggunakan data terakhir. Server sedang tidak tersedia.");
+        setCredits(cached.data.credits);
+        setGenerationHistory(cached.data.generations || []);
+        const ageMinutes = Math.max(1, Math.round((Date.now() - cached.ts) / 60_000));
+        setProfileError(null);
+        setDbWarning(`Menggunakan data terakhir (${ageMinutes} menit lalu). Server sedang tidak tersedia.`);
       } else {
         setProfileError(msg);
+        setDbWarning(isDbError(err) ? "Database belum siap. Dashboard akan mencoba kembali otomatis." : null);
       }
     } finally {
       setIsLoadingProfile(false);
     }
-  }, [isLoaded, isSignedIn, api, handleSyncReplicate, dbWarning]);
+  }, [isLoaded, isSignedIn, userId, api, applyProfileResponse]);
+
+  const handleRealtimeEvent = useCallback((event: DashboardRealtimeEvent) => {
+    if (event.type === "credits.updated" || event.type === "topup.settled") {
+      if (shouldApplyCredits(event.version)) {
+        loadProfile();
+      }
+    }
+    if (event.type === "generation.completed" && event.data?.generation) {
+      const gen = event.data.generation;
+      const incomingCredits = event.data.remainingCredits;
+      if (typeof incomingCredits === "number" && shouldApplyCredits(event.version)) {
+        setCredits(incomingCredits);
+      }
+      if (shouldApplyGenerations(event.generationsLatestTs)) {
+        setGenerationHistory(prev => {
+          const existing = prev.find(g => g.id === gen.id);
+          if (existing) return prev.map(g => g.id === gen.id ? gen : g);
+          return [gen, ...prev];
+        });
+      }
+    }
+    if (event.type === "generation.deleted" && event.data?.generationId) {
+      const genId = event.data.generationId;
+      setGenerationHistory(prev => prev.filter(g => g.id !== genId));
+    }
+  }, [shouldApplyCredits, shouldApplyGenerations, loadProfile]);
+
+  useDashboardRealtime({
+    onEvent: handleRealtimeEvent,
+    onCreditsUpdate: (credits, version) => {
+      if (shouldApplyCredits(version)) setCredits(credits);
+    },
+    onGenerationUpdate: (generation) => {
+      setGenerationHistory(prev => {
+        const existing = prev.find(g => g.id === generation.id);
+        if (existing) return prev.map(g => g.id === generation.id ? generation : g);
+        return [generation, ...prev];
+      });
+    },
+    onGenerationDelete: (generationId) => {
+      setGenerationHistory(prev => prev.filter(g => g.id !== generationId));
+    },
+    onConnectionChange: (connected) => setIsRealtimeConnected(connected),
+    pollFallback: () => loadProfile(),
+  });
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+    watchdogTimerRef.current = setInterval(() => {
+      if (credits === null || dbWarning) {
+        loadProfile();
+      }
+    }, 30_000);
+    return () => {
+      if (watchdogTimerRef.current) clearInterval(watchdogTimerRef.current);
+    };
+  }, [isLoaded, isSignedIn, credits, dbWarning, loadProfile]);
 
   // ── Payment return detection ───────────────────────────
   const [paymentBanner, setPaymentBanner] = useState<"success" | "failed" | null>(null);
@@ -209,20 +309,6 @@ export default function StudioDashboard() {
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       loadProfile();
-
-      const handleVisibilityChange = () => {
-        if (document.visibilityState === "visible") {
-          handleSyncReplicate(true);
-        }
-      };
-
-      window.addEventListener("focus", handleVisibilityChange);
-      document.addEventListener("visibilitychange", handleVisibilityChange);
-
-      return () => {
-        window.removeEventListener("focus", handleVisibilityChange);
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
-      };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, isSignedIn]);
@@ -429,13 +515,15 @@ export default function StudioDashboard() {
   };
 
   const handleGenerate = async () => {
-    if (previewUrls.length === 0 || credits === 0 || imageBase64Array.length === 0) return;
+    if (previewUrls.length === 0 || credits === null || credits === 0 || dbWarning || imageBase64Array.length === 0) return;
 
-    const resString = (resolution || "").toLowerCase();
-    let creditsToDeduct = resString === "4k" ? 2 : 1;
-    if (provider === "nanobanana" || provider === "nanobanana2") {
-      creditsToDeduct = 2;
+    const normalizedPrompt = prompt.trim();
+    if (normalizedPrompt.length < 3) {
+      setGenerateError("Prompt wajib diisi minimal 3 karakter. Gunakan Auto Generate Prompt atau tulis prompt sendiri.");
+      return;
     }
+
+    const creditsToDeduct = getCreditsToDeduct(provider, resolution || "");
 
     if (credits !== null && credits < creditsToDeduct) {
       setGenerateError(`Kredit tidak cukup. Dibutuhkan ${creditsToDeduct} kredit untuk resolusi ini.`);
@@ -462,13 +550,17 @@ export default function StudioDashboard() {
 
     try {
       // Mengirimkan gambar asli (base64) ke backend
+      const idempotencyKey = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `generation-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       const res = await api.generateImage({
         imageUrls: imageBase64Array,
-        prompt: prompt,
+        prompt: normalizedPrompt,
         provider: provider,
         aspectRatio: aspectRatio,
         resolution: resolution,
-        outputFormat: outputFormat
+        outputFormat: outputFormat,
+        idempotencyKey,
       });
       
       if (res && res.data && typeof res.data.remainingCredits === "number") {
@@ -477,25 +569,27 @@ export default function StudioDashboard() {
       
       // Update generation history with the new generated image
       if (res && res.data && res.data.generation) {
-        setGenerationHistory(prev => [res.data.generation, ...prev]);
+        setGenerationHistory(prev => {
+          const existing = prev.find(g => g.id === res.data.generation.id);
+          if (existing) return prev.map(g => g.id === res.data.generation.id ? res.data.generation : g);
+          return [res.data.generation, ...prev];
+        });
       }
-
-      // Auto-sync in background to keep DB and UI 100% aligned
-      handleSyncReplicate(true);
     } catch (error: any) {
       console.error("Error during generation:", error);
       const errMsg = error?.message || "Gagal memproses gambar.";
       setGenerateError(errMsg);
 
-      // Revert optimistic deduction if client request immediately failed
+      const ambiguousOutcome = error?.retryable || error?.status >= 500 || /timeout|terputus|tidak merespon/i.test(errMsg);
       if (previousCredits !== null) {
-        setCredits(previousCredits);
+        if (ambiguousOutcome) {
+          setCredits(null);
+          setDbWarning("Status generasi sedang diverifikasi. Menunggu database kembali siap...");
+          window.setTimeout(() => loadProfile(), 2_000);
+        } else {
+          setCredits(previousCredits);
+        }
       }
-
-      // Background recovery sync in case server process completes asynchronously
-      setTimeout(() => {
-        handleSyncReplicate(true);
-      }, 4000);
     } finally {
       clearTimeout(timer1);
       clearTimeout(timer2);
@@ -513,27 +607,6 @@ export default function StudioDashboard() {
       alert("Failed to delete image. " + (error as Error).message);
     } finally {
       setImageToDelete(null);
-    }
-  };
-
-  const handleDownload = async (url: string, filename: string = 'generated-image.jpg') => {
-    try {
-      // Create an object URL to bypass some CORS and force download
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(objectUrl);
-    } catch (error) {
-      console.error("Download fetch failed, opening in new tab", error);
-      // Fallback if fetch fails (e.g. CORS block)
-      window.open(url, '_blank');
     }
   };
 
@@ -729,7 +802,7 @@ export default function StudioDashboard() {
                             multiple
                             onChange={handleFileChange}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                          />
+                        />
                         )}
                         <div className={`border-2 border-dashed rounded-xl overflow-hidden transition-all duration-200 ${
                           isDragOver 
@@ -920,8 +993,13 @@ export default function StudioDashboard() {
                           onChange={(e) => setPrompt(e.target.value)}
                           rows={3}
                           className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none text-base md:text-sm font-medium text-slate-700"
-                          placeholder="Contoh: Premium studio lighting, professional product photography on black marble..."
+                           placeholder="Contoh: Premium studio lighting, professional product photography on black marble..."
                         />
+                        {prompt.length > 0 && prompt.trim().length < 3 && (
+                          <p className="mt-1 text-xs font-medium text-red-500">
+                            Prompt minimal 3 karakter.
+                          </p>
+                        )}
                         {prompt && (
                           <button
                             type="button"
@@ -983,9 +1061,14 @@ export default function StudioDashboard() {
                     
                     {/* AI Engine Selection */}
                     <div className="space-y-3">
-                      <label className="flex items-center text-sm font-bold text-slate-800">
-                        AI Engine
-                      </label>
+                      <div className="flex items-center justify-between gap-3 text-sm font-bold text-slate-800">
+                        <span>AI Engine</span>
+                        <AIEngineGuide
+                          isOpen={isAiGuideOpen}
+                          onOpen={() => setIsAiGuideOpen(true)}
+                          onClose={() => setIsAiGuideOpen(false)}
+                        />
+                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {/* OpenAI GPT-Image */}
                         <button
@@ -1004,7 +1087,7 @@ export default function StudioDashboard() {
                           </div>
                           <div>
                             <div className={`font-bold text-sm ${provider === "gptimage" ? "text-emerald-700" : "text-slate-700"}`}>OpenAI</div>
-                            <div className="text-[10px] text-slate-500">GPT-Image 1.5</div>
+                             <div className="text-[10px] text-slate-500">GPT-Image 2</div>
                           </div>
                         </button>
                         
@@ -1129,28 +1212,83 @@ export default function StudioDashboard() {
 
                   </div>
 
-                  {/* Sticky Footer / Run Button */}
-                  <div className="p-4 border-t border-slate-200 bg-white">
-                    {credits === 0 && !isGenerating ? (
+                  {/* Action Footer */}
+                  <div className="px-5 pt-4 pb-5 border-t border-slate-100 bg-white/80 backdrop-blur-sm">
+                    {/* Config Summary Strip */}
+                    <div className="flex items-center justify-center gap-1.5 mb-3">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {provider === 'gptimage' ? 'OpenAI' : provider === 'nanobanana' ? 'Nano Banana Pro' : 'Nano Banana 2'}
+                      </span>
+                      <span className="text-slate-200">·</span>
+                      <span className="text-[10px] font-bold text-slate-400">{aspectRatio}</span>
+                      <span className="text-slate-200">·</span>
+                      <span className="text-[10px] font-bold text-slate-400">{resolution.toUpperCase()}</span>
+                      <span className="text-slate-200">·</span>
+                      <span className="text-[10px] font-bold text-slate-400">{outputFormat.toUpperCase()}</span>
+                    </div>
+
+                    {/* Transform Button */}
+                    {dbWarning ? (
+                      <button
+                        disabled
+                        className="w-full py-4 bg-slate-200 text-slate-500 rounded-2xl font-extrabold text-[15px] cursor-not-allowed flex items-center justify-center gap-2.5"
+                      >
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                        Menunggu koneksi database...
+                      </button>
+                    ) : credits === 0 && !isGenerating ? (
                       <button
                         onClick={() => openTopUp()}
-                        className="w-full py-3.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                        className="w-full py-4 bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-400 hover:to-amber-400 text-white rounded-2xl font-extrabold text-[15px] transition-all duration-200 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.5)] hover:shadow-[0_8px_30px_-4px_rgba(239,68,68,0.6)] hover:-translate-y-0.5 active:scale-[0.97] active:translate-y-0 flex items-center justify-center gap-2.5"
                       >
-                        <Zap className="w-5 h-5" />
-                        Kredit Habis — Top Up Sekarang
+                        <Zap className="w-5 h-5 fill-white/80" />
+                        Top Up Kredit
+                        <Zap className="w-5 h-5 fill-white/80" />
                       </button>
                     ) : (
                       <button
                         onClick={handleGenerate}
-                        disabled={previewUrls.length === 0 || isGenerating}
-                        className="w-full py-3.5 bg-black hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
+                        disabled={previewUrls.length === 0 || isGenerating || prompt.trim().length < 3 || credits === null || !!dbWarning}
+                        className={`w-full py-4 rounded-2xl font-extrabold text-[15px] transition-all duration-200 flex items-center justify-center gap-2.5 active:scale-[0.97] active:translate-y-0 ${
+                          isGenerating
+                            ? 'bg-gradient-to-r from-indigo-400 to-violet-400 text-white shadow-[0_4px_20px_-4px_rgba(99,102,241,0.4)] animate-pulse cursor-wait'
+                            : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-[0_4px_20px_-4px_rgba(99,102,241,0.4)] hover:shadow-[0_8px_30px_-4px_rgba(99,102,21,0.5)] hover:-translate-y-0.5'
+                        } ${
+                           !isGenerating && (previewUrls.length === 0 || prompt.trim().length < 3 || credits === null || !!dbWarning)
+                            ? 'opacity-40 cursor-not-allowed hover:translate-y-0 hover:shadow-[0_4px_20px_-4px_rgba(99,102,241,0.4)] hover:from-indigo-600 hover:to-violet-600'
+                            : ''
+                        }`}
                       >
                         {isGenerating ? (
-                          <><Loader2 className="w-5 h-5 animate-spin" /> Sedang Memproses...</>
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Generating...
+                          </>
                         ) : (
-                          <>Transform <span className="text-slate-300 font-medium text-sm ml-1 px-2 py-0.5 bg-white/20 rounded-md">-{(provider === 'nanobanana' || provider === 'nanobanana2') ? 2 : (resolution === '4k' ? 2 : 1)} Kredit</span></>
+                          <>
+                            <Sparkles className="w-5 h-5" />
+                            Transform
+                            <span className="ml-1 px-2.5 py-0.5 bg-white/20 rounded-lg text-[13px] font-black tracking-tight">
+                              -{getCreditsToDeduct(provider, resolution)} Kredit
+                            </span>
+                          </>
                         )}
                       </button>
+                    )}
+
+                    {/* Validation hints */}
+                    {!isGenerating && credits !== 0 && (
+                      <div className="mt-2.5 text-center">
+                        {previewUrls.length === 0 && (
+                          <p className="text-[11px] font-medium text-slate-400">Upload gambar terlebih dahulu</p>
+                        )}
+                        {previewUrls.length > 0 && prompt.trim().length < 3 && (
+                          <p className="text-[11px] font-medium text-slate-400">Isi prompt minimal 3 karakter</p>
+                        )}
+                        {previewUrls.length > 0 && prompt.trim().length >= 3 && (
+                          <p className="text-[11px] font-medium text-indigo-400">Siap ditransformasi</p>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1163,9 +1301,9 @@ export default function StudioDashboard() {
                     <h2 className="text-lg font-bold text-slate-900">
                       Galeri & Hasil
                     </h2>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200" title="Sistem tersinkronisasi otomatis">
-                      <RefreshCw className="w-3 h-3 text-indigo-500 animate-spin flex-shrink-0" />
-                      <span>Live Sync</span>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200" title={isRealtimeConnected ? "Tersambung realtime" : "Mode polling"}>
+                      <RefreshCw className={`w-3 h-3 ${isRealtimeConnected ? 'text-emerald-500' : 'text-indigo-500 animate-spin'} flex-shrink-0`} />
+                      <span>{isRealtimeConnected ? 'Live' : 'Syncing'}</span>
                     </div>
                   </div>
 
@@ -1199,7 +1337,7 @@ export default function StudioDashboard() {
                     </div>
                   )}
                   
-                  {generationHistory.length === 0 && !isGenerating ? (
+                  {generationHistory.length === 0 && !isGenerating && !isLoadingProfile && !profileError && !dbWarning ? (
                     <div className="min-h-[200px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl flex-1 transition-all">
                       <ImageIcon className="w-12 h-12 mb-4 opacity-50" />
                       <p className="font-medium text-slate-600">Belum ada hasil generate.</p>
@@ -1226,27 +1364,25 @@ export default function StudioDashboard() {
                               className="w-full h-full object-cover cursor-pointer transition-transform hover:scale-105"
                               onClick={() => setSelectedImage(item.processedUrl)}
                               onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none'; // Image load failed — hide broken image
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  const fallback = parent.querySelector('.gallery-fallback');
+                                  if (fallback) (fallback as HTMLElement).style.display = 'flex';
+                                }
                               }}
                             />
-                          ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-indigo-50">
-                               <Loader2 className="w-8 h-8 text-indigo-400 animate-spin mb-2" />
-                               <span className="text-xs font-medium text-indigo-600">Processing...</span>
-                            </div>
-                          )}
+                          ) : null}
+                          <div className={`gallery-fallback w-full h-full flex-col items-center justify-center bg-slate-50 ${item.processedUrl ? 'hidden' : 'flex'}`}>
+                            <ImageIcon className="w-8 h-8 text-slate-300 mb-2" />
+                            <span className="text-xs font-medium text-slate-400">Gambar tidak tersedia</span>
+                          </div>
                           <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <p className="text-white text-xs font-medium truncate pr-8">{item.preset}</p>
                           </div>
                           {item.id && (
                             <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
-                              <button 
-                                onClick={() => handleDownload(item.processedUrl, `prodify-${item.id}.jpg`)}
-                                className="p-1.5 bg-black/40 text-white rounded-lg hover:bg-indigo-500 backdrop-blur-sm transition-colors"
-                                title="Download Image"
-                              >
-                                <Download className="w-4 h-4" />
-                              </button>
                               <button 
                                 onClick={() => setImageToDelete(item.id)}
                                 className="p-1.5 bg-black/40 text-white rounded-lg hover:bg-red-500 backdrop-blur-sm transition-colors"
@@ -1305,7 +1441,7 @@ export default function StudioDashboard() {
         <PromptGeneratorModal 
           isOpen={isPromptModalOpen} 
           onClose={() => setIsPromptModalOpen(false)} 
-          onApplyPrompt={(generatedPrompt) => setPrompt(generatedPrompt)} 
+          onApplyPrompt={(generatedPrompt) => setPrompt(generatedPrompt.trim())}
           currentResolution={resolution}
         />
 

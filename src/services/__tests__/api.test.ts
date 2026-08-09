@@ -137,6 +137,23 @@ describe("useApiClient", () => {
     await expect(api.getProfile()).rejects.toThrow("Respon server tidak valid");
   });
 
+  it("includes validation details from an API error response", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({
+        success: false,
+        message: "Invalid payload",
+        errors: [{ path: ["prompt"], message: "Too small" }],
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const api = setup();
+
+    await expect(api.getProfile()).rejects.toThrow("prompt: Too small");
+  });
+
   it("generateImage calls POST /generate with correct payload", async () => {
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify({ success: true, data: {} }), {

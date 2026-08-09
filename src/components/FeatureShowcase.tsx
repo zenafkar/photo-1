@@ -6,7 +6,7 @@ const features = [
   {
     icon: Sliders,
     title: 'Pro AI Engines',
-    description: 'Toggle between Nano Banana Pro and GPT Image 1.5 to find the perfect lighting and texture for your product category.',
+    description: 'Toggle between Nano Banana Pro and GPT Image 2 to find the perfect lighting and texture for your product category.',
   },
   {
     icon: Wand2,

@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma";
 import { verifyXenditCallback, sanitizeWebhookPayload } from "../services/xenditWebhook";
 import { creditOps } from "../services/credits";
 import { paymentEvents } from "../services/paymentEvents";
+import { dashboardEvents } from "../services/dashboardEvents";
 
 const router = Router();
 
@@ -268,6 +269,19 @@ router.post("/xendit", async (req: Request, res: Response) => {
         credits: order.credits,
         paidAt: body?.paid_at ? new Date(body.paid_at).toISOString() : new Date().toISOString(),
         paymentMethod: body?.payment_method ?? null,
+      });
+
+      const settledUser = await prisma.user.findUnique({
+        where: { id: order.userId },
+        include: { credits: { select: { version: true } } },
+      });
+
+      dashboardEvents.emit("event", {
+        type: "topup.settled",
+        userId: order.userId,
+        version: settledUser?.credits?.version,
+        timestamp: new Date().toISOString(),
+        data: { credits: order.credits },
       });
     } else if (xStatus === "EXPIRED") {
       // CAS: only expire orders that haven't been settled yet

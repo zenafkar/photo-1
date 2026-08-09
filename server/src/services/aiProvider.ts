@@ -56,21 +56,29 @@ export class AIService {
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
 
       try {
+        const controller = new AbortController();
+        const requestTimeout = setTimeout(() => controller.abort(), 15_000);
         const response = await fetch(pollUrl, {
           headers: {
             "Authorization": `Token ${token}`,
             "Content-Type": "application/json"
-          }
-        });
+          },
+          signal: controller.signal,
+        }).finally(() => clearTimeout(requestTimeout));
 
         if (!response.ok) {
           const errText = await response.text();
           console.error("[Replicate Poll Error]", errText);
-          // 4xx = permanent error (e.g., 404 stale prediction URL) — abort immediately
-          if (response.status >= 400 && response.status < 500) {
+          if ([400, 401, 403, 404].includes(response.status)) {
             throw new Error(`Replicate Poll Permanent Error (${response.status}): aborting poll`);
           }
-          // 5xx = transient — will be retried by the outer catch
+          if (response.status === 429) {
+            const retryAfter = Number(response.headers.get("Retry-After"));
+            const delay = Number.isFinite(retryAfter) && retryAfter > 0
+              ? Math.min(retryAfter * 1000, 15_000)
+              : intervalMs;
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
           throw new Error(`Replicate Poll Transient Error: ${response.statusText}`);
         }
 
@@ -92,14 +100,9 @@ export class AIService {
           throw new Error(data.error || `Replicate prediction ${data.status}`);
         }
       } catch (pollErr: any) {
-        // Permanent errors (4xx, prediction failed) — abort immediately
-        if (pollErr.message && (
-          pollErr.message.includes("Permanent Error") ||
-          !pollErr.message.includes("Replicate Poll")
-        )) {
+        if (pollErr.message?.includes("Permanent Error") || pollErr.message?.startsWith("Replicate prediction")) {
           throw pollErr;
         }
-        // Transient errors (5xx, network) — retry after interval
         console.warn("[AI Polling Notice]", pollErr.message);
       }
     }
@@ -226,7 +229,7 @@ export class AIService {
   private static async callReplicateGPTImage(options: AIGenerationOptions): Promise<AIGenerationResult> {
     const { imageUrls, prompt, aspectRatio, resolution, outputFormat } = options;
     const token = process.env.REPLICATE_API_TOKEN;
-    console.log(`[AI] Calling Replicate (OpenAI GPT-Image 1.5) with prompt: ${prompt}`);
+    console.log(`[AI] Calling Replicate (OpenAI GPT-Image 2) with prompt: ${prompt}`);
 
     if (!token || token.includes("...")) {
       throw new Error("REPLICATE_API_TOKEN is missing or invalid");
@@ -234,8 +237,7 @@ export class AIService {
 
     let mappedRatio = "1:1";
     if (aspectRatio) {
-      if (aspectRatio === "9:16" || aspectRatio === "4:5") mappedRatio = "2:3";
-      else if (aspectRatio === "16:9") mappedRatio = "3:2";
+      if (aspectRatio === "4:5") mappedRatio = "3:4";
       else mappedRatio = aspectRatio;
     }
     
@@ -253,7 +255,8 @@ export class AIService {
       prompt: prompt,
       aspect_ratio: mappedRatio,
       output_format: mappedFormat,
-      quality: mappedQuality
+      quality: mappedQuality,
+      background: "opaque"
     };
 
     const validImages = imageUrls.filter(url =>
@@ -268,7 +271,7 @@ export class AIService {
     }, token);
 
     try {
-      const response = await fetch("https://api.replicate.com/v1/models/openai/gpt-image-1.5/predictions", fetchOpts);
+      const response = await fetch("https://api.replicate.com/v1/models/openai/gpt-image-2/predictions", fetchOpts);
       clear();
 
       if (!response.ok) {

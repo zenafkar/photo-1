@@ -31,4 +31,14 @@ describe("Health Routes", () => {
     const res = await request(app).get("/api/v1/health");
     expect(res.status).toBe(200);
   });
+
+  it("exposes public liveness and readiness probes", async () => {
+    const live = await request(app).get("/api/v1/health/live");
+    expect(live.status).toBe(200);
+    expect(live.body.status).toBe("alive");
+
+    const ready = await request(app).get("/api/v1/health/ready");
+    expect([200, 503]).toContain(ready.status);
+    expect(ready.body).toHaveProperty("timestamp");
+  });
 });

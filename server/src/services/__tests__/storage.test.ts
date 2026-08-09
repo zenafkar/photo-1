@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Must use vi.hoisted() so variables are available in the hoisted vi.mock factory
-const { mockWriteFile, mockUnlink, mockExistsSync, mockMkdirSync } = vi.hoisted(() => ({
+const { mockWriteFile, mockRename, mockUnlink, mockExistsSync, mockMkdirSync } = vi.hoisted(() => ({
   mockWriteFile: vi.fn(),
+  mockRename: vi.fn(),
   mockUnlink: vi.fn(),
   mockExistsSync: vi.fn(() => true),
   mockMkdirSync: vi.fn(),
@@ -14,6 +15,7 @@ vi.mock("fs", () => ({
     mkdirSync: mockMkdirSync,
     promises: {
       writeFile: mockWriteFile,
+      rename: mockRename,
       unlink: mockUnlink,
     },
     constants: { F_OK: 0 },
@@ -77,7 +79,7 @@ describe("storage", () => {
       vi.unstubAllGlobals();
     });
 
-    it("returns original URL on fetch failure (graceful degradation)", async () => {
+    it("returns null on fetch failure so temporary provider URLs are never persisted", async () => {
       vi.stubGlobal(
         "fetch",
         vi.fn().mockResolvedValue({
@@ -89,7 +91,7 @@ describe("storage", () => {
 
       const originalUrl = "https://replicate.delivery/broken.jpg";
       const result = await saveRemoteImageLocally(originalUrl);
-      expect(result).toBe(originalUrl);
+      expect(result).toBeNull();
 
       vi.unstubAllGlobals();
     });

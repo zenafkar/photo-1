@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
+import { createTicket } from "../../services/userTicketStore.js";
 
 // Mock Clerk
 const { getAuthMock } = vi.hoisted(() => ({
@@ -118,5 +119,32 @@ describe("User Routes", () => {
 
     expect(res.status).toBe(200);
     expect(mockUserCreditCreate).toHaveBeenCalled();
+  });
+
+  it("POST /api/v1/user/events/ticket returns a short-lived ticket", async () => {
+    getAuthMock.mockReturnValue({ userId: "clerk_events" });
+
+    const res = await request(app).post("/api/v1/user/events/ticket");
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.ticket).toMatch(/^[a-f0-9]{48}$/);
+  });
+
+  it("GET /api/v1/user/events/:ticket rejects an invalid ticket", async () => {
+    const res = await request(app).get("/api/v1/user/events/not-a-ticket");
+
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("GET /api/v1/user/events/:ticket reaches ticket auth without bearer auth", async () => {
+    const ticket = createTicket("clerk_stream");
+    mockUserFindUnique.mockResolvedValue(null);
+
+    const res = await request(app).get(`/api/v1/user/events/${ticket}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe("User not found");
   });
 });

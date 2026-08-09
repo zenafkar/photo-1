@@ -19,6 +19,9 @@ const {
   mockUserCreditFindUnique,
   mockUserCreditCreate,
   mockCreditTransactionCreate,
+  mockCreditTransactionFindFirst,
+  mockCreditTransactionFindUnique,
+  mockCreditTransactionUpdate,
   mockGenFindFirst,
   mockGenFindUnique,
   mockGenCreate,
@@ -32,6 +35,9 @@ const {
   mockUserCreditFindUnique: vi.fn(),
   mockUserCreditCreate: vi.fn(),
   mockCreditTransactionCreate: vi.fn(),
+  mockCreditTransactionFindFirst: vi.fn(),
+  mockCreditTransactionFindUnique: vi.fn(),
+  mockCreditTransactionUpdate: vi.fn(),
   mockGenFindFirst: vi.fn(),
   mockGenFindUnique: vi.fn(),
   mockGenCreate: vi.fn(),
@@ -53,6 +59,9 @@ vi.mock("../../config/prisma.js", () => ({
     },
     creditTransaction: {
       create: mockCreditTransactionCreate,
+      findFirst: mockCreditTransactionFindFirst,
+      findUnique: mockCreditTransactionFindUnique,
+      update: mockCreditTransactionUpdate,
     },
     generation: {
       findFirst: mockGenFindFirst,
@@ -116,6 +125,9 @@ describe("Generate Routes", () => {
     });
     // Default: no existing generation by replicateId
     mockGenFindUnique.mockResolvedValue(null);
+    mockCreditTransactionFindFirst.mockResolvedValue(null);
+    mockCreditTransactionFindUnique.mockResolvedValue(null);
+    mockCreditTransactionUpdate.mockResolvedValue({});
     // Default: AI returns successfully
     mockAiGenerate.mockResolvedValue({
       url: "https://replicate.delivery/result.jpg",
@@ -135,6 +147,9 @@ describe("Generate Routes", () => {
           },
           creditTransaction: {
             create: mockCreditTransactionCreate,
+            findFirst: mockCreditTransactionFindFirst,
+            findUnique: mockCreditTransactionFindUnique,
+            update: mockCreditTransactionUpdate,
           },
           generation: {
             create: mockGenCreate,
@@ -187,6 +202,25 @@ describe("Generate Routes", () => {
     expect(res.body.errors).toBeDefined();
   });
 
+  it("POST /api/v1/generate accepts realistic base64 image payloads", async () => {
+    const realisticImage = `data:image/jpeg;base64,${"a".repeat(6000)}`;
+
+    const res = await request(app)
+      .post("/api/v1/generate")
+      .send({ ...validPayload, imageUrls: [realisticImage] });
+
+    expect(res.status).toBe(200);
+  });
+
+  it("POST /api/v1/generate rejects whitespace-only prompts", async () => {
+    const res = await request(app)
+      .post("/api/v1/generate")
+      .send({ ...validPayload, prompt: "   " });
+
+    expect(res.status).toBe(400);
+    expect(res.body.errors.some((issue: any) => issue.path.includes("prompt"))).toBe(true);
+  });
+
   it("POST /api/v1/generate returns 403 when credits insufficient", async () => {
     // Simulate atomic deduction failure: updateMany returns count 0
     mockUserCreditUpdateMany.mockResolvedValue({ count: 0 });
@@ -218,12 +252,40 @@ describe("Generate Routes", () => {
     expect(res.status).toBe(200);
   });
 
-  it("POST /api/v1/generate deducts 2 credits for Nano Banana models", async () => {
+  it("POST /api/v1/generate deducts 2 credits for Nano Banana Pro below 4K", async () => {
     const res = await request(app)
       .post("/api/v1/generate")
       .send({ ...validPayload, provider: "nanobanana", resolution: "1k" });
 
     expect(res.status).toBe(200);
+    expect(mockUserCreditUpdateMany.mock.calls[0][0].data.remainingCredits.decrement).toBe(2);
+  });
+
+  it("POST /api/v1/generate deducts 3 credits for Nano Banana Pro at 4K", async () => {
+    const res = await request(app)
+      .post("/api/v1/generate")
+      .send({ ...validPayload, provider: "nanobanana", resolution: "4k" });
+
+    expect(res.status).toBe(200);
+    expect(mockUserCreditUpdateMany.mock.calls[0][0].data.remainingCredits.decrement).toBe(3);
+  });
+
+  it("POST /api/v1/generate keeps Nano Banana 2 at 2 credits at 4K", async () => {
+    const res = await request(app)
+      .post("/api/v1/generate")
+      .send({ ...validPayload, provider: "nanobanana2", resolution: "4k" });
+
+    expect(res.status).toBe(200);
+    expect(mockUserCreditUpdateMany.mock.calls[0][0].data.remainingCredits.decrement).toBe(2);
+  });
+
+  it("POST /api/v1/generate charges the default Nano Banana Pro at 3 credits for 4K", async () => {
+    const res = await request(app)
+      .post("/api/v1/generate")
+      .send({ ...validPayload, provider: undefined, resolution: "4k" });
+
+    expect(res.status).toBe(200);
+    expect(mockUserCreditUpdateMany.mock.calls[0][0].data.remainingCredits.decrement).toBe(3);
   });
 
   it("POST /api/v1/generate creates generation record with correct fields", async () => {
@@ -263,8 +325,48 @@ describe("Generate Routes", () => {
     // ✅ Fix: initial deduction transaction IS called (new flow: deduct before AI),
     // but the dedup path refunds it, so net credits unchanged.
     expect(mockTransaction).toHaveBeenCalled();
-    // Refund was processed (generation.delete in tx means gen-existing returned)
-    expect(mockGenDelete).toHaveBeenCalled();
+    // Refund was processed while retaining the failed reservation for auditability.
+    expect(mockGenUpdate).toHaveBeenCalled();
+  });
+
+  it("replays a generation with the same Idempotency-Key without calling the AI provider twice", async () => {
+    const idempotencyKey = "generation-test-key";
+    const existingGeneration = {
+      id: "gen-idempotent",
+      replicateId: "pred-idempotent",
+      processedUrl: "https://example.com/existing.jpg",
+      preset: "Studio lighting, 4k",
+      status: "completed",
+      userId: "user-test",
+    };
+
+    const first = await request(app)
+      .post("/api/v1/generate")
+      .set("Idempotency-Key", idempotencyKey)
+      .send(validPayload);
+
+    expect(first.status).toBe(200);
+    expect(mockAiGenerate).toHaveBeenCalledTimes(1);
+
+    mockCreditTransactionFindFirst.mockResolvedValueOnce({
+      id: "txn-idempotent",
+      userId: "user-test",
+      type: "generation_spend",
+      metadata: {
+        generationId: "gen-idempotent",
+      },
+    });
+    mockGenFindUnique.mockResolvedValueOnce(existingGeneration);
+
+    const replay = await request(app)
+      .post("/api/v1/generate")
+      .set("Idempotency-Key", idempotencyKey)
+      .send(validPayload);
+
+    expect(replay.status).toBe(200);
+    expect(replay.body.data.generation.id).toBe("gen-idempotent");
+    expect(replay.body.data.idempotentReplay).toBe(true);
+    expect(mockAiGenerate).toHaveBeenCalledTimes(1);
   });
 
   it("DELETE /api/v1/generate/:id returns 404 for unauthorized user", async () => {

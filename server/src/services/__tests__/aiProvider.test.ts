@@ -54,7 +54,7 @@ describe("AIService", () => {
       await AIService.generate({ imageUrls: ["https://example.com/photo.jpg"], prompt: "test", provider: "gptimage" });
 
       const calledUrl = fetchMock.mock.calls[0][0];
-      expect(calledUrl).toContain("openai/gpt-image-1.5");
+      expect(calledUrl).toContain("openai/gpt-image-2");
     });
 
     it("uses Nano Banana Pro as default when no provider specified", async () => {
@@ -73,7 +73,7 @@ describe("AIService", () => {
   });
 
   describe("GPT-Image parameter mapping", () => {
-    it("maps aspect ratios correctly: 9:16 → 2:3, 16:9 → 3:2, 1:1 passes through", async () => {
+    it("passes through GPT Image 2 native aspect ratios", async () => {
       fetchMock.mockResolvedValueOnce(
         new Response(JSON.stringify({ id: "pred-aspect", status: "succeeded", output: "https://example.com/img.jpg" }), {
           status: 200,
@@ -88,7 +88,8 @@ describe("AIService", () => {
       });
 
       const body = JSON.parse(fetchMock.mock.calls[0][1].body);
-      expect(body.input.aspect_ratio).toBe("2:3"); // 9:16 maps to 2:3
+      expect(body.input.aspect_ratio).toBe("9:16");
+      expect(body.input.background).toBe("opaque");
     });
 
     it("maps resolution to quality: 4k→high, 2k→medium, 1k→low", async () => {

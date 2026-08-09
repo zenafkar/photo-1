@@ -273,7 +273,7 @@ export const creditOpsTx = {
     userId: string,
     amount: number,
     opts: CreditOpOptions,
-  ): Promise<{ remainingCredits: number; transactionId: string }> {
+  ): Promise<{ remainingCredits: number; transactionId: string; version: number }> {
     if (amount <= 0) throw new Error("creditOpsTx.deduct: amount must be positive");
     if (!userId) throw new Error("creditOpsTx.deduct: userId is required");
 
@@ -287,6 +287,7 @@ export const creditOpsTx = {
           return {
             remainingCredits: current?.remainingCredits ?? 0,
             transactionId: existing.id,
+            version: current?.version ?? 0,
           };
         }
         throw new Error(
@@ -333,7 +334,7 @@ export const creditOpsTx = {
       },
     });
 
-    return { remainingCredits: updated.remainingCredits, transactionId: txn.id };
+    return { remainingCredits: updated.remainingCredits, transactionId: txn.id, version: updated.version };
   },
 
   async refund(
@@ -341,7 +342,7 @@ export const creditOpsTx = {
     userId: string,
     amount: number,
     opts: CreditOpOptions,
-  ): Promise<{ remainingCredits: number; transactionId: string; partial: boolean }> {
+  ): Promise<{ remainingCredits: number; transactionId: string; partial: boolean; version: number }> {
     if (amount <= 0) throw new Error("creditOpsTx.refund: amount must be positive");
     if (!userId) throw new Error("creditOpsTx.refund: userId is required");
 
@@ -356,6 +357,7 @@ export const creditOpsTx = {
             remainingCredits: current?.remainingCredits ?? 0,
             transactionId: existing.id,
             partial: false,
+            version: current?.version ?? 0,
           };
         }
         throw new Error(
@@ -392,6 +394,6 @@ export const creditOpsTx = {
       },
     });
 
-    return { remainingCredits: updated.remainingCredits, transactionId: txn.id, partial: false };
+    return { remainingCredits: updated.remainingCredits, transactionId: txn.id, partial: false, version: updated.version };
   }
 };

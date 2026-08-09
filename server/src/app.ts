@@ -42,7 +42,18 @@ export function createApp() {
   app.use(telemetryMiddleware); // Run first to catch all requests for latency
   app.use(generalLimiter); // Global rate limit
   app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-  app.use(compression());
+  app.use(compression({
+    filter: (req, res) => {
+      const contentType = res.getHeader("Content-Type");
+      // Never compress SSE streams: buffering the response breaks real-time
+      // delivery (data would arrive in chunks after the stream ends).
+      if (typeof contentType === "string" && contentType.includes("text/event-stream")) {
+        return false;
+      }
+      // Fallback to the default filter (compressible content types only).
+      return compression.filter(req, res);
+    },
+  }));
   app.use(cors({
     origin: [
       "https://zenstudio.my.id",

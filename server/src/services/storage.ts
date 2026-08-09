@@ -13,33 +13,41 @@ if (!fs.existsSync(UPLOADS_DIR)) {
  * Mengunduh gambar dari remote URL (seperti Replicate CDN) dan menyimpannya di disk VPS lokal.
  * Mengembalikan URL publik permanen dari file tersebut.
  */
-export async function saveRemoteImageLocally(remoteUrl: string, req?: any): Promise<string> {
+export async function saveRemoteImageLocally(remoteUrl: string, req?: any): Promise<string | null> {
+  let temporaryPath: string | null = null;
   try {
     // SSRF guard: DNS-resolve + IP range check before fetching
     const { isAllowedUrl, isAllowedUrlDeep } = await import("./urlSafety.js");
     if (!isAllowedUrl(remoteUrl)) {
       console.warn(`[Storage] Blocked unsafe remote URL: ${remoteUrl.slice(0, 100)}`);
-      return remoteUrl;
+      return null;
     }
     // Deep check: resolve hostname and verify resolved IPs are not private
     if (!(await isAllowedUrlDeep(remoteUrl))) {
       console.warn(`[Storage] DNS-resolved IP is private/loopback, blocking: ${remoteUrl.slice(0, 100)}`);
-      return remoteUrl;
+      return null;
     }
 
     // Size limit: check Content-Length before downloading
-    const headRes = await fetch(remoteUrl, { method: "HEAD" }).catch(() => null);
+    const headController = new AbortController();
+    const headTimeout = setTimeout(() => headController.abort(), 10_000);
+    const headRes = await fetch(remoteUrl, { method: "HEAD", signal: headController.signal })
+      .catch(() => null)
+      .finally(() => clearTimeout(headTimeout));
     const contentLength = headRes?.headers?.get("content-length");
     const MAX_REMOTE_SIZE = 25 * 1024 * 1024; // 25MB
     if (contentLength && parseInt(contentLength, 10) > MAX_REMOTE_SIZE) {
       console.warn(`[Storage] Remote image too large: ${contentLength} bytes`);
-      return remoteUrl;
+      return null;
     }
 
-    const response = await fetch(remoteUrl);
+    const downloadController = new AbortController();
+    const downloadTimeout = setTimeout(() => downloadController.abort(), 30_000);
+    const response = await fetch(remoteUrl, { signal: downloadController.signal })
+      .finally(() => clearTimeout(downloadTimeout));
     if (!response.ok) {
       console.warn(`[Storage] Gagal mengunduh gambar dari ${remoteUrl.slice(0, 100)}: ${response.statusText}`);
-      return remoteUrl;
+      return null;
     }
 
     const contentType = response.headers.get("content-type") || "";
@@ -47,11 +55,11 @@ export async function saveRemoteImageLocally(remoteUrl: string, req?: any): Prom
     // Block non-image and SVG content types
     if (contentType && !contentType.startsWith("image/")) {
       console.warn(`[Storage] Non-image content type rejected: ${contentType}`);
-      return remoteUrl;
+      return null;
     }
     if (contentType.includes("svg")) {
       console.warn(`[Storage] SVG content type blocked (stored XSS prevention): ${contentType}`);
-      return remoteUrl;
+      return null;
     }
 
     const buffer = Buffer.from(await response.arrayBuffer());
@@ -63,8 +71,11 @@ export async function saveRemoteImageLocally(remoteUrl: string, req?: any): Prom
 
     const filename = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
     const filePath = path.join(UPLOADS_DIR, filename);
+    temporaryPath = `${filePath}.tmp-${crypto.randomBytes(4).toString("hex")}`;
 
-    await fs.promises.writeFile(filePath, buffer);
+    await fs.promises.writeFile(temporaryPath, buffer);
+    await fs.promises.rename(temporaryPath, filePath);
+    temporaryPath = null;
 
     const relativePath = `/api/v1/uploads/generations/${filename}`;
     const baseUrl = process.env.BACKEND_URL || (req ? `${req.protocol}://${req.get("host")}` : "");
@@ -72,7 +83,10 @@ export async function saveRemoteImageLocally(remoteUrl: string, req?: any): Prom
     return baseUrl ? `${baseUrl.replace(/\/$/, "")}${relativePath}` : relativePath;
   } catch (error) {
     console.error("[Storage] Error menyimpan remote image ke lokal:", error);
-    return remoteUrl;
+    if (temporaryPath) {
+      await fs.promises.unlink(temporaryPath).catch(() => undefined);
+    }
+    return null;
   }
 }
 

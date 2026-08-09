@@ -1,10 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
+import { isAllowedUrl } from "../../services/urlSafety.js";
 
 // Same schema as generate.ts
+const MAX_BASE64_SIZE = 15 * 1024 * 1024;
+const imageUrlSchema = z.string().min(1).superRefine((value, ctx) => {
+  const maxSize = value.startsWith("data:") ? MAX_BASE64_SIZE : 5000;
+  if (value.length > maxSize || !isAllowedUrl(value)) {
+    ctx.addIssue({ code: "custom", message: "Invalid image URL" });
+  }
+});
+
 const generateSchema = z.object({
-  imageUrls: z.array(z.string().min(1)).min(1).max(5),
-  prompt: z.string().min(3),
+  imageUrls: z.array(imageUrlSchema).min(1).max(5),
+  prompt: z.string().trim().min(3),
   provider: z.enum(["replicate", "nanobanana", "nanobanana2", "gptimage"]).optional(),
   aspectRatio: z.string().optional(),
   resolution: z.string().optional(),
@@ -46,6 +55,14 @@ describe("generate payload validation", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts a realistic base64 image larger than 5000 characters", () => {
+    const result = generateSchema.safeParse({
+      imageUrls: [`data:image/jpeg;base64,${"a".repeat(6000)}`],
+      prompt: "Studio photo",
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("rejects more than 5 images", () => {
     const result = generateSchema.safeParse({
       imageUrls: [
@@ -81,6 +98,14 @@ describe("generate payload validation", () => {
     if (!result.success) {
       expect(result.error.issues.some((i) => i.path.includes("prompt"))).toBe(true);
     }
+  });
+
+  it("rejects whitespace-only prompts", () => {
+    const result = generateSchema.safeParse({
+      imageUrls: ["data:image/jpeg;base64,abc123"],
+      prompt: "   ",
+    });
+    expect(result.success).toBe(false);
   });
 
   it("rejects invalid provider enum value", () => {

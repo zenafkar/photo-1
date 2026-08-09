@@ -20,7 +20,7 @@ Environment=DEPLOY_BACKUP_DIR=/var/lib/zen-deploy/backups
 Environment=DEPLOY_DATABASE_BACKUP_DIR=/var/lib/zen-deploy/database-backups
 Environment=PM2_HOME=/var/lib/zen-deploy/pm2
 Environment=PM2_LOG_ROOT=/var/lib/zen-deploy/pm2/logs
-Environment=PM2_BIN=/usr/bin/pm2
+Environment=PM2_BIN=/usr/local/bin/pm2
 Environment=NODE_BIN=/usr/bin/node
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 RuntimeDirectory=zen-deploy
@@ -31,7 +31,7 @@ ExecStartPre=/usr/bin/test -x /opt/zen-deploy-bot/.venv/bin/python
 ExecStartPre=/usr/bin/test -r /opt/zen-deploy-bot/.env
 ExecStartPre=/usr/bin/test -f /var/www/zen-dev/scripts/deploy.sh
 ExecStartPre=/usr/bin/test -x /usr/bin/node
-ExecStartPre=/usr/bin/test -x /usr/bin/pm2
+ExecStartPre=/usr/bin/test -x /usr/local/bin/pm2
 ExecStart=/opt/zen-deploy-bot/.venv/bin/python /opt/zen-deploy-bot/bot.py
 Restart=always
 RestartSec=10

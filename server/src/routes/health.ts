@@ -3,9 +3,10 @@ import { getHealth, getAuthDebug, getLiveness, getReadiness } from "../controlle
 
 const router = Router();
 
-router.get("/", getHealth);
+// Probe endpoints stay public and are registered explicitly for the gateway.
 router.get("/live", getLiveness);
 router.get("/ready", getReadiness);
+router.get("/", getHealth);
 
 // Auth debug endpoint — only available in development for security
 if (process.env.NODE_ENV !== "production") {

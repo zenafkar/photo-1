@@ -1,0 +1,3 @@
+# Deploy Bot Telegram - kebutuhan
+python-telegram-bot[rate-limiter]>=21.0
+python-dotenv>=1.0

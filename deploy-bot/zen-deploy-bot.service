@@ -1,0 +1,62 @@
+[Unit]
+Description=ZenDev Deploy Bot (Telegram)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=zen-deploy
+Group=zen-deploy
+WorkingDirectory=/opt/zen-deploy-bot
+EnvironmentFile=-/opt/zen-deploy-bot/.env
+Environment=REPO_DIR=/var/www/zen-dev
+Environment=DEPLOY_SCRIPT=/var/www/zen-dev/scripts/deploy.sh
+Environment=VPS_USER=zen-deploy
+Environment=VPS_LOCAL=true
+Environment=TARGET_DIR=/var/www/zen-dev
+Environment=DEPLOY_LOCK_PATH=/run/zen-deploy/deploy.lock
+Environment=DEPLOY_LOG_DIR=/var/lib/zen-deploy/logs
+Environment=DEPLOY_BACKUP_DIR=/var/lib/zen-deploy/backups
+Environment=DEPLOY_DATABASE_BACKUP_DIR=/var/lib/zen-deploy/database-backups
+Environment=PM2_HOME=/var/lib/zen-deploy/pm2
+Environment=PM2_LOG_ROOT=/var/lib/zen-deploy/pm2/logs
+Environment=PM2_BIN=/usr/bin/pm2
+Environment=NODE_BIN=/usr/bin/node
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+RuntimeDirectory=zen-deploy
+RuntimeDirectoryMode=0750
+StateDirectory=zen-deploy
+StateDirectoryMode=0750
+ExecStartPre=/usr/bin/test -x /opt/zen-deploy-bot/.venv/bin/python
+ExecStartPre=/usr/bin/test -r /opt/zen-deploy-bot/.env
+ExecStartPre=/usr/bin/test -f /var/www/zen-dev/scripts/deploy.sh
+ExecStartPre=/usr/bin/test -x /usr/bin/node
+ExecStartPre=/usr/bin/test -x /usr/bin/pm2
+ExecStart=/opt/zen-deploy-bot/.venv/bin/python /opt/zen-deploy-bot/bot.py
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=300
+StartLimitBurst=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zen-deploy-bot
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+ReadWritePaths=/var/www/zen-dev /var/lib/zen-deploy /run/zen-deploy
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

@@ -4,6 +4,7 @@ build
 dist
 .env
 .env.*
+!.env.production
 .vscode
 uploads
 server/uploads

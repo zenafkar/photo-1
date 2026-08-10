@@ -25,6 +25,7 @@ REQUIRED_TRACKED_ARTIFACTS=(
     "package-lock.json"
     "server/package.json"
     "server/package-lock.json"
+    "server/prisma/schema.prisma"
 )
 
 SKIP_BUILD=false
@@ -168,7 +169,7 @@ preflight() {
     # Hierarki argumen sudah diselesaikan di atas (NO_DB_SEEN menang), jadi
     # gate ini hanya berlaku bila DB_PUSH tetap true.
     if [ "$DB_PUSH" = true ] && [ "${DEPLOY_DB_ENABLED:-}" != "true" ] && [ "${DEPLOY_DB_ENABLED:-}" != "1" ]; then
-        fail "prisma db push diblokir: set DEPLOY_DB_ENABLED=true untuk mengizinkan perubahan schema produksi" 26
+        fail "perubahan schema diblokir: set DEPLOY_DB_ENABLED=true untuk mengizinkan prisma migrate deploy" 26
         return 26
     fi
 
@@ -398,27 +399,28 @@ database() {
     phase "database"
     mkdir -p "$DATABASE_BACKUP_DIR"
 
-    # Load DATABASE_URL dari server/.env untuk pg_dump (prisma auto-load sendiri)
+    # Load DIRECT_DATABASE_URL dari server/.env untuk pg_dump. Prisma auto-load
+    # server/.env (DATABASE_URL + DIRECT_DATABASE_URL) untuk migrate deploy.
+    DIRECT_DATABASE_URL=""
     if [ -f "$TARGET_DIR/server/.env" ]; then
-        export DATABASE_URL
-        DATABASE_URL="$(grep -E '^DATABASE_URL=' "$TARGET_DIR/server/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'")"
+        DIRECT_DATABASE_URL="$(grep -E '^DIRECT_DATABASE_URL=' "$TARGET_DIR/server/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'")"
     fi
 
-    if command -v pg_dump >/dev/null 2>&1 && [ -n "${DATABASE_URL:-}" ]; then
+    if command -v pg_dump >/dev/null 2>&1 && [ -n "${DIRECT_DATABASE_URL:-}" ]; then
         local dump_file="$DATABASE_BACKUP_DIR/db-$(date +%Y%m%d-%H%M%S).dump"
-        log "Creating database backup: $dump_file"
-        if pg_dump -Fc "$DATABASE_URL" -f "$dump_file" 2>/dev/null; then
+        log "Creating database backup via DIRECT_DATABASE_URL: $dump_file"
+        if pg_dump -Fc "$DIRECT_DATABASE_URL" -f "$dump_file" 2>/dev/null; then
             log "Database backup OK: $dump_file"
         else
             fail "Database backup gagal; --db dihentikan untuk menjaga rollback safety" 11
         fi
     else
-        fail "--db memerlukan pg_dump dan DATABASE_URL; tidak ada perubahan schema tanpa backup" 11
+        fail "--db memerlukan pg_dump dan DIRECT_DATABASE_URL di server/.env; tidak ada perubahan schema tanpa backup" 11
     fi
 
     cd "$TARGET_DIR/server"
-    if ! npx prisma db push --skip-generate; then
-        fail "prisma db push GAGAL. State: kode/deps baru di disk, PM2 lama masih jalan, schema mungkin sebagian. Butuh penanganan manual." 10
+    if ! npx prisma migrate deploy --skip-generate; then
+        fail "prisma migrate deploy GAGAL. Migration bersifat transaksional; perbaiki file migrasi lalu ulangi." 10
     fi
     log "Database migration: OK"
 }

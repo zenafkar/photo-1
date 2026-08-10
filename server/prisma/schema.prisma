@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model User {
@@ -78,7 +79,6 @@ model PaymentOrder {
   @@unique([userId, idempotencyKey])    // Layer 1: idempotency scoped to user
   @@index([status, createdAt])          // Layer 3: reconciliation scan
   @@index([userId, createdAt])          // User order history
-  @@index([xenditInvoiceId])            // Webhook lookup
 }
 
 // Immutable audit log — every credit mutation is recorded here
@@ -100,5 +100,4 @@ model CreditTransaction {
 
   @@index([userId, createdAt])
   @@index([orderId])
-  @@index([idempotencyKey])
 }

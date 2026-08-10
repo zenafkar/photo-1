@@ -13,6 +13,9 @@ EXTERNAL_HEALTH_URL="${EXTERNAL_HEALTH_URL:-https://zenstudio.my.id/api/v1/healt
 HEALTH_RETRIES="${DEPLOY_HEALTH_RETRIES:-6}"
 HEALTH_INTERVAL="${DEPLOY_HEALTH_INTERVAL:-5}"
 PM2_BIN="${PM2_BIN:-$(command -v pm2 2>/dev/null || true)}"
+# backend-api dipegang daemon PM2 milik bot systemd; default ini menghindari
+# split-brain ke ~/.pm2 saat deploy dijalankan manual dari shell.
+export PM2_HOME="${PM2_HOME:-/var/lib/zen-deploy/pm2}"
 
 # These files are part of the deploy contract.  They must be present in the
 # fetched commit, not merely left behind as untracked files on the VPS.

@@ -67,22 +67,52 @@ New-Item -ItemType Directory -Path $LockDir -Force | Out-Null
 $LockFile = Join-Path $LockDir "deploy.lock"
 
 function Acquire-Lock {
-    if (Test-Path $LockFile) {
-        $rawLock = (Get-Content $LockFile -Raw).Trim()
+    $stream = $null
+    try {
+        $stream = [System.IO.File]::Open($LockFile, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
+    } catch [System.IO.IOException] {
+        $rawLock = ""
+        try { $rawLock = (Get-Content $LockFile -Raw -ErrorAction Stop).Trim() } catch { }
         $lockPid = 0
+        $alive = $null
         if ([int]::TryParse($rawLock, [ref]$lockPid) -and $lockPid -gt 0) {
             $alive = Get-Process -Id $lockPid -ErrorAction SilentlyContinue
-            if ($alive -and -not $Force) {
+        }
+        if ($alive) {
+            if (-not $Force) {
                 Fail "Deploy lain sedang berjalan (PID $lockPid). Ketik /status atau tunggu. Gunakan -Force untuk memaksa." 75
             }
-            if ($alive -and $Force) {
-                Log "[LOCK] Deploy lain berjalan (PID $lockPid) - di-bypass karena -Force"
-            } else {
-                Log "[LOCK] Lock usang (PID $lockPid tidak aktif) - diambil alih"
+            Log "[LOCK] Deploy lain berjalan (PID $lockPid) - di-bypass karena -Force"
+        } else {
+            Log "[LOCK] Lock usang (PID $lockPid tidak aktif) - diambil alih"
+        }
+        # Lock lama dihapus lalu dibuat ulang secara atomik (stale atau di-bypass).
+        # Baca ulang isi lock sebelum hapus: jika sudah kosong (pemilik selesai)
+        # langsung lanjut buat; jika berubah ke PID lain, deploy lain baru saja
+        # mengambil alih -> tolak (mencegah menghapus lock milik proses lain).
+        $currentLock = ""
+        try { $currentLock = (Get-Content $LockFile -Raw -ErrorAction Stop).Trim() } catch { }
+        if ($currentLock -ne "" -and $currentLock -ne $rawLock) {
+            Fail "Deploy lain sedang berjalan (lock berubah saat akuisisi)." 75
+        }
+        if ($currentLock -ne "") {
+            try {
+                Remove-Item $LockFile -Force -ErrorAction Stop
+            } catch {
+                if (Test-Path $LockFile) { Fail "Deploy lain sedang berjalan (lock file dibuat ulang)." 75 }
             }
         }
+        try {
+            $stream = [System.IO.File]::Open($LockFile, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
+        } catch [System.IO.IOException] {
+            if ($stream) { $stream.Dispose() }
+            Fail "Deploy lain sedang berjalan (lock file dibuat ulang)." 75
+        }
     }
-    "$PID" | Set-Content -Path $LockFile -NoNewline
+    $writer = New-Object System.IO.StreamWriter($stream)
+    $writer.Write($PID)
+    $writer.Flush()
+    $writer.Dispose()
 }
 
 function Release-Lock {
@@ -102,6 +132,8 @@ try {
         Log "Melakukan rollback ke versi sebelumnya di VPS..."
         $rollbackScript = @'
 set -e
+# backend-api dipegang daemon PM2 milik bot systemd (PM2_HOME=/var/lib/zen-deploy/pm2)
+export PM2_HOME=${PM2_HOME:-/var/lib/zen-deploy/pm2}
 cd __TARGET__
 if [ ! -d dist.prev ]; then
     echo "TIDAK ADA BACKUP: dist.prev tidak ditemukan"
@@ -110,12 +142,17 @@ fi
 rm -rf dist
 mv dist.prev dist
 
+if [ -d server/dist.prev ]; then
+    rm -rf server/dist
+    mv server/dist.prev server/dist
+fi
+
 if [ -d server/node_modules.bak ]; then
     rm -rf server/node_modules
     mv server/node_modules.bak server/node_modules
 fi
 
-pm2 restart backend-api || pm2 start server/dist/index.js --name "backend-api"
+pm2 startOrRestart __TARGET__/server/ecosystem.config.js --update-env
 pm2 save
 
 sleep 2
@@ -259,51 +296,109 @@ echo "HEALTH_LOCAL_OK"
     # ---------- REMOTE (pasang + restart) ----------
     Phase "remote"
     # Snippet bash yang dijalankan di VPS dari folder server/ (mirror deploy.sh):
-    # backup pg_dump WAJIB sukses sebelum prisma db push; fail bila pg_dump atau
-    # DATABASE_URL tidak tersedia.
+    # backup pg_dump WAJIB sukses sebelum prisma migrate deploy; fail bila pg_dump atau
+    # DIRECT_DATABASE_URL tidak tersedia.
     $dbCmd = if ($DbPush -and -not $NoDb) {
         @'
-# Guardrail F3 (fail-closed): prisma db push hanya boleh jalan setelah backup pg_dump berhasil.
+# Guardrail F3 (fail-closed): prisma migrate deploy hanya boleh jalan setelah backup pg_dump berhasil.
 if ! command -v pg_dump >/dev/null 2>&1; then
     echo "DB_GATE_BLOCKED: pg_dump tidak tersedia di VPS; schema produksi tidak boleh berubah tanpa backup"
     exit 26
 fi
-if [ -z "${DATABASE_URL:-}" ] && [ -f ./.env ]; then
-    DATABASE_URL="$(grep -E '^DATABASE_URL=' ./.env | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" || true)"
-    export DATABASE_URL
+if [ -z "${DIRECT_DATABASE_URL:-}" ] && [ -f ./.env ]; then
+    DIRECT_DATABASE_URL="$(grep -E '^DIRECT_DATABASE_URL=' ./.env | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" || true)"
+    export DIRECT_DATABASE_URL
 fi
-if [ -z "${DATABASE_URL:-}" ]; then
-    echo "DB_GATE_BLOCKED: DATABASE_URL tidak tersedia; schema produksi tidak boleh berubah tanpa backup"
-    exit 26
+if [ -z "${DIRECT_DATABASE_URL:-}" ]; then
+    if [ -z "${DATABASE_URL:-}" ] && [ -f ./.env ]; then
+        DATABASE_URL="$(grep -E '^DATABASE_URL=' ./.env | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" || true)"
+        export DATABASE_URL
+    fi
+    if [ -z "${DATABASE_URL:-}" ]; then
+        echo "DB_GATE_BLOCKED: DIRECT_DATABASE_URL tidak tersedia; schema produksi tidak boleh berubah tanpa backup"
+        exit 26
+    fi
 fi
-mkdir -p /var/backups/zen-dev-database
-BACKUP_FILE="/var/backups/zen-dev-database/db-$(date +%Y%m%d-%H%M%S).dump"
-if ! pg_dump -Fc "$DATABASE_URL" -f "$BACKUP_FILE" 2>/dev/null; then
-    echo "DB_GATE_BLOCKED: pg_dump gagal; prisma db push dihentikan untuk menjaga rollback safety"
+mkdir -p /var/lib/zen-deploy/database-backups
+BACKUP_FILE="/var/lib/zen-deploy/database-backups/db-$(date +%Y%m%d-%H%M%S).dump"
+DB_DUMP_URL="${DIRECT_DATABASE_URL:-${DATABASE_URL:-}}"
+if ! pg_dump -Fc "$DB_DUMP_URL" -f "$BACKUP_FILE" 2>/dev/null; then
+    echo "DB_GATE_BLOCKED: pg_dump gagal; prisma migrate deploy dihentikan untuk menjaga rollback safety"
     exit 11
 fi
 echo "DATABASE_BACKUP_OK: $BACKUP_FILE"
-npx prisma db push --skip-generate
+npx prisma migrate deploy
 '@
     } else { "echo DB_SKIPPED" }
 
     # Script bash dijalankan di VPS. Gunakan placeholder yang di-replace di bawah.
     $remoteScript = @'
 set -e
+# backend-api dipegang daemon PM2 milik bot systemd (PM2_HOME=/var/lib/zen-deploy/pm2)
+export PM2_HOME=${PM2_HOME:-/var/lib/zen-deploy/pm2}
 cd __TARGET__
 
 # Lock remote (melindungi dari deploy dari mesin lain)
 if [ -d deploy.lock ]; then echo "LOCKED: deploy lain berjalan di VPS"; exit 75; fi
 mkdir deploy.lock
-trap 'rmdir deploy.lock 2>/dev/null || true' EXIT
+trap 'rmdir __TARGET__/deploy.lock 2>/dev/null || true' EXIT
 
 # Validasi zip sebelum menyentuh apa pun
 command -v unzip >/dev/null 2>&1 || (apt-get update >/dev/null 2>&1 && apt-get install -y unzip >/dev/null 2>&1)
 unzip -tq release.zip >/dev/null 2>&1 || { echo "ZIP_CORRUPT"; exit 3; }
 
+ROLLBACK_IN_PROGRESS=false
+rollback() {
+    echo "ROLLBACK: memulihkan versi sebelumnya"
+    # ERR trap bisa terpicu saat CWD berada di server/ (mis. npm install gagal);
+    # pindah dulu ke root target agar semua path relatif benar.
+    cd __TARGET__ || return 1
+    # Hanya restore jika backup tersedia; tanpa backup (first deploy), rilis baru
+    # tetap dibiarkan utuh agar tidak menghancurkan satu-satunya salinan.
+    if [ -d dist.prev ]; then
+        rm -rf dist
+        mv dist.prev dist
+    fi
+    if [ -d server/dist.prev ]; then
+        rm -rf server/dist
+        mv server/dist.prev server/dist
+    fi
+    if [ -d server/node_modules.bak ]; then
+        rm -rf server/node_modules
+        mv server/node_modules.bak server/node_modules
+    fi
+    pm2 restart backend-api || pm2 start server/dist/index.js --name "backend-api"
+    pm2 save
+    sleep 2
+    READY=""
+    for i in 1 2 3 4 5 6; do
+      READY=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://localhost:5000/api/v1/health/ready || true)
+      if [ "$READY" = "200" ]; then break; fi
+      sleep 5
+    done
+    if [ "$READY" != "200" ]; then echo "ROLLBACK_HEALTH_FAIL status=$READY"; return 1; fi
+    echo "ROLLBACK_HEALTH_OK"
+    return 0
+}
+handle_error() {
+    local code=$1
+    trap - ERR
+    if [ "$ROLLBACK_IN_PROGRESS" = "true" ]; then
+        exit "$code"
+    fi
+    echo "DEPLOY_FAILED: exit $code, mencoba rollback otomatis"
+    ROLLBACK_IN_PROGRESS=true
+    rollback || exit 22
+    exit "$code"
+}
+# Auto-rollback pada SEMUA error (install, prisma, build, db) - bukan hanya health gate
+trap 'handle_error $?' ERR
+
 # Backup versi lama untuk rollback
 rm -rf dist.prev
 [ -d dist ] && mv dist dist.prev
+rm -rf server/dist.prev
+[ -d server/dist ] && mv server/dist server/dist.prev
 rm -rf server/node_modules.bak
 [ -d server/node_modules ] && mv server/node_modules server/node_modules.bak
 
@@ -321,7 +416,7 @@ npx prisma generate
 __DB_CMD__
 cd ..
 
-pm2 restart backend-api || pm2 start server/dist/index.js --name "backend-api"
+pm2 startOrRestart __TARGET__/server/ecosystem.config.js --update-env
 pm2 save
 
 # Health gate lokal (backend + DB) dengan toleransi cold-start
@@ -332,8 +427,26 @@ for i in 1 2 3 4 5 6; do
   if [ "$READY" = "200" ]; then break; fi
   sleep 5
 done
-if [ "$READY" != "200" ]; then echo "HEALTH_LOCAL_FAIL status=$READY"; exit 20; fi
+if [ "$READY" != "200" ]; then
+    echo "HEALTH_LOCAL_FAIL status=$READY"
+    rollback || exit 22
+    exit 20
+fi
 echo "HEALTH_LOCAL_OK"
+
+# Health gate eksternal (full stack via Nginx/HTTPS) dengan auto-rollback
+EXT=""
+for i in 1 2 3 4 5 6; do
+  EXT=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://zenstudio.my.id/api/v1/health/ready || true)
+  if [ "$EXT" = "200" ]; then break; fi
+  sleep 5
+done
+if [ "$EXT" != "200" ]; then
+    echo "HEALTH_EXTERNAL_FAIL status=$EXT"
+    rollback || exit 22
+    exit 21
+fi
+echo "HEALTH_EXTERNAL_OK"
 '@
 
     $remoteScript = $remoteScript.Replace("__TARGET__", $TargetDir)
@@ -344,9 +457,12 @@ echo "HEALTH_LOCAL_OK"
     if ($LASTEXITCODE -ne 0) { Fail "Eksekusi remote GAGAL (exit $LASTEXITCODE). Lihat log di atas." 4 }
     Log "Remote: OK (extract + install + restart + health-lokal lolos)"
 
-    # ---------- HEALTH GATE EKSTERNAL ----------
+    # ---------- HEALTH GATE EKSTERNAL (ADVISORY) ----------
+    # Check eksternal sudah diverifikasi + auto-rollback dari sisi VPS (remote
+    # script di atas). Check dari mesin lokal ini hanya informasional karena
+    # jaringan lokal (proxy/DNS/CDN edge) bisa menghasilkan false-negative.
     Phase "health-check"
-    Log "Cek eksternal: $HealthUrlExternal"
+    Log "Cek eksternal (advisory): $HealthUrlExternal"
     $extOk = $false
     for ($i = 1; $i -le 6; $i++) {
         try {
@@ -359,8 +475,11 @@ echo "HEALTH_LOCAL_OK"
         }
         Start-Sleep -Seconds 5
     }
-    if (-not $extOk) { Fail "Health check eksternal gagal setelah 6 percobaan." 21 }
-    Log "Health check eksternal: OK (200)"
+    if ($extOk) {
+        Log "Health check eksternal: OK (200)"
+    } else {
+        Log "[WARN] Health check eksternal dari mesin lokal gagal - tidak menggagalkan deploy (sudah diverifikasi dari VPS)."
+    }
 
     # Bersihkan release.zip lokal
     if (Test-Path "release.zip") { Remove-Item "release.zip" -Force }

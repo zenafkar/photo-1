@@ -2,6 +2,7 @@
 # Backup harian PostgreSQL (Neon) — read-only terhadap data produksi.
 set -euo pipefail
 cd /
+[ -f /var/lib/zen-deploy/backup.env ] && set -a && . /var/lib/zen-deploy/backup.env && set +a
 
 TARGET_DIR="${TARGET_DIR:-/var/www/zen-dev}"
 DB_BACKUP_DIR="${DB_BACKUP_DIR:-/var/lib/zen-deploy/database-backups}"

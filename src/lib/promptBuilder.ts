@@ -40,8 +40,15 @@ export interface MannequinOptions {
   clothingType: string;
   material: string;
   color: string;
+  pattern?: string;
+  mannequinType?: string;
+  pose?: string;
+  cameraAngle?: string;
+  framing?: string;
   surface: string;
   lighting: string;
+  shadow?: string;
+  additionalDetails?: string;
   effects?: string[];
 }
 
@@ -68,8 +75,15 @@ export function buildMannequinAutoPrompt(options: MannequinOptions, currentResol
   const type = options.clothingType.trim() || 'A fashion item';
   const material = options.material.trim() ? `made of ${options.material.trim()}` : '';
   const color = options.color.trim() ? `in ${options.color.trim()} color` : '';
+  const pattern = options.pattern?.trim() ? `with ${options.pattern.trim()}` : '';
+  const mannequin = options.mannequinType?.trim() || 'an invisible mannequin';
+  const pose = options.pose?.trim() || 'a flat front presentation';
+  const cameraAngle = options.cameraAngle?.trim() || 'a straight-on camera angle';
+  const framing = options.framing?.trim() || 'full garment framing';
   const surface = options.surface.trim() || 'a seamless pure white studio surface';
   const lighting = options.lighting.trim() || 'soft diffused 3-point softbox studio lighting';
+  const shadow = options.shadow?.trim() || 'a subtle natural contact shadow';
+  const additionalDetails = options.additionalDetails?.trim();
   const effects = options.effects?.filter(Boolean) ?? [];
   
   const resText = currentResolution ? `${currentResolution.toLowerCase()} resolution` : "8k resolution";
@@ -78,11 +92,16 @@ export function buildMannequinAutoPrompt(options: MannequinOptions, currentResol
     type,
     material,
     color,
-    `ghost mannequin photography, invisible mannequin effect, flat front view`,
+    pattern,
+    `ghost mannequin photography, displayed on ${mannequin}, ${pose}`,
+    `${cameraAngle}, ${framing}`,
     `placed on ${surface}`,
     `lit with ${lighting}`,
+    shadow,
     effects.length > 0 ? `with ${effects.join(', ')}` : '',
-    `macro texture photography, highly detailed, professional commercial fashion photography, ${resText}`
+    additionalDetails ? `preserve these details exactly: ${additionalDetails}` : '',
+    `preserve the exact garment design, proportions, silhouette, stitching, logo placement, color, pattern, and fabric texture`,
+    `highly detailed professional commercial fashion photography, ${resText}`
   ];
 
   return parts.filter(p => p).join(', ');

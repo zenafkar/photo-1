@@ -20,6 +20,7 @@ interface PromptGeneratorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onApplyPrompt: (prompt: string) => void;
+  onGeneratePrompt?: (prompt: string) => void;
   currentResolution?: string;
 }
 
@@ -133,6 +134,36 @@ const EXTRA_EFFECTS = [
   { label: 'Daun Botanical & Bayangan', val: 'soft green eucalyptus leaves with gentle leaf shadow overlay', icon: '🌿' },
   { label: 'Bokeh Latar Belakang Kafe', val: 'cozy ambient background bokeh blur', icon: '🫧' },
   { label: 'Asap Tipis Sinematik', val: 'subtle ethereal smoke mist in the background', icon: '🌫️' },
+];
+
+const MANNEQUIN_TYPES = [
+  { label: 'Invisible mannequin', val: 'an invisible mannequin' },
+  { label: 'White studio mannequin', val: 'a clean white studio mannequin' },
+  { label: 'Hanging garment presentation', val: 'a minimal invisible hanging garment form' },
+];
+
+const MANNEQUIN_POSES = [
+  { label: 'Flat front', val: 'a flat front presentation' },
+  { label: 'Standing straight', val: 'a standing straight presentation' },
+  { label: 'Natural three-quarter', val: 'a natural three-quarter presentation' },
+];
+
+const MANNEQUIN_CAMERA_ANGLES = [
+  { label: 'Front', val: 'a straight-on camera angle' },
+  { label: 'Three-quarter', val: 'a three-quarter camera angle' },
+  { label: 'Slightly above', val: 'a slightly elevated camera angle' },
+];
+
+const MANNEQUIN_FRAMING = [
+  { label: 'Full garment', val: 'full garment framing' },
+  { label: 'Half body', val: 'half-body framing' },
+  { label: 'Detail close-up', val: 'tight detail close-up framing' },
+];
+
+const MANNEQUIN_SHADOWS = [
+  { label: 'Natural contact shadow', val: 'a subtle natural contact shadow' },
+  { label: 'Soft studio shadow', val: 'a soft diffused studio shadow' },
+  { label: 'No visible shadow', val: 'a clean background with no visible shadow' },
 ];
 
 const CATEGORIES = [
@@ -287,6 +318,7 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   isOpen,
   onClose,
   onApplyPrompt,
+  onGeneratePrompt,
   currentResolution,
 }) => {
   const [activeTab, setActiveTab] = useState<'presets' | 'custom' | 'mannequin'>('presets');
@@ -305,9 +337,18 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   const [mqClothingType, setMqClothingType] = useState(MANNEQUIN_CLOTHING_TYPES[0].val);
   const [mqMaterial, setMqMaterial] = useState(MANNEQUIN_MATERIALS[0].val);
   const [mqColor, setMqColor] = useState('');
+  const [mqPattern, setMqPattern] = useState('');
+  const [mqMannequinType, setMqMannequinType] = useState(MANNEQUIN_TYPES[0].val);
+  const [mqPose, setMqPose] = useState(MANNEQUIN_POSES[0].val);
+  const [mqCameraAngle, setMqCameraAngle] = useState(MANNEQUIN_CAMERA_ANGLES[0].val);
+  const [mqFraming, setMqFraming] = useState(MANNEQUIN_FRAMING[0].val);
   const [mqSurface, setMqSurface] = useState(PEDESTAL_OPTIONS[0].val);
   const [mqLighting, setMqLighting] = useState(LIGHTING_OPTIONS[0].val);
-  const [mqSelectedEffects, setMqSelectedEffects] = useState<string[]>([EXTRA_EFFECTS[0].val]);
+  const [mqShadow, setMqShadow] = useState(MANNEQUIN_SHADOWS[0].val);
+  const [mqAdditionalDetails, setMqAdditionalDetails] = useState('');
+  const [mqSelectedEffects] = useState<string[]>([EXTRA_EFFECTS[0].val]);
+  const [mqPromptOutput, setMqPromptOutput] = useState('');
+  const [mqPromptEdited, setMqPromptEdited] = useState(false);
 
   // Ref for scroll container
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -337,11 +378,6 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
     );
   };
 
-  const toggleMannequinEffect = (val: string) => {
-    setMqSelectedEffects((prev) =>
-      prev.includes(val) ? prev.filter((effect) => effect !== val) : [...prev, val]
-    );
-  };
 
   const handleRandomizeCustom = () => {
     const randomProduct = QUICK_SUGGESTIONS[Math.floor(Math.random() * QUICK_SUGGESTIONS.length)];
@@ -384,16 +420,32 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
     clothingType: mqClothingType,
     material: mqMaterial,
     color: mqColor,
+    pattern: mqPattern,
+    mannequinType: mqMannequinType,
+    pose: mqPose,
+    cameraAngle: mqCameraAngle,
+    framing: mqFraming,
     surface: mqSurface,
     lighting: mqLighting,
+    shadow: mqShadow,
+    additionalDetails: mqAdditionalDetails,
     effects: mqSelectedEffects,
   }, currentResolution);
+
+  useEffect(() => {
+    if (!mqPromptEdited) setMqPromptOutput(mannequinPromptText);
+  }, [mannequinPromptText, mqPromptEdited]);
 
   const applyPrompt = (value: string) => {
     const normalizedPrompt = value.trim();
     if (normalizedPrompt.length < 3) return;
     onApplyPrompt(normalizedPrompt);
     onClose();
+  };
+
+  const resetMannequinPrompt = () => {
+    setMqPromptEdited(false);
+    setMqPromptOutput(mannequinPromptText);
   };
 
   const filteredPresets =
@@ -705,173 +757,74 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
 
                 </div>
               ) : (
-                /* ── Mannequin Builder Tab ── */
-                <div className="p-4 md:p-5">
-                  {/* Step 1 */}
-                  <section className="pb-5 mb-5 border-b border-slate-200/60">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
-                        1
-                      </div>
-                      <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                        <ShoppingBag className="w-4 h-4 text-slate-400" />
-                        Jenis Pakaian
-                      </h3>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="relative">
-                        <select
-                          value={mqClothingType}
-                          onChange={(e) => setMqClothingType(e.target.value)}
-                          className="w-full p-4 bg-slate-50 border border-slate-200 rounded-[1.25rem] text-[15px] font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all appearance-none shadow-inner"
-                        >
-                          {MANNEQUIN_CLOTHING_TYPES.map((type) => (
-                            <option key={type.val} value={type.val}>{type.label}</option>
-                          ))}
-                          <option value="">Lainnya (Ketik Manual)</option>
-                        </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-                      </div>
-                      
-                      <input
-                        type="text"
-                        value={mqClothingType}
-                        onChange={(e) => setMqClothingType(e.target.value)}
-                        placeholder="Cth: a button-up shirt..."
-                        className="w-full p-4 bg-white border border-slate-200 rounded-[1.25rem] text-[15px] font-bold placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-inner"
-                      />
-                    </div>
-                  </section>
-
-                  {/* Step 2 */}
-                  <section className="pb-5 mb-5 border-b border-slate-200/60">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
-                        2
-                      </div>
-                      <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-slate-400" />
-                        Bahan & Warna
-                      </h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="relative">
-                        <select
-                          value={mqMaterial}
-                          onChange={(e) => setMqMaterial(e.target.value)}
-                          className="w-full p-4 bg-slate-50 border border-slate-200 rounded-[1.25rem] text-[15px] font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all appearance-none shadow-inner"
-                        >
-                          <option value="" className="text-slate-400">-- Pilih Bahan --</option>
-                          {MANNEQUIN_MATERIALS.map((mat) => (
-                            <option key={mat.val} value={mat.val}>{mat.label}</option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-                      </div>
-                      
-                      <input
-                        type="text"
-                        value={mqColor}
-                        onChange={(e) => setMqColor(e.target.value)}
-                        placeholder="Warna dominan (opsional)"
-                        className="w-full p-4 bg-white border border-slate-200 rounded-[1.25rem] text-[15px] font-bold placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-inner"
-                      />
-                    </div>
-                  </section>
-
-                  {/* Step 3 */}
-                  <section className="pb-5 mb-5 border-b border-slate-200/60">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
-                        3
-                      </div>
-                      <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-slate-400" />
-                        Latar Belakang
-                      </h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 md:gap-3">
-                      {PEDESTAL_OPTIONS.map((item) => (
-                        <OptionChip
-                          key={item.label}
-                          label={item.label}
-                          icon={item.icon}
-                          isSelected={mqSurface === item.val}
-                          onClick={() => setMqSurface(item.val)}
-                          accentClass="bg-blue-50/50 border-blue-500 text-blue-900 ring-1 ring-blue-500/20"
-                        />
-                      ))}
-                    </div>
-                  </section>
-
-                  {/* Step 4 */}
-                  <section className="pb-5 mb-5 border-b border-slate-200/60">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
-                        4
-                      </div>
-                      <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                        <Sun className="w-4 h-4 text-slate-400" />
-                        Pencahayaan
-                      </h3>
-                    </div>
-                    <div className="space-y-2 md:space-y-2.5">
-                      {LIGHTING_OPTIONS.map((item) => (
-                        <OptionChip
-                          key={item.label}
-                          label={item.label}
-                          icon={item.icon}
-                          isSelected={mqLighting === item.val}
-                          onClick={() => setMqLighting(item.val)}
-                          accentClass="bg-amber-50/50 border-amber-500 text-amber-900 ring-1 ring-amber-500/20"
-                       />
-                     ))}
+                 /* ── Mannequin Prompt Builder Tab ── */
+                 <div className="p-4 md:p-5 space-y-5">
+                   <div className="rounded-2xl border border-slate-200 bg-slate-900 p-4 text-white">
+                     <div className="flex items-start gap-3">
+                       <div className="rounded-xl bg-white/10 p-2 text-cyan-300"><ShoppingBag className="h-5 w-5" /></div>
+                       <div>
+                         <p className="text-sm font-extrabold">Mannequin image prompt</p>
+                         <p className="mt-1 text-xs leading-relaxed text-slate-300">Semua pilihan di bawah akan dirangkai menjadi prompt yang dipakai untuk menghasilkan gambar di Studio.</p>
+                       </div>
+                     </div>
+                     <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-cyan-200">
+                       <span className="rounded-full bg-white/10 px-2.5 py-1">Detail garment dipertahankan</span>
+                       <span className="rounded-full bg-white/10 px-2.5 py-1">Prompt editable</span>
+                     </div>
                    </div>
-                  </section>
-                  {/* Step 5 */}
-                  <section className="pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
-                    <div className="flex items-center justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] md:text-[12px] font-black">
-                          5
-                        </div>
-                        <h3 className="text-[13px] md:text-[14px] font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                          <Camera className="w-4 h-4 text-slate-400" />
-                          Efek (Opsional)
-                        </h3>
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md uppercase tracking-wider">
-                        Multi
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2.5 md:gap-3">
-                      {EXTRA_EFFECTS.map((item) => {
-                        const isSelected = mqSelectedEffects.includes(item.val);
-                        return (
-                          <button
-                            key={item.label}
-                            type="button"
-                            onClick={() => toggleMannequinEffect(item.val)}
-                            className={`relative flex flex-col items-center gap-2 md:gap-3 p-3 md:p-4 rounded-[1rem] md:rounded-[1.25rem] border text-center transition-all duration-300 min-h-[80px] md:min-h-[88px] ${
-                              isSelected
-                                ? 'bg-violet-50/50 border-violet-500 text-violet-900 shadow-[0_4px_12px_-4px_rgba(139,92,246,0.15)] ring-1 ring-violet-500/20 scale-[0.98]'
-                                : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
-                            }`}
-                          >
-                            <span className="text-2xl drop-shadow-sm">{item.icon}</span>
-                            <span className="text-[12px] font-bold leading-tight">{item.label}</span>
-                            {isSelected && (
-                              <div className="absolute top-2 right-2">
-                                <CheckCircle2 className="w-4 h-4 text-violet-600" />
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </section>
-                </div>
-              )}
+
+                   <section className="border-b border-slate-200/70 pb-5">
+                     <div className="mb-3 flex items-center gap-3">
+                       <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-xs font-black text-white">1</span>
+                       <div><h3 className="flex items-center gap-2 text-sm font-extrabold text-slate-900"><ShoppingBag className="h-4 w-4 text-slate-400" /> Identitas pakaian</h3><p className="text-xs text-slate-500">Apa yang harus terlihat sama di hasil akhir?</p></div>
+                     </div>
+                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                       <label className="text-xs font-bold text-slate-600 sm:col-span-2">Jenis pakaian
+                         <select value={mqClothingType} onChange={(e) => setMqClothingType(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20">
+                           {MANNEQUIN_CLOTHING_TYPES.map((type) => <option key={type.val} value={type.val}>{type.label}</option>)}
+                           <option value="">Lainnya</option>
+                         </select>
+                       </label>
+                       {mqClothingType === '' && <label className="text-xs font-bold text-slate-600 sm:col-span-2">Jenis pakaian manual
+                         <input autoFocus onChange={(e) => setMqClothingType(e.target.value)} placeholder="Contoh: cropped knit cardigan" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" />
+                       </label>}
+                       <label className="text-xs font-bold text-slate-600">Bahan
+                         <select value={mqMaterial} onChange={(e) => setMqMaterial(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"><option value="">Opsional</option>{MANNEQUIN_MATERIALS.map((mat) => <option key={mat.val} value={mat.val}>{mat.label}</option>)}</select>
+                       </label>
+                       <label className="text-xs font-bold text-slate-600">Warna dominan
+                         <input value={mqColor} onChange={(e) => setMqColor(e.target.value)} placeholder="Contoh: navy blue" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" />
+                       </label>
+                       <label className="text-xs font-bold text-slate-600 sm:col-span-2">Motif atau detail penting
+                         <input value={mqPattern} onChange={(e) => setMqPattern(e.target.value)} placeholder="Contoh: garis putih tipis, logo dada kiri" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" />
+                       </label>
+                     </div>
+                   </section>
+
+                   <section className="border-b border-slate-200/70 pb-5">
+                     <div className="mb-3 flex items-center gap-3"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-xs font-black text-white">2</span><div><h3 className="text-sm font-extrabold text-slate-900">Mannequin & komposisi</h3><p className="text-xs text-slate-500">Tentukan cara pakaian ditampilkan.</p></div></div>
+                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                       {[['Tipe mannequin', MANNEQUIN_TYPES, mqMannequinType, setMqMannequinType], ['Pose', MANNEQUIN_POSES, mqPose, setMqPose], ['Sudut kamera', MANNEQUIN_CAMERA_ANGLES, mqCameraAngle, setMqCameraAngle], ['Framing', MANNEQUIN_FRAMING, mqFraming, setMqFraming]].map(([label, options, value, setter]) => (
+                         <label key={label as string} className="text-xs font-bold text-slate-600">{label as string}<select value={value as string} onChange={(e) => (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20">{(options as {label: string; val: string}[]).map((option) => <option key={option.val} value={option.val}>{option.label}</option>)}</select></label>
+                       ))}
+                     </div>
+                   </section>
+
+                   <section className="border-b border-slate-200/70 pb-5">
+                     <div className="mb-3 flex items-center gap-3"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-xs font-black text-white">3</span><div><h3 className="text-sm font-extrabold text-slate-900">Arah studio</h3><p className="text-xs text-slate-500">Background, cahaya, bayangan, dan mood hasil.</p></div></div>
+                     <div className="mb-2 flex items-center gap-2 text-xs font-bold text-slate-600"><Layers className="h-4 w-4 text-slate-400" /> Latar Belakang</div>
+                       <div className="space-y-3">
+                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{PEDESTAL_OPTIONS.map((item) => <OptionChip key={item.label} label={item.label} icon={item.icon} isSelected={mqSurface === item.val} onClick={() => setMqSurface(item.val)} accentClass="bg-cyan-50 border-cyan-500 text-cyan-900 ring-1 ring-cyan-500/20" />)}</div>
+                       <div className="mt-3 flex items-center gap-2 text-xs font-bold text-slate-600"><Sun className="h-4 w-4 text-slate-400" /> Pencahayaan</div><div className="grid grid-cols-1 gap-2">{LIGHTING_OPTIONS.map((item) => <OptionChip key={item.label} label={item.label} icon={item.icon} isSelected={mqLighting === item.val} onClick={() => setMqLighting(item.val)} accentClass="bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-500/20" />)}</div>
+                       <label className="block text-xs font-bold text-slate-600">Bayangan<select value={mqShadow} onChange={(e) => setMqShadow(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20">{MANNEQUIN_SHADOWS.map((item) => <option key={item.val} value={item.val}>{item.label}</option>)}</select></label>
+                     </div>
+                   </section>
+
+                   <section>
+                     <div className="mb-3 flex items-center gap-3"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-xs font-black text-white">4</span><div><h3 className="text-sm font-extrabold text-slate-900">Instruksi tambahan</h3><p className="text-xs text-slate-500">Opsional. Tambahkan batasan yang wajib diikuti AI.</p></div></div>
+                     <textarea value={mqAdditionalDetails} onChange={(e) => setMqAdditionalDetails(e.target.value)} rows={3} placeholder="Contoh: pertahankan bentuk kerah, jangan ubah posisi logo, tampilkan tekstur kain dengan jelas" className="w-full resize-none rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-medium outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" />
+                   </section>
+                 </div>
+               )}
             </div>
 
             {/* Sleek Minimalist Live Preview Footer */}
@@ -911,9 +864,22 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                           )}
                         </button>
                       </div>
-                      <div className="text-[12px] md:text-[13px] text-slate-200 leading-relaxed bg-black/50 p-3 rounded-xl border border-white/10 font-mono max-h-[80px] overflow-y-auto scrollbar-none relative z-10">
-                        {activeTab === 'custom' ? customPromptText : mannequinPromptText}
-                      </div>
+                       {activeTab === 'mannequin' ? (
+                         <textarea
+                           aria-label="Output prompt mannequin"
+                           value={mqPromptOutput}
+                           onChange={(event) => { setMqPromptEdited(true); setMqPromptOutput(event.target.value); }}
+                           rows={5}
+                           className="relative z-10 w-full resize-y rounded-xl border border-white/10 bg-black/50 p-3 text-[12px] leading-relaxed text-slate-200 outline-none focus:border-cyan-400 font-mono"
+                         />
+                       ) : (
+                         <div className="relative z-10 max-h-[80px] overflow-y-auto rounded-xl border border-white/10 bg-black/50 p-3 text-[12px] leading-relaxed text-slate-200 scrollbar-none font-mono">
+                           {customPromptText}
+                         </div>
+                       )}
+                       {activeTab === 'mannequin' && mqPromptEdited && (
+                         <button type="button" onClick={resetMannequinPrompt} className="relative z-10 mt-2 text-left text-[11px] font-bold text-cyan-300 hover:text-white">Reset ke prompt otomatis</button>
+                       )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -927,13 +893,21 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                   >
                     {isPreviewExpanded ? <ChevronDown className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
                   </button>
-                  <button
-                    onClick={() => applyPrompt(activeTab === 'custom' ? customPromptText : mannequinPromptText)}
-                    className="flex-1 flex items-center justify-center gap-2 h-12 bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white rounded-xl font-extrabold text-[13px] md:text-[14px] transition-all shadow-md"
-                  >
-                    <Zap className="w-4 h-4" />
-                    Terapkan ke Studio
-                  </button>
+                   <button
+                     onClick={() => {
+                       const output = activeTab === 'custom' ? customPromptText : mqPromptOutput;
+                       if (activeTab === 'mannequin' && onGeneratePrompt) {
+                         const normalizedPrompt = output.trim();
+                         if (normalizedPrompt.length >= 3) onGeneratePrompt(normalizedPrompt);
+                         return;
+                       }
+                       applyPrompt(output);
+                     }}
+                     className="flex-1 flex items-center justify-center gap-2 h-12 bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white rounded-xl font-extrabold text-[13px] md:text-[14px] transition-all shadow-md"
+                   >
+                     <Zap className="w-4 h-4" />
+                     {activeTab === 'mannequin' && onGeneratePrompt ? 'Generate Image' : 'Terapkan ke Studio'}
+                   </button>
                 </div>
               </div>
             )}

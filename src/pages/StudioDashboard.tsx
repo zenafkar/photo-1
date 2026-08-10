@@ -514,10 +514,10 @@ export default function StudioDashboard() {
     setImageMetadata(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (promptOverride?: string) => {
     if (previewUrls.length === 0 || credits === null || credits === 0 || dbWarning || imageBase64Array.length === 0) return;
 
-    const normalizedPrompt = prompt.trim();
+    const normalizedPrompt = (promptOverride ?? prompt).trim();
     if (normalizedPrompt.length < 3) {
       setGenerateError("Prompt wajib diisi minimal 3 karakter. Gunakan Auto Generate Prompt atau tulis prompt sendiri.");
       return;
@@ -1247,7 +1247,7 @@ export default function StudioDashboard() {
                       </button>
                     ) : (
                       <button
-                        onClick={handleGenerate}
+                        onClick={() => void handleGenerate()}
                         disabled={previewUrls.length === 0 || isGenerating || prompt.trim().length < 3 || credits === null || !!dbWarning}
                         className={`w-full py-4 rounded-2xl font-extrabold text-[15px] transition-all duration-200 flex items-center justify-center gap-2.5 active:scale-[0.97] active:translate-y-0 ${
                           isGenerating
@@ -1442,6 +1442,11 @@ export default function StudioDashboard() {
           isOpen={isPromptModalOpen} 
           onClose={() => setIsPromptModalOpen(false)} 
           onApplyPrompt={(generatedPrompt) => setPrompt(generatedPrompt.trim())}
+          onGeneratePrompt={(generatedPrompt) => {
+            setPrompt(generatedPrompt.trim());
+            setIsPromptModalOpen(false);
+            void handleGenerate(generatedPrompt);
+          }}
           currentResolution={resolution}
         />
 

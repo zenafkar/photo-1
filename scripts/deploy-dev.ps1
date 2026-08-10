@@ -136,7 +136,7 @@ try {
     $entries = @(Get-ChildItem $stage -Recurse -Force -File | ForEach-Object { $_.FullName.Substring($stage.Length + 1).Replace('\','/') })
     $manifestLines = @($entries | Where-Object { $_ -ne 'manifest.sha256' } | Sort-Object | ForEach-Object { $f = Join-Path $stage $_; "$( (Get-FileHash $f -Algorithm SHA256).Hash.ToLowerInvariant())  $($_)" })
     $manifestLines | Set-Content (Join-Path $stage 'manifest.sha256') -Encoding ASCII
-    $archive = Join-Path (Get-Location) "$releaseId.zip"
+    $archive = Join-Path ([IO.Path]::GetTempPath()) "$releaseId.zip"
     Compress-Archive -Path "$stage/*" -DestinationPath $archive -Force
     $archiveHash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
     "$archiveHash  $releaseId.zip" | Set-Content "$archive.sha256" -Encoding ASCII

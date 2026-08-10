@@ -419,7 +419,7 @@ database() {
     fi
 
     cd "$TARGET_DIR/server"
-    if ! npx prisma migrate deploy --skip-generate; then
+    if ! npx prisma migrate deploy; then
         fail "prisma migrate deploy GAGAL. Migration bersifat transaksional; perbaiki file migrasi lalu ulangi." 10
     fi
     log "Database migration: OK"

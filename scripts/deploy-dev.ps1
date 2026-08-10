@@ -97,7 +97,7 @@ Write-Evidence
 
 try {
     Phase 'preflight'
-    $dirty = Get-GitDirtyPaths
+    $dirty = @(Get-GitDirtyPaths)
     $script:Evidence.dirtyPaths = @($dirty)
     $script:Evidence.dirtyCount = $dirty.Count
     $protected = '(?i)(schema\.prisma|datasource|connection|(^|/)(server/prisma/|migrations?/|seed|database|db/|pool|driver|timeout|read.?write|routing)(/|\.|$)|(^|/)(\.env($|\.)|.*(database|connection|pool|driver|timeout|read.?write|routing).*(config|env|json|ts|js)$)|(^|/)(scripts/deploy|deploy-bot/|\.opencode/|\.git/)|(^|/)(prisma|postgres|pg|mysql|typeorm|sequelize|knex|drizzle)(/|\.|$))'

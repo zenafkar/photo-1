@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     compression({ algorithm: 'gzip', ext: '.gz' }),
     compression({ algorithm: 'brotliCompress', ext: '.br' }),
-    visualizer({
+    process.env.ANALYZE === 'true' && visualizer({
       open: false,
       filename: 'bundle-analysis.html',
       gzipSize: true,

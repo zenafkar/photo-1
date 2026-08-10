@@ -376,6 +376,17 @@ build() {
     log "Backend build: OK"
 }
 
+ensure_uploads_permissions() {
+    phase "uploads-perms"
+    local uploads_dir="$TARGET_DIR/server/uploads"
+    local generations_dir="$uploads_dir/generations"
+
+    mkdir -p "$generations_dir"
+    chmod 700 "$uploads_dir"
+    chmod -R u+rwX "$uploads_dir"
+    log "Uploads permissions normalized (owner-only rwx, generations dir ensured)"
+}
+
 run_tests() {
     if [ "$SKIP_TEST" = true ]; then
         log "Test: SKIP (--skip-test)"
@@ -528,6 +539,7 @@ main() {
     run_tests
     database
     build
+    ensure_uploads_permissions
     restart_pm2
 
     if ! health_check; then

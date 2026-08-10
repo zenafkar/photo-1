@@ -2,6 +2,8 @@
 Description=ZenDev Deploy Bot (Telegram)
 Wants=network-online.target
 After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -35,8 +37,6 @@ ExecStartPre=/usr/bin/test -x /usr/local/bin/pm2
 ExecStart=/opt/zen-deploy-bot/.venv/bin/python /opt/zen-deploy-bot/bot.py
 Restart=always
 RestartSec=10
-StartLimitIntervalSec=300
-StartLimitBurst=5
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=zen-deploy-bot

@@ -1358,11 +1358,11 @@ export default function StudioDashboard() {
                         <div key={item.id || idx} className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                           {item.processedUrl ? (
                             <img
-                              src={item.processedUrl}
+                              src={item.processedUrl.replace(/^http:\/\//i, 'https://')}
                               alt="Generated Studio Result"
                               loading="lazy"
                               className="w-full h-full object-cover cursor-pointer transition-transform hover:scale-105"
-                              onClick={() => setSelectedImage(item.processedUrl)}
+                              onClick={() => setSelectedImage(item.processedUrl.replace(/^http:\/\//i, 'https://'))}
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.style.display = 'none';

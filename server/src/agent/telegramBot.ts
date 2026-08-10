@@ -19,9 +19,10 @@ const pendingApprovals = new Map<string, PendingApproval>();
 const APPROVAL_TTL_MS = 5 * 60 * 1000;
 
 function getTelegramToken(): string {
-  // TELEGRAM_SRE_BOT_TOKEN is the preferred explicit name. Keep the old name
-  // as a compatibility fallback for existing server environments.
-  return process.env.TELEGRAM_SRE_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '';
+  // The SRE bot token is read exclusively from TELEGRAM_SRE_BOT_TOKEN. The
+  // legacy TELEGRAM_BOT_TOKEN is intentionally NOT used here: it belongs to
+  // deploy-bot (a separate polling bot) and must never drive the SRE bot.
+  return process.env.TELEGRAM_SRE_BOT_TOKEN || '';
 }
 
 function getReportLevel(): string {

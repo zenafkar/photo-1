@@ -24,7 +24,6 @@ import { initBotWebhook, TELEGRAM_WEBHOOK_PATH } from "../telegramBot.js";
 describe("Telegram webhook", () => {
   beforeEach(() => {
     vi.stubEnv("TELEGRAM_SRE_BOT_TOKEN", "123456:server-sre-token");
-    vi.stubEnv("TELEGRAM_BOT_TOKEN", "");
     vi.stubEnv("TELEGRAM_WEBHOOK_SECRET", "sre_secret-01");
     vi.stubEnv("DOMAIN", "https://example.test/");
     mockTelegram.setWebHook.mockReset().mockResolvedValue(true);
@@ -86,5 +85,17 @@ describe("Telegram webhook", () => {
     expect(mockTelegram.processUpdate).toHaveBeenCalledOnce();
     resolveRegistration();
     await initialization;
+  });
+
+  it("returns null and does not register the webhook when TELEGRAM_SRE_BOT_TOKEN is empty", async () => {
+    vi.stubEnv("TELEGRAM_SRE_BOT_TOKEN", "");
+    const app = express();
+    app.use(express.json());
+
+    const result = await initBotWebhook(app);
+
+    expect(result).toBeNull();
+    expect((await import("../telegramBot.js")).bot).toBeNull();
+    expect(mockTelegram.setWebHook).not.toHaveBeenCalled();
   });
 });

@@ -37,12 +37,15 @@ describe("health route contract", () => {
     expect(res.headers["retry-after"]).toBe("5");
     expect(res.body).toMatchObject({
       success: false,
-      status: "not_ready",
-      database: "unavailable",
       code: "DATABASE_UNAVAILABLE",
-      retryable: true,
-      retryAfter: 5,
+      details: {
+        status: "not_ready",
+        database: "unavailable",
+        retryable: true,
+        retryAfter: 5,
+      },
     });
-    expect(res.body.timestamp).toEqual(expect.any(String));
+    expect(res.body.details.timestamp).toEqual(expect.any(String));
+    expect(queryRaw).toHaveBeenCalled();
   });
 });

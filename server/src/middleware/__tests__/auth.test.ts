@@ -11,11 +11,12 @@ vi.mock("@clerk/express", () => ({
 }));
 
 describe("requireAuth middleware", () => {
-  it("returns 401 JSON when getAuth returns null", () => {
+  it("returns 401 JSON with error contract when getAuth returns null", () => {
     getAuthMock.mockReturnValue(null);
 
     const req: any = { headers: {} };
     const res: any = {
+      locals: {},
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
@@ -26,16 +27,18 @@ describe("requireAuth middleware", () => {
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
+      code: "UNAUTHORIZED",
       message: "Unauthorized: Silakan login terlebih dahulu.",
     });
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("returns 401 JSON when getAuth returns object without userId", () => {
+  it("returns 401 JSON with error contract when getAuth returns object without userId", () => {
     getAuthMock.mockReturnValue({});
 
     const req: any = { headers: {} };
     const res: any = {
+      locals: {},
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
@@ -46,7 +49,31 @@ describe("requireAuth middleware", () => {
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
+      code: "UNAUTHORIZED",
       message: "Unauthorized: Silakan login terlebih dahulu.",
+    });
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("includes request_id in error response when res.locals.requestId is set", () => {
+    getAuthMock.mockReturnValue(null);
+
+    const req: any = { headers: {} };
+    const res: any = {
+      locals: { requestId: "req_aabbccddeeff" },
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    };
+    const next = vi.fn();
+
+    requireAuth(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      code: "UNAUTHORIZED",
+      message: "Unauthorized: Silakan login terlebih dahulu.",
+      request_id: "req_aabbccddeeff",
     });
     expect(next).not.toHaveBeenCalled();
   });
@@ -56,6 +83,7 @@ describe("requireAuth middleware", () => {
 
     const req = {} as any;
     const res: any = {
+      locals: {},
       status: vi.fn(),
       json: vi.fn(),
     };

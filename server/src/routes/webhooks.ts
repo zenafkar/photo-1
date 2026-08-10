@@ -5,6 +5,7 @@ import { verifyXenditCallback, sanitizeWebhookPayload } from "../services/xendit
 import { creditOps } from "../services/credits";
 import { paymentEvents } from "../services/paymentEvents";
 import { dashboardEvents } from "../services/dashboardEvents";
+import { ErrorCodes, sendError } from "../middleware/errorContract.js";
 
 const router = Router();
 
@@ -24,7 +25,12 @@ router.post("/clerk", async (req: Request, res: Response) => {
     // A missing secret means the deployment is misconfigured — never process unsigned events.
     if (!WEBHOOK_SECRET) {
       console.error("[Clerk Webhook] CLERK_WEBHOOK_SECRET is not set — refusing to process webhook.");
-      return res.status(503).json({ success: false, message: "Server misconfiguration: Clerk webhook secret not set." });
+      return sendError(
+        res,
+        503,
+        ErrorCodes.WEBHOOK_SECRET_MISSING,
+        "Server misconfiguration: Clerk webhook secret not set.",
+      );
     }
 
     // Verify webhook signature
@@ -34,7 +40,12 @@ router.post("/clerk", async (req: Request, res: Response) => {
 
     if (!svixId || !svixTimestamp || !svixSignature) {
       console.warn("[Clerk Webhook] Missing Svix headers — rejecting request");
-      return res.status(400).json({ success: false, message: "Missing Svix headers" });
+      return sendError(
+        res,
+        400,
+        ErrorCodes.INVALID_PAYLOAD,
+        "Missing Svix headers",
+      );
     }
 
     // Use the raw body captured by the verify middleware for signature verification
@@ -48,7 +59,12 @@ router.post("/clerk", async (req: Request, res: Response) => {
       });
     } catch (verifyErr: any) {
       console.error("[Clerk Webhook] Signature verification failed:", verifyErr.message);
-      return res.status(401).json({ success: false, message: "Invalid webhook signature" });
+      return sendError(
+        res,
+        401,
+        ErrorCodes.WEBHOOK_SIGNATURE_INVALID,
+        "Invalid webhook signature",
+      );
     }
 
     const event = req.body;
@@ -58,7 +74,12 @@ router.post("/clerk", async (req: Request, res: Response) => {
     console.log(`[Clerk Webhook] Event received: ${eventType}`);
 
     if (!data) {
-      return res.status(400).json({ success: false, message: "No data payload" });
+      return sendError(
+        res,
+        400,
+        ErrorCodes.INVALID_PAYLOAD,
+        "No data payload",
+      );
     }
 
     if (eventType === "user.deleted") {
@@ -116,7 +137,12 @@ router.post("/clerk", async (req: Request, res: Response) => {
     return res.status(200).json({ success: true, message: "Webhook processed successfully" });
   } catch (error: any) {
     console.error("[Clerk Webhook Error]", error);
-    return res.status(500).json({ success: false, message: "Internal error processing webhook." });
+    return sendError(
+      res,
+      500,
+      ErrorCodes.INTERNAL_ERROR,
+      "Internal error processing webhook.",
+    );
   }
 });
 
@@ -136,7 +162,12 @@ router.post("/xendit", async (req: Request, res: Response) => {
     const receivedToken = req.headers["x-callback-token"] as string | undefined;
     if (!verifyXenditCallback(receivedToken, XENDIT_WEBHOOK_TOKEN)) {
       console.warn("[Xendit Webhook] Invalid callback token");
-      return res.status(401).json({ success: false, message: "Token webhook tidak valid." });
+      return sendError(
+        res,
+        401,
+        ErrorCodes.WEBHOOK_SIGNATURE_INVALID,
+        "Token webhook tidak valid.",
+      );
     }
 
     const body = req.body;
@@ -145,7 +176,12 @@ router.post("/xendit", async (req: Request, res: Response) => {
     const amount: number | undefined = body?.amount;
 
     if (!xenditInvoiceId) {
-      return res.status(400).json({ success: false, message: "Missing invoice ID." });
+      return sendError(
+        res,
+        400,
+        ErrorCodes.INVALID_PAYLOAD,
+        "Missing invoice ID.",
+      );
     }
 
     // 2. Find payment order
@@ -155,7 +191,12 @@ router.post("/xendit", async (req: Request, res: Response) => {
 
     if (!order) {
       console.warn(`[Xendit Webhook] Unknown invoice: ${xenditInvoiceId}`);
-      return res.status(404).json({ success: false, message: "Pesanan tidak ditemukan." });
+      return sendError(
+        res,
+        404,
+        ErrorCodes.ORDER_NOT_FOUND,
+        "Pesanan tidak ditemukan.",
+      );
     }
 
     // 3. Amount/currency integrity check — mandatory for PAID/SETTLED
@@ -163,7 +204,12 @@ router.post("/xendit", async (req: Request, res: Response) => {
     if (xStatus === "PAID" || xStatus === "SETTLED") {
       if (amount === undefined) {
         console.error(`[Xendit Webhook] Missing amount for PAID invoice ${xenditInvoiceId}`);
-        return res.status(422).json({ success: false, message: "Data pembayaran tidak lengkap (amount)." });
+        return sendError(
+          res,
+          422,
+          ErrorCodes.INVALID_PAYLOAD,
+          "Data pembayaran tidak lengkap (amount).",
+        );
       }
       if (amount !== order.amount) {
         console.error(
@@ -178,7 +224,12 @@ router.post("/xendit", async (req: Request, res: Response) => {
           action: "Manual investigation required — possible tampering or Xendit configuration error",
           status: "CRITICAL_AMOUNT_MISMATCH",
         });
-        return res.status(422).json({ success: false, message: "Jumlah pembayaran tidak sesuai." });
+        return sendError(
+          res,
+          422,
+          ErrorCodes.PAYMENT_AMOUNT_MISMATCH,
+          "Jumlah pembayaran tidak sesuai.",
+        );
       }
 
       // Currency validation — only IDR is supported
@@ -187,7 +238,12 @@ router.post("/xendit", async (req: Request, res: Response) => {
         console.error(
           `[Xendit Webhook] Currency mismatch! Expected IDR, got ${currency} for ${xenditInvoiceId}`
         );
-        return res.status(422).json({ success: false, message: "Mata uang tidak valid." });
+        return sendError(
+          res,
+          422,
+          ErrorCodes.PAYMENT_CURRENCY_INVALID,
+          "Mata uang tidak valid.",
+        );
       }
     }
 
@@ -225,7 +281,11 @@ router.post("/xendit", async (req: Request, res: Response) => {
       } catch (creditErr: any) {
         console.error(`[Xendit Webhook] Credit grant failed for ${xenditInvoiceId}:`, creditErr?.message);
         // Order stays pending — reconciliation will retry
-        return res.status(200).json({ success: false, message: "Credit grant failed — will reconcile." });
+        return res.status(200).json({
+          success: false,
+          code: ErrorCodes.WEBHOOK_ACKED_DEFERRED,
+          message: "Credit grant failed — will reconcile.",
+        });
       }
 
       // ── CAS settlement ──────────────────────────────
@@ -329,7 +389,12 @@ router.post("/xendit", async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error("[Xendit Webhook] Error:", err);
     // Return 500 so Xendit can retry gracefully. Our idempotency ensures safe retries.
-    return res.status(500).json({ success: false, message: "Internal error — will reconcile or retry." });
+    return sendError(
+      res,
+      500,
+      ErrorCodes.INTERNAL_ERROR,
+      "Internal error — will reconcile or retry.",
+    );
   }
 });
 

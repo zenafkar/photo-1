@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { getAuth } from "@clerk/express";
 import { isDatabaseUnavailable, prisma } from "../config/prisma.js";
+import { createTicket, consumeTicket } from "../services/userTicketStore.js";
+import { ErrorCodes, sendError } from "../middleware/errorContract.js";
+import { dashboardEvents, type DashboardEvent } from "../services/dashboardEvents.js";
 
 async function checkDatabase(timeoutMs = 3000): Promise<number> {
   const startedAt = Date.now();
@@ -47,15 +50,21 @@ export const getReadiness = async (_req: Request, res: Response) => {
   } catch (error) {
     const databaseError = isDatabaseUnavailable(error) || error instanceof Error;
     res.setHeader("Retry-After", "5");
-    return res.status(503).json({
-      success: false,
-      status: "not_ready",
-      database: databaseError ? "unavailable" : "unknown",
-      code: "DATABASE_UNAVAILABLE",
-      retryable: true,
-      retryAfter: 5,
-      timestamp: new Date().toISOString(),
-    });
+    return sendError(
+      res,
+      503,
+      ErrorCodes.DATABASE_UNAVAILABLE,
+      databaseError
+        ? "Database sedang tidak tersedia. Endpoint tidak siap."
+        : "Health check gagal dengan error tidak dikenal.",
+      {
+        status: "not_ready",
+        database: databaseError ? "unavailable" : "unknown",
+        retryable: true,
+        retryAfter: 5,
+        timestamp: new Date().toISOString(),
+      },
+    );
   }
 };
 

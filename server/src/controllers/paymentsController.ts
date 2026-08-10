@@ -7,6 +7,7 @@ import { createInvoice, getInvoice } from "../services/xendit.js";
 import { getPackage, type PackageId } from "../services/paymentPackages.js";
 import { creditOps } from "../services/credits.js";
 import { paymentEvents, type SettlementEvent } from "../services/paymentEvents.js";
+import { ErrorCodes, sendError } from "../middleware/errorContract.js";
 
 // ── Validation ──────────────────────────────────────────────
 const createOrderSchema = z.object({
@@ -78,25 +79,31 @@ export const createOrder = async (req: Request, res: Response): Promise<any> => 
   try {
     const { userId: clerkId } = getAuth(req);
     if (!clerkId) {
-      return res.status(401).json({ success: false, message: "Silakan login terlebih dahulu." });
+      return sendError(res, 401, ErrorCodes.UNAUTHORIZED, "Silakan login terlebih dahulu.");
     }
 
     // Validate input
     const parsed = createOrderSchema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ success: false, message: "Payload tidak valid.", errors: parsed.error.issues });
+      return sendError(
+        res,
+        400,
+        ErrorCodes.INVALID_PAYLOAD,
+        "Payload tidak valid.",
+        parsed.error.issues,
+      );
     }
     const { packageId, idempotencyKey } = parsed.data;
 
     // Resolve user
     const user = await ensureUserWithCredits(clerkId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User tidak ditemukan." });
+      return sendError(res, 404, ErrorCodes.USER_NOT_FOUND, "User tidak ditemukan.");
     }
 
     const pkg = getPackage(packageId);
     if (!pkg) {
-      return res.status(400).json({ success: false, message: "Paket tidak dikenal." });
+      return sendError(res, 400, ErrorCodes.INVALID_PAYLOAD, "Paket tidak dikenal.");
     }
 
     // ── Layer 1: Idempotency ──────────────────────────────
@@ -119,10 +126,12 @@ export const createOrder = async (req: Request, res: Response): Promise<any> => 
         });
       }
       if (existing.status === "paid" || existing.status === "settled") {
-        return res.status(409).json({
-          success: false,
-          message: "Pembayaran untuk permintaan ini sudah selesai diproses.",
-        });
+        return sendError(
+          res,
+          409,
+          ErrorCodes.PAYMENT_ALREADY_SETTLED,
+          "Pembayaran untuk permintaan ini sudah selesai diproses.",
+        );
       }
       // failed/expired — allow retry, fall through to create new invoice
     }
@@ -153,10 +162,12 @@ export const createOrder = async (req: Request, res: Response): Promise<any> => 
         data: { status: "failed", rawResponse: { error: xenditErr?.message } as any },
       });
       console.error("[Payments] Xendit invoice creation failed:", xenditErr?.message);
-      return res.status(502).json({
-        success: false,
-        message: "Gagal menghubungi gateway pembayaran. Silakan coba lagi.",
-      });
+      return sendError(
+        res,
+        502,
+        ErrorCodes.UPSTREAM_UNAVAILABLE,
+        "Gagal menghubungi gateway pembayaran. Silakan coba lagi.",
+      );
     }
 
     // ── Update order with Xendit response ─────────────────
@@ -210,7 +221,7 @@ export const createOrder = async (req: Request, res: Response): Promise<any> => 
     }
 
     console.error("[Payments] Create order error:", err);
-    return res.status(500).json({ success: false, message: "Gagal membuat pesanan. Silakan coba lagi." });
+    return sendError(res, 500, ErrorCodes.INTERNAL_ERROR, "Gagal membuat pesanan. Silakan coba lagi.");
   }
 };
 
@@ -218,12 +229,12 @@ export const getOrderStatus = async (req: Request, res: Response): Promise<any> 
   try {
     const { userId: clerkId } = getAuth(req);
     if (!clerkId) {
-      return res.status(401).json({ success: false, message: "Silakan login terlebih dahulu." });
+      return sendError(res, 401, ErrorCodes.UNAUTHORIZED, "Silakan login terlebih dahulu.");
     }
 
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user) {
-      return res.status(404).json({ success: false, message: "User tidak ditemukan." });
+      return sendError(res, 404, ErrorCodes.USER_NOT_FOUND, "User tidak ditemukan.");
     }
 
     const orderId = req.params.id as string;
@@ -232,7 +243,7 @@ export const getOrderStatus = async (req: Request, res: Response): Promise<any> 
     });
 
     if (!order) {
-      return res.status(404).json({ success: false, message: "Pesanan tidak ditemukan." });
+      return sendError(res, 404, ErrorCodes.ORDER_NOT_FOUND, "Pesanan tidak ditemukan.");
     }
 
     // If still pending/creating, refresh from Xendit
@@ -319,7 +330,7 @@ export const getOrderStatus = async (req: Request, res: Response): Promise<any> 
     });
   } catch (err: any) {
     console.error("[Payments] Get order error:", err);
-    return res.status(500).json({ success: false, message: "Gagal mengambil status pesanan." });
+    return sendError(res, 500, ErrorCodes.INTERNAL_ERROR, "Gagal mengambil status pesanan.");
   }
 };
 
@@ -327,12 +338,12 @@ export const getHistory = async (req: Request, res: Response): Promise<any> => {
   try {
     const { userId: clerkId } = getAuth(req);
     if (!clerkId) {
-      return res.status(401).json({ success: false, message: "Silakan login terlebih dahulu." });
+      return sendError(res, 401, ErrorCodes.UNAUTHORIZED, "Silakan login terlebih dahulu.");
     }
 
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user) {
-      return res.status(404).json({ success: false, message: "User tidak ditemukan." });
+      return sendError(res, 404, ErrorCodes.USER_NOT_FOUND, "User tidak ditemukan.");
     }
 
     const orders = await prisma.paymentOrder.findMany({
@@ -356,7 +367,7 @@ export const getHistory = async (req: Request, res: Response): Promise<any> => {
     });
   } catch (err: any) {
     console.error("[Payments] History error:", err);
-    return res.status(500).json({ success: false, message: "Gagal mengambil riwayat pembayaran." });
+    return sendError(res, 500, ErrorCodes.INTERNAL_ERROR, "Gagal mengambil riwayat pembayaran.");
   }
 };
 
@@ -368,12 +379,12 @@ export const streamPaymentEvents = async (req: Request, res: Response): Promise<
     : getAuth(req).userId;
 
   if (!clerkId) {
-    return res.status(401).json({ success: false, message: "Silakan login terlebih dahulu." });
+    return sendError(res, 401, ErrorCodes.UNAUTHORIZED, "Silakan login terlebih dahulu.");
   }
 
   const user = await prisma.user.findUnique({ where: { clerkId } });
   if (!user) {
-    return res.status(404).json({ success: false, message: "User tidak ditemukan." });
+    return sendError(res, 404, ErrorCodes.USER_NOT_FOUND, "User tidak ditemukan.");
   }
 
   const orderId = req.params.orderId as string;
@@ -382,7 +393,7 @@ export const streamPaymentEvents = async (req: Request, res: Response): Promise<
     where: { externalId: orderId, userId: user.id },
   });
   if (!order) {
-    return res.status(404).json({ success: false, message: "Pesanan tidak ditemukan." });
+    return sendError(res, 404, ErrorCodes.ORDER_NOT_FOUND, "Pesanan tidak ditemukan.");
   }
 
   if (order.status === "settled") {

@@ -2,6 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { randomBytes, timingSafeEqual } from 'crypto';
 import type { Express } from 'express';
 import dotenv from 'dotenv';
+import { webhookLimiter } from '../middleware/rateLimiters.js';
 
 dotenv.config();
 
@@ -98,7 +99,7 @@ function registerWebhookRoute(app: Express): void {
   if (registeredWebhookApps.has(app)) return;
   registeredWebhookApps.add(app);
 
-  app.post(TELEGRAM_WEBHOOK_PATH, (req, res) => {
+  app.post(TELEGRAM_WEBHOOK_PATH, webhookLimiter, (req, res) => {
     const secret = getWebhookSecret();
     if (!secret) {
       console.error('[Telegram] TELEGRAM_WEBHOOK_SECRET is missing — rejecting webhook request');

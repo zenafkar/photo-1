@@ -3,12 +3,13 @@ import { getAuth } from "@clerk/express";
 import { isDatabaseUnavailable, prisma } from "../config/prisma.js";
 import { createTicket, consumeTicket } from "../services/userTicketStore.js";
 import { dashboardEvents, type DashboardEvent } from "../services/dashboardEvents.js";
+import { ErrorCodes, sendError } from "../middleware/errorContract.js";
 
 export const getMe = async (req: Request, res: Response): Promise<any> => {
   try {
     const { userId: clerkId } = getAuth(req);
     if (!clerkId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return sendError(res, 401, ErrorCodes.UNAUTHORIZED, "Unauthorized");
     }
 
     let user = await prisma.user.findUnique({
@@ -81,15 +82,15 @@ export const getMe = async (req: Request, res: Response): Promise<any> => {
     console.error("Error fetching user /user/me:", error?.message || error);
     if (isDatabaseUnavailable(error)) {
       res.setHeader("Retry-After", "5");
-      return res.status(503).json({
-        success: false,
-        code: "DATABASE_UNAVAILABLE",
-        message: "Database sedang menyala. Data dashboard akan dicoba kembali otomatis.",
-        retryable: true,
-        retryAfter: 5,
-      });
+      return sendError(
+        res,
+        503,
+        ErrorCodes.DATABASE_UNAVAILABLE,
+        "Database sedang menyala. Data dashboard akan dicoba kembali otomatis.",
+        { retryable: true, retryAfter: 5 },
+      );
     }
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return sendError(res, 500, ErrorCodes.INTERNAL_ERROR, "Internal server error");
   }
 };
 
@@ -97,30 +98,30 @@ export const createEventTicket = async (req: Request, res: Response): Promise<an
   try {
     const { userId: clerkId } = getAuth(req);
     if (!clerkId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return sendError(res, 401, ErrorCodes.UNAUTHORIZED, "Unauthorized");
     }
     const ticket = createTicket(clerkId);
     return res.status(200).json({ success: true, data: { ticket } });
   } catch (error: any) {
     console.error("Error creating event ticket:", error?.message || error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return sendError(res, 500, ErrorCodes.INTERNAL_ERROR, "Internal server error");
   }
 };
 
 export const streamUserEvents = async (req: Request, res: Response): Promise<any> => {
   const ticket = req.params.ticket as string;
   if (!ticket) {
-    return res.status(400).json({ success: false, message: "Ticket required" });
+    return sendError(res, 400, ErrorCodes.INVALID_PAYLOAD, "Ticket required");
   }
 
   const clerkId = consumeTicket(ticket);
   if (!clerkId) {
-    return res.status(401).json({ success: false, message: "Ticket invalid or expired" });
+    return sendError(res, 401, ErrorCodes.UNAUTHORIZED, "Ticket invalid or expired");
   }
 
   const user = await prisma.user.findUnique({ where: { clerkId } });
   if (!user) {
-    return res.status(404).json({ success: false, message: "User not found" });
+    return sendError(res, 404, ErrorCodes.USER_NOT_FOUND, "User not found");
   }
 
   res.writeHead(200, {

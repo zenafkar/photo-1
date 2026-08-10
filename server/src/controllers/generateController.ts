@@ -8,6 +8,7 @@ import { saveRemoteImageLocally, saveBase64Locally, deleteLocalImage } from "../
 import { isAllowedUrl } from "../services/urlSafety.js";
 import { creditOpsTx } from "../services/credits.js";
 import { dashboardEvents } from "../services/dashboardEvents.js";
+import { ErrorCodes, sendError } from "../middleware/errorContract.js";
 
 const MAX_BASE64_SIZE = 15 * 1024 * 1024; // 15MB encoded payload (~10MB raw image)
 const MAX_REMOTE_URL_SIZE = 5000;
@@ -58,17 +59,28 @@ export const createGeneration = async (req: Request, res: Response): Promise<any
   try {
     const { userId: clerkId } = getAuth(req);
     if (!clerkId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return sendError(res, 401, ErrorCodes.UNAUTHORIZED, "Unauthorized");
     }
 
     const parsed = generateSchema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ success: false, message: "Invalid payload", errors: parsed.error.issues });
+      return sendError(
+        res,
+        400,
+        ErrorCodes.INVALID_PAYLOAD,
+        "Invalid payload",
+        parsed.error.issues,
+      );
     }
     const { imageUrls, prompt, provider, aspectRatio, resolution, outputFormat } = parsed.data;
     const idempotencyKey = req.get("Idempotency-Key")?.trim() || null;
     if (idempotencyKey && (idempotencyKey.length > 128 || !/^[A-Za-z0-9._:-]+$/.test(idempotencyKey))) {
-      return res.status(400).json({ success: false, code: "INVALID_IDEMPOTENCY_KEY", message: "Idempotency-Key tidak valid." });
+      return sendError(
+        res,
+        400,
+        ErrorCodes.INVALID_IDEMPOTENCY_KEY,
+        "Idempotency-Key tidak valid.",
+      );
     }
     const requestFingerprint = createHash("sha256")
       .update(JSON.stringify({ imageUrls, prompt, provider, aspectRatio, resolution, outputFormat }))
@@ -76,7 +88,12 @@ export const createGeneration = async (req: Request, res: Response): Promise<any
 
     for (const imageUrl of imageUrls) {
       if (imageUrl.startsWith("data:") && imageUrl.length > MAX_BASE64_SIZE) {
-        return res.status(413).json({ success: false, message: "Ukuran salah satu gambar terlalu besar (maksimal 10MB per gambar). Silakan gunakan gambar dengan ukuran lebih kecil." });
+        return sendError(
+          res,
+          413,
+          ErrorCodes.INVALID_PAYLOAD,
+          "Ukuran salah satu gambar terlalu besar (maksimal 10MB per gambar). Silakan gunakan gambar dengan ukuran lebih kecil.",
+        );
       }
     }
 
@@ -86,7 +103,7 @@ export const createGeneration = async (req: Request, res: Response): Promise<any
     });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User tidak ditemukan." });
+      return sendError(res, 404, ErrorCodes.USER_NOT_FOUND, "User tidak ditemukan.");
     }
 
     if (user && !user.credits) {
@@ -111,14 +128,24 @@ export const createGeneration = async (req: Request, res: Response): Promise<any
       });
       if (existingTransaction) {
         if (existingTransaction.type !== "generation_spend") {
-          return res.status(409).json({ success: false, code: "IDEMPOTENCY_KEY_REUSED", message: "Idempotency-Key sudah digunakan untuk operasi lain." });
+          return sendError(
+            res,
+            409,
+            ErrorCodes.IDEMPOTENCY_KEY_REUSED,
+            "Idempotency-Key sudah digunakan untuk operasi lain.",
+          );
         }
 
         const metadata = (existingTransaction.metadata && typeof existingTransaction.metadata === "object")
           ? existingTransaction.metadata as Record<string, unknown>
           : {};
         if (metadata.requestFingerprint && metadata.requestFingerprint !== requestFingerprint) {
-          return res.status(409).json({ success: false, code: "IDEMPOTENCY_KEY_REUSED", message: "Idempotency-Key digunakan dengan payload yang berbeda." });
+          return sendError(
+            res,
+            409,
+            ErrorCodes.IDEMPOTENCY_KEY_REUSED,
+            "Idempotency-Key digunakan dengan payload yang berbeda.",
+          );
         }
 
         const existingGenerationId = typeof metadata.generationId === "string" ? metadata.generationId : null;
@@ -137,12 +164,13 @@ export const createGeneration = async (req: Request, res: Response): Promise<any
           });
         }
 
-        return res.status(409).json({
-          success: false,
-          code: "GENERATION_OUTCOME_UNKNOWN",
-          message: "Permintaan generation sebelumnya sedang diverifikasi. Silakan tunggu sebelum mencoba lagi.",
-          retryable: true,
-        });
+        return sendError(
+          res,
+          409,
+          ErrorCodes.GENERATION_OUTCOME_UNKNOWN,
+          "Permintaan generation sebelumnya sedang diverifikasi. Silakan tunggu sebelum mencoba lagi.",
+          { retryable: true },
+        );
       }
     }
 
@@ -156,10 +184,12 @@ export const createGeneration = async (req: Request, res: Response): Promise<any
 
     const currentCredits = user.credits?.remainingCredits ?? 0;
     if (currentCredits < creditsToDeduct) {
-      return res.status(403).json({
-        success: false,
-        message: `Kredit tidak cukup. Dibutuhkan ${creditsToDeduct}, tersedia ${currentCredits}.`,
-      });
+      return sendError(
+        res,
+        403,
+        ErrorCodes.INSUFFICIENT_CREDITS,
+        `Kredit tidak cukup. Dibutuhkan ${creditsToDeduct}, tersedia ${currentCredits}.`,
+      );
     }
 
     let deductionResult: { credits: { remainingCredits: number; version: number }; generation: any; existing?: boolean };
@@ -214,17 +244,22 @@ export const createGeneration = async (req: Request, res: Response): Promise<any
       });
     } catch (dbError: any) {
       if (dbError?.message?.includes("Kredit tidak cukup")) {
-        return res.status(403).json({ success: false, message: dbError.message });
+        return sendError(
+          res,
+          403,
+          ErrorCodes.INSUFFICIENT_CREDITS,
+          dbError.message,
+        );
       }
       console.error("Database error during credit deduction:", dbError);
       res.setHeader("Retry-After", "5");
-      return res.status(503).json({
-        success: false,
-        code: "DATABASE_UNAVAILABLE",
-        message: "Database sedang tidak tersedia. Mohon coba lagi beberapa saat.",
-        retryable: true,
-        retryAfter: 5,
-      });
+      return sendError(
+        res,
+        503,
+        ErrorCodes.DATABASE_UNAVAILABLE,
+        "Database sedang tidak tersedia. Mohon coba lagi beberapa saat.",
+        { retryable: true, retryAfter: 5 },
+      );
     }
 
     if (deductionResult.existing) {
@@ -378,26 +413,28 @@ export const createGeneration = async (req: Request, res: Response): Promise<any
         console.error("CRITICAL: Failed to refund credits after AI failure:", refundError);
       }
 
-      return res.status(500).json({
-        success: false,
-        message: refunded
+      return sendError(
+        res,
+        500,
+        ErrorCodes.GENERATION_FAILED,
+        refunded
           ? "Gagal menghasilkan gambar. Kredit telah dikembalikan. Mohon coba lagi."
           : "Gagal menghasilkan gambar dan gagal mengembalikan kredit. Mohon hubungi support.",
-      });
+      );
     }
   } catch (error: any) {
     console.error("Error during generation:", error);
     if (isDatabaseUnavailable(error)) {
       res.setHeader("Retry-After", "5");
-      return res.status(503).json({
-        success: false,
-        code: "DATABASE_UNAVAILABLE",
-        message: "Database sedang tidak tersedia. Mohon coba lagi beberapa saat.",
-        retryable: true,
-        retryAfter: 5,
-      });
+      return sendError(
+        res,
+        503,
+        ErrorCodes.DATABASE_UNAVAILABLE,
+        "Database sedang tidak tersedia. Mohon coba lagi beberapa saat.",
+        { retryable: true, retryAfter: 5 },
+      );
     }
-    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal. Mohon coba lagi." });
+    return sendError(res, 500, ErrorCodes.INTERNAL_ERROR, "Terjadi kesalahan internal. Mohon coba lagi.");
   }
 };
 
@@ -405,7 +442,7 @@ export const deleteGeneration = async (req: Request, res: Response): Promise<any
   try {
     const { userId: clerkId } = getAuth(req);
     if (!clerkId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return sendError(res, 401, ErrorCodes.UNAUTHORIZED, "Unauthorized");
     }
 
     const id = req.params.id as string;
@@ -413,13 +450,18 @@ export const deleteGeneration = async (req: Request, res: Response): Promise<any
     const user = await prisma.user.findUnique({ where: { clerkId } });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return sendError(res, 404, ErrorCodes.USER_NOT_FOUND, "User not found");
     }
 
     const generation = await prisma.generation.findUnique({ where: { id } });
 
     if (!generation || generation.userId !== user.id) {
-      return res.status(404).json({ success: false, message: "Generation not found or unauthorized" });
+      return sendError(
+        res,
+        404,
+        ErrorCodes.GENERATION_NOT_FOUND,
+        "Generation not found or unauthorized",
+      );
     }
 
     if (generation.processedUrl) {
@@ -452,7 +494,7 @@ export const deleteGeneration = async (req: Request, res: Response): Promise<any
     return res.status(200).json({ success: true, message: "Generation deleted successfully" });
   } catch (error) {
     console.error("Error deleting generation:", error);
-    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal." });
+    return sendError(res, 500, ErrorCodes.INTERNAL_ERROR, "Terjadi kesalahan internal.");
   }
 };
 
@@ -460,7 +502,7 @@ export const syncGenerations = async (req: Request, res: Response): Promise<any>
   try {
     const { userId: clerkId } = getAuth(req);
     if (!clerkId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return sendError(res, 401, ErrorCodes.UNAUTHORIZED, "Unauthorized");
     }
 
     let user = await prisma.user.findUnique({
@@ -477,7 +519,7 @@ export const syncGenerations = async (req: Request, res: Response): Promise<any>
     });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return sendError(res, 404, ErrorCodes.USER_NOT_FOUND, "User not found");
     }
 
     if (!user.credits) {
@@ -502,6 +544,6 @@ export const syncGenerations = async (req: Request, res: Response): Promise<any>
     });
   } catch (error: any) {
     console.error("Error during sync:", error);
-    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal." });
+    return sendError(res, 500, ErrorCodes.INTERNAL_ERROR, "Terjadi kesalahan internal.");
   }
 };

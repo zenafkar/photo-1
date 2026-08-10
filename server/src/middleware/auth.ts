@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { getAuth } from "@clerk/express";
+import { ErrorCodes, sendError } from "./errorContract.js";
 
 // Ensure API requests return 401 JSON instead of 302 redirect when unauthenticated
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
@@ -13,10 +14,12 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
       `hasToken: ${req.headers.authorization ? "yes" : "no"},`,
       `ip: ${req.ip}`
     );
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized: Silakan login terlebih dahulu.",
-    });
+    return sendError(
+      res,
+      401,
+      ErrorCodes.UNAUTHORIZED,
+      "Unauthorized: Silakan login terlebih dahulu.",
+    );
   }
   next();
 };

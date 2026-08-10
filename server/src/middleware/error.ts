@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { ErrorCodes, errorBody } from "./errorContract.js";
 
 export const errorHandler = (
   err: Error & { status?: number; statusCode?: number },
@@ -17,10 +18,17 @@ export const errorHandler = (
   const status = err.status || err.statusCode || 500;
   const isDev = process.env.NODE_ENV === "development";
 
-  res.status(status).json({
-    success: false,
-    message: isDev ? err.message : "Internal Server Error",
+  const body = errorBody(
+    ErrorCodes.INTERNAL_ERROR,
+    isDev ? err.message : "Internal Server Error",
     // Never send stack traces to clients in production
-    ...(isDev && { stack: err.stack }),
-  });
+    ...(isDev && err.stack ? [{ stack: err.stack }] : []),
+  );
+
+  // Attach request_id from res.locals (set by requestIdMiddleware)
+  if (res.locals.requestId) {
+    body.request_id = res.locals.requestId;
+  }
+
+  res.status(status).json(body);
 };

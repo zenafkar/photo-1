@@ -12,6 +12,7 @@ dns.setDefaultResultOrder("ipv4first");
 import { clerkMiddleware } from "@clerk/express";
 import { requireAuth } from "./middleware/auth";
 import { errorHandler } from "./middleware/error";
+import { requestIdMiddleware } from "./middleware/requestId.js";
 import healthRoutes from "./routes/health";
 import userRoutes from "./routes/user";
 import userEventsRoutes from "./routes/userEvents.js";
@@ -25,7 +26,7 @@ import path from "path";
 
 dotenv.config();
 
-import { generalLimiter, strictLimiter, telemetryLimiter, paymentLimiter } from "./middleware/rateLimiters.js";
+import { generalLimiter, strictLimiter, telemetryLimiter, paymentLimiter, healthLimiter, webhookLimiter } from "./middleware/rateLimiters.js";
 
 export function createApp() {
   const app = express();
@@ -39,7 +40,8 @@ export function createApp() {
   }
 
   // Middleware
-  app.use(telemetryMiddleware); // Run first to catch all requests for latency
+  app.use(requestIdMiddleware); // FIRST: ensure every response (incl. 429) has X-Request-Id
+  app.use(telemetryMiddleware); // Run first after requestId to catch all requests for latency
   app.use(generalLimiter); // Global rate limit
   app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
   app.use(compression({
@@ -83,8 +85,8 @@ export function createApp() {
   app.use("/api/v1/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   // Public Routes
-  app.use("/api/v1/health", healthRoutes);
-  app.use("/api/v1/webhooks", webhookRoutes);
+  app.use("/api/v1/health", healthLimiter, healthRoutes);
+  app.use("/api/v1/webhooks", webhookLimiter, webhookRoutes);
   app.use("/api/v1/telemetry", telemetryLimiter, telemetryRoutes);
   // SSE authenticates with a short-lived ticket, so only ticket creation is protected.
   app.use("/api/v1/user/events", userEventsRoutes);

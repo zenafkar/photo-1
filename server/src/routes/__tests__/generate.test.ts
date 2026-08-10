@@ -199,7 +199,8 @@ describe("Generate Routes", () => {
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.errors).toBeDefined();
+    expect(res.body.code).toBe("INVALID_PAYLOAD");
+    expect(res.body.details).toBeDefined();
   });
 
   it("POST /api/v1/generate accepts realistic base64 image payloads", async () => {
@@ -218,7 +219,10 @@ describe("Generate Routes", () => {
       .send({ ...validPayload, prompt: "   " });
 
     expect(res.status).toBe(400);
-    expect(res.body.errors.some((issue: any) => issue.path.includes("prompt"))).toBe(true);
+    expect(res.body.code).toBe("INVALID_PAYLOAD");
+    expect(res.body.details).toBeDefined();
+    expect(Array.isArray(res.body.details)).toBe(true);
+    expect((res.body.details as any[]).some((issue: any) => issue.path.includes("prompt"))).toBe(true);
   });
 
   it("POST /api/v1/generate returns 403 when credits insufficient", async () => {

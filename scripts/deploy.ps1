@@ -364,7 +364,7 @@ echo "HEALTH_LOCAL_OK"
     $checksums | Set-Content -Path "$tempDir/manifest.sha256" -Encoding ASCII
 
     if (Test-Path "release.zip") { Remove-Item "release.zip" -Force }
-    Compress-Archive -Path "$tempDir/*" -DestinationPath "release.zip" -Force
+    & tar.exe -a -c -f "release.zip" -C $tempDir .
     Remove-Item -Path $tempDir -Recurse -Force
     $artifactName = "release-$releaseId.zip"
     $archiveHash = (Get-FileHash -LiteralPath "release.zip" -Algorithm SHA256).Hash.ToLowerInvariant()

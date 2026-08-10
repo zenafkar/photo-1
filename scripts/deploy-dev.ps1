@@ -137,7 +137,8 @@ try {
     $manifestLines = @($entries | Where-Object { $_ -ne 'manifest.sha256' } | Sort-Object | ForEach-Object { $f = Join-Path $stage $_; "$( (Get-FileHash $f -Algorithm SHA256).Hash.ToLowerInvariant())  $($_)" })
     $manifestLines | Set-Content (Join-Path $stage 'manifest.sha256') -Encoding ASCII
     $archive = Join-Path ([IO.Path]::GetTempPath()) "$releaseId.zip"
-    Compress-Archive -Path "$stage/*" -DestinationPath $archive -Force
+    if (Test-Path $archive) { Remove-Item $archive -Force }
+    Invoke-Local 'tar.exe' @('-a', '-c', '-f', $archive, '-C', $stage, '.')
     $archiveHash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
     "$archiveHash  $releaseId.zip" | Set-Content "$archive.sha256" -Encoding ASCII
     $script:Evidence.artifact = [ordered]@{ name = "$releaseId.zip"; archiveSha256 = $archiveHash; bytes = (Get-Item $archive).Length; allowlist = $artifactAllowlist; manifest = 'manifest.sha256' }

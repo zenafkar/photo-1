@@ -162,7 +162,7 @@ ROOT='__TARGET__'; RELEASE='__RELEASE__'; LOCK="$ROOT/.deploy/deploy.lock"; ARCH
 export ZEN_DEV_APP_ROOT="$ROOT/server"; export ZEN_DEV_ALLOWED_ROOT="$ROOT/server"; export ZEN_DEV_PORT='__PORT__'
 PROMOTION_STARTED=0
 ROLLBACK_FAILED=0
-cleanup() { if [ -f "$LOCK/token" ] && [ "$(cat "$LOCK/token")" = '__TOKEN__' ]; then rm -rf "$LOCK"; fi; }
+cleanup() { if [ -f "$LOCK/token" ] && printf '%s\n' '__TOKEN__' | cmp -s - "$LOCK/token"; then rm -rf "$LOCK"; fi; }
 wait_health() { local live='' ready=''; for i in 1 2 3 4 5 6; do live=$(curl -fsS --max-time 10 "http://localhost:${ZEN_DEV_PORT}/api/v1/health/live" 2>/dev/null || true); ready=$(curl -fsS --max-time 10 "http://localhost:${ZEN_DEV_PORT}/api/v1/health/ready" 2>/dev/null || true); if echo "$live" | grep -q '"status"[[:space:]]*:[[:space:]]*"alive"' && echo "$ready" | grep -q '"status"[[:space:]]*:[[:space:]]*"ready"'; then return 0; fi; sleep 5; done; return 1; }
 rollback_app() {
   if [ "$PROMOTION_STARTED" != 1 ]; then return 0; fi
@@ -183,7 +183,7 @@ rollback_app() {
 }
 on_error() { rc=$?; trap - ERR; if ! rollback_app; then echo '[FAILED] ROLLBACK_FAILED'; ROLLBACK_FAILED=1; fi; cleanup; if [ "$ROLLBACK_FAILED" = 1 ]; then exit 70; fi; exit "$rc"; }
 trap on_error ERR
-test "$(cat "$LOCK/token")" = '__TOKEN__'; (cd "$ROOT/.deploy/releases" && sha256sum -c "$RELEASE.zip.sha256")
+printf '%s\n' '__TOKEN__' | cmp -s - "$LOCK/token"; (cd "$ROOT/.deploy/releases" && sha256sum -c "$RELEASE.zip.sha256")
 STAGE="$ROOT/.deploy/staging/$RELEASE"; rm -rf "$STAGE"; mkdir -p "$STAGE"; unzip -q "$ARCHIVE" -d "$STAGE"
 (cd "$STAGE" && sha256sum -c manifest.sha256); grep -q '"releaseId"[[:space:]]*:[[:space:]]*"__RELEASE__"' "$STAGE/deploy.json"
 test -s "$STAGE/dist/index.html"; test -s "$STAGE/server/dist/index.js"
@@ -194,7 +194,9 @@ cd "$ROOT"; PREV="$ROOT/.deploy/previous-$RELEASE"; rm -rf "$PREV"; mkdir -p "$P
 if [ -d dist ]; then mv dist "$PREV/dist"; fi
 if [ -d server/dist ]; then mv server/dist "$PREV/server-dist"; fi
 if [ -d server/node_modules ]; then mv server/node_modules "$PREV/node_modules"; fi
-cp package.json "$PREV/package.json"; cp deploy.json "$PREV/deploy.json"; cp server/ecosystem.dev.config.js "$PREV/server-ecosystem.dev.config.js"
+    if [ -f package.json ]; then cp package.json "$PREV/package.json"; fi
+    if [ -f deploy.json ]; then cp deploy.json "$PREV/deploy.json"; fi
+    if [ -f server/ecosystem.dev.config.js ]; then cp server/ecosystem.dev.config.js "$PREV/server-ecosystem.dev.config.js"; fi
 PROMOTION_STARTED=1
 mv "$STAGE/dist" dist; mv "$STAGE/server/dist" server/dist; mv "$STAGE/server/node_modules" server/node_modules
 cp "$STAGE/package.json" package.json; cp "$STAGE/deploy.json" deploy.json; cp "$STAGE/server/ecosystem.dev.config.js" server/ecosystem.dev.config.js

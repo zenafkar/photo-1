@@ -97,7 +97,7 @@ $script:lockToken = $null
 
 function Release-RemoteLock {
     if (-not $script:remoteLockAcquired -or -not $script:remoteLock) { return }
-    $release = "token=`$(cat '$script:remoteLock/token' 2>/dev/null || true); if [ `$token = '$script:lockToken' ]; then rm -rf '$script:remoteLock'; fi"
+    $release = "if [ -f '$script:remoteLock/token' ] && printf '%s\n' '$script:lockToken' | cmp -s - '$script:remoteLock/token'; then rm -rf '$script:remoteLock'; fi"
     & ssh $SshOpts $SshTarget $release 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) {
         $script:remoteLockAcquired = $false
@@ -456,8 +456,8 @@ cd __TARGET__
 
 # Remote lock sudah diambil atomik sebelum upload. Token mencegah proses lain
 # menghapus lock ini saat deploy berjalan.
-if [ ! -f "__LOCK__/token" ] || [ "$(cat "__LOCK__/token")" != "__TOKEN__" ]; then echo "REMOTE_LOCK_LOST"; exit 75; fi
-trap 'if [ -f "__LOCK__/token" ] && [ "$(cat "__LOCK__/token")" = "__TOKEN__" ]; then rm -rf "__LOCK__"; fi' EXIT
+if [ ! -f "__LOCK__/token" ] || ! printf '%s\n' '__TOKEN__' | cmp -s - "__LOCK__/token"; then echo "REMOTE_LOCK_LOST"; exit 75; fi
+trap 'if [ -f "__LOCK__/token" ] && printf "%s\n" "__TOKEN__" | cmp -s - "__LOCK__/token"; then rm -rf "__LOCK__"; fi' EXIT
 
 # Validasi artifact dan manifest sebelum current release disentuh.
 command -v unzip >/dev/null 2>&1 || { echo "UNZIP_MISSING"; exit 3; }

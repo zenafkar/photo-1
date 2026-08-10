@@ -62,7 +62,7 @@ function Get-GitDirtyPaths {
 }
 function Release-RemoteLock {
     if (-not $script:RemoteLockAcquired) { return }
-    $release = "if [ -f '$script:RemoteLock/token' ] && [ \`$(cat '$script:RemoteLock/token') = '$script:LockToken' ]; then rm -rf '$script:RemoteLock'; fi"
+    $release = "if [ -f '$script:RemoteLock/token' ] && printf '%s\n' '$script:LockToken' | cmp -s - '$script:RemoteLock/token'; then rm -rf '$script:RemoteLock'; fi"
     & ssh $script:SshOptions $script:SshTarget $release 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) { $script:RemoteLockAcquired = $false }
 }

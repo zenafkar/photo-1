@@ -2,6 +2,7 @@
 # Restore-test mingguan: restore dump terbaru ke target scratch (Neon branch /
 # postgres scratch), ukur RTO, alert bila gagal. TARGET_URL tidak boleh produksi.
 set -euo pipefail
+cd /
 
 DB_BACKUP_DIR="${DB_BACKUP_DIR:-/var/lib/zen-deploy/database-backups}"
 STATUS_DIR="${STATUS_DIR:-/var/lib/zen-deploy/status}"

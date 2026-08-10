@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Backup harian uploads/ (gambar hasil generate) + copy off-server.
 set -euo pipefail
+cd /
 
 TARGET_DIR="${TARGET_DIR:-/var/www/zen-dev}"
 UPLOADS_DIR="${UPLOADS_DIR:-$TARGET_DIR/server/uploads}"

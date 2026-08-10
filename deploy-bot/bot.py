@@ -189,7 +189,17 @@ async def cmd_health(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
     lines = []
     ssh_target = f"{cfg.vps_user}@{cfg.vps_ip}"
-    ssh_opts = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=accept-new", ssh_target]
+    known_hosts = cfg.ssh_known_hosts_file
+    if not cfg.vps_local and not known_hosts.is_file():
+        await update.message.reply_text(
+            "⚠️ SSH diblokir: known_hosts belum diprovision secara aman."
+        )
+        return
+    ssh_opts = [
+        "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+        "-o", "StrictHostKeyChecking=yes",
+        "-o", f"UserKnownHostsFile={known_hosts}", ssh_target,
+    ]
 
     def run_vps(command: str, timeout: int):
         if cfg.vps_local:

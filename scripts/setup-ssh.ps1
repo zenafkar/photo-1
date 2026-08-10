@@ -1,6 +1,7 @@
 param (
     [string]$VpsIp = "160.19.166.129",
-    [string]$VpsUser = "zen-deploy"
+    [string]$VpsUser = "zen-deploy",
+    [string]$KnownHostsFile = ""
 )
 
 # ==========================================
@@ -15,6 +16,12 @@ param (
 $sshDir = Join-Path $env:USERPROFILE ".ssh"
 $keyPath = Join-Path $sshDir "id_ed25519"
 $pubPath = "$keyPath.pub"
+$KnownHostsFile = if ($KnownHostsFile) { $KnownHostsFile } else { Join-Path $sshDir "known_hosts" }
+if (-not (Test-Path -LiteralPath $KnownHostsFile -PathType Leaf)) {
+    Write-Error "Known-hosts file tidak ditemukan. Verifikasi fingerprint VPS secara out-of-band lalu provision file ini sebelum menjalankan setup."
+    exit 2
+}
+$SshTrustOpts = @("-o", "StrictHostKeyChecking=yes", "-o", "UserKnownHostsFile=$KnownHostsFile")
 
 # 1. Buat kunci jika belum ada
 if (-not (Test-Path $keyPath)) {
@@ -36,7 +43,7 @@ if (-not (Test-Path $keyPath)) {
 # 2. Salin public key ke VPS (minta password SEKALI ini saja)
 Write-Host "[2/3] Menyalin public key ke $VpsUser@$VpsIp ..." -ForegroundColor Yellow
 Write-Host "Ketik password VPS Anda SEKALI ini saja. Ketikan tidak akan terlihat." -ForegroundColor Cyan
-type $pubPath | ssh -o StrictHostKeyChecking=accept-new ${VpsUser}@${VpsIp} "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
+type $pubPath | ssh $SshTrustOpts ${VpsUser}@${VpsIp} "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "GAGAL menyalin key ke VPS." -ForegroundColor Red
     exit 1
@@ -45,7 +52,7 @@ Write-Host "Public key terkirim." -ForegroundColor Green
 
 # 3. Verifikasi passwordless
 Write-Host "[3/3] Verifikasi passwordless..." -ForegroundColor Yellow
-$result = ssh -o BatchMode=yes -o ConnectTimeout=10 ${VpsUser}@${VpsIp} "echo OK_PASSWORDLESS" 2>&1
+$result = ssh $SshTrustOpts -o BatchMode=yes -o ConnectTimeout=10 ${VpsUser}@${VpsIp} "echo OK_PASSWORDLESS" 2>&1
 if ($LASTEXITCODE -eq 0 -and $result.Trim() -eq "OK_PASSWORDLESS") {
     Write-Host "SUKSES! SSH key berfungsi. Tidak akan diminta password lagi." -ForegroundColor Green
 } else {

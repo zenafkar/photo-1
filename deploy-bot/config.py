@@ -30,8 +30,11 @@ DEFAULT_LOCK_FILE = (
 )
 LOCK_FILE = Path(os.getenv("DEPLOY_LOCK_PATH", str(DEFAULT_LOCK_FILE)))
 
+DEFAULT_KNOWN_HOSTS_FILE = Path(
+    os.getenv("SSH_KNOWN_HOSTS_FILE", str(Path.home() / ".ssh" / "known_hosts"))
+)
 DEFAULT_SSH_OPTIONS = (
-    "-o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new"
+    "-o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=yes"
 )
 
 
@@ -52,6 +55,7 @@ class Config:
     deploy_timeout_seconds: int | None = None
     log_dir: Path | None = None
     lock_path: Path | None = None
+    ssh_known_hosts_file: Path = DEFAULT_KNOWN_HOSTS_FILE
 
 
 def load_config() -> Config:
@@ -108,4 +112,7 @@ def load_config() -> Config:
         deploy_timeout_seconds=deploy_timeout_seconds,
         log_dir=Path(os.getenv("DEPLOY_LOG_DIR", str(RUN_DIR / "logs"))),
         lock_path=Path(os.getenv("DEPLOY_LOCK_PATH", str(DEFAULT_LOCK_FILE))),
+        ssh_known_hosts_file=Path(
+            os.getenv("SSH_KNOWN_HOSTS_FILE", str(DEFAULT_KNOWN_HOSTS_FILE))
+        ),
     )

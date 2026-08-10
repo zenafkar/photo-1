@@ -124,7 +124,8 @@ try {
     New-Item -ItemType Directory -Path "$stage/dist", "$stage/server/dist", "$stage/server/prisma" -Force | Out-Null
     Copy-Item 'dist/*' "$stage/dist" -Recurse -Force
     Copy-Item 'server/dist/*' "$stage/server/dist" -Recurse -Force
-    Copy-Item 'package.json','package-lock.json','server/package.json','server/package-lock.json' $stage -Force
+    Copy-Item 'package.json','package-lock.json' $stage -Force
+    Copy-Item 'server/package.json','server/package-lock.json' "$stage/server/" -Force
     Copy-Item 'server/ecosystem.dev.config.js' "$stage/server/ecosystem.dev.config.js" -Force
     Copy-Item 'server/prisma/schema.prisma' "$stage/server/prisma/schema.prisma" -Force
     $forbidden = @('.env', '.env.*', '.git', '.opencode', 'uploads', 'cache', 'node_modules', 'migrations', 'seed*', '*database*')

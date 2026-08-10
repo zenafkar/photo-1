@@ -416,14 +416,22 @@ database() {
     # Load DIRECT_DATABASE_URL dari server/.env untuk pg_dump. Prisma auto-load
     # server/.env (DATABASE_URL + DIRECT_DATABASE_URL) untuk migrate deploy.
     DIRECT_DATABASE_URL=""
-    if [ -f "$TARGET_DIR/server/.env" ]; then
-        DIRECT_DATABASE_URL="$(grep -E '^DIRECT_DATABASE_URL=' "$TARGET_DIR/server/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'")"
+    if [ -f server/.env ]; then
+        if [ -z "${DIRECT_DATABASE_URL:-}" ]; then
+            DIRECT_DATABASE_URL="$(grep -E '^DIRECT_DATABASE_URL=' server/.env | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" || true)"
+            export DIRECT_DATABASE_URL
+        fi
+        if [ -z "${DATABASE_URL:-}" ]; then
+            DATABASE_URL="$(grep -E '^DATABASE_URL=' server/.env | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" || true)"
+            export DATABASE_URL
+        fi
     fi
 
-    if command -v pg_dump >/dev/null 2>&1 && [ -n "${DIRECT_DATABASE_URL:-}" ]; then
+    DB_DUMP_URL="${DIRECT_DATABASE_URL:-${DATABASE_URL:-}}"
+    if command -v pg_dump >/dev/null 2>&1 && [ -n "$DB_DUMP_URL" ]; then
         local dump_file="$DATABASE_BACKUP_DIR/db-$(date +%Y%m%d-%H%M%S).dump"
         log "Creating database backup via DIRECT_DATABASE_URL: $dump_file"
-        if pg_dump -Fc "$DIRECT_DATABASE_URL" -f "$dump_file" 2>/dev/null; then
+        if pg_dump -Fc "$DB_DUMP_URL" -f "$dump_file" 2>/dev/null; then
             log "Database backup OK: $dump_file"
         else
             fail "Database backup gagal; --db dihentikan untuk menjaga rollback safety" 11

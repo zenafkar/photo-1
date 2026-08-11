@@ -146,7 +146,7 @@ export class AIService {
         throw new Error(data.error || "Replicate prediction failed");
       }
       
-      if (data && data.output) {
+      if (data.status === "succeeded" && data.output) {
         const url = typeof data.output === "string" ? data.output : data.output[data.output.length - 1];
         if (url) return { url, predictionId: predId };
       }
@@ -204,7 +204,7 @@ export class AIService {
         throw new Error(data.error || "Replicate prediction failed");
       }
       
-      if (data && data.output) {
+      if (data.status === "succeeded" && data.output) {
         const url = typeof data.output === "string" ? data.output : data.output[data.output.length - 1];
         if (url) return { url, predictionId: predId };
       }
@@ -294,7 +294,7 @@ export class AIService {
         throw new Error(data.error || "Proses generasi gambar OpenAI gagal pada provider Replicate.");
       }
       
-      if (data && data.output) {
+      if (data.status === "succeeded" && data.output) {
         const url = typeof data.output === "string" ? data.output : data.output[data.output.length - 1];
         if (url) return { url, predictionId: predId };
       }

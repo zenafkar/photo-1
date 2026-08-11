@@ -3,7 +3,8 @@ import {
   Sparkles, Wand2, X, Copy, Check, RefreshCw,
   ShoppingBag, Layers, Sun, Camera, CheckCircle2,
   ArrowRight, Lightbulb, ChevronDown, ChevronUp,
-  Zap, Palette, ZapOff, Box, Table2, Square, PanelTop, Frame
+  Zap, Palette, ZapOff, Box, Table2, Square, PanelTop, Frame,
+  Coffee, Building, Diamond
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -164,6 +165,22 @@ const MANNEQUIN_SHADOWS = [
   { label: 'Natural contact shadow', val: 'a subtle natural contact shadow' },
   { label: 'Soft studio shadow', val: 'a soft diffused studio shadow' },
   { label: 'No visible shadow', val: 'a clean background with no visible shadow' },
+];
+
+const MANNEQUIN_STUDIO_DIRECTIONS = [
+  { label: 'Studio Profesional Putih', val: 'a clean seamless white professional photo studio', icon: <PanelTop className="w-4 h-4" strokeWidth={1.8} /> },
+  { label: 'Studio Gelap Dramatis', val: 'a dark dramatic professional photo studio', icon: <Box className="w-4 h-4" strokeWidth={1.8} /> },
+  { label: 'Kafe Aesthetic Hangat', val: 'a warm cozy aesthetic cafe interior', icon: <Coffee className="w-4 h-4" strokeWidth={1.8} /> },
+  { label: 'Bangunan Industrial Minimalis', val: 'a minimalist industrial concrete building interior', icon: <Building className="w-4 h-4" strokeWidth={1.8} /> },
+  { label: 'Boutique Mewah', val: 'an elegant luxury fashion boutique interior', icon: <Diamond className="w-4 h-4" strokeWidth={1.8} /> },
+];
+
+const MANNEQUIN_LIGHTINGS = [
+  { label: 'Softbox Difusi (Natural)', val: 'soft diffused 3-point softbox studio lighting', icon: '💡' },
+  { label: 'Spotlight Dramatis', val: 'dramatic cinematic spotlight with deep shadows', icon: '🎬' },
+  { label: 'Cahaya Jendela Hangat (Cafe)', val: 'warm natural sunlight filtering through cafe windows', icon: '🌤️' },
+  { label: 'Lampu Studio Industrial', val: 'cool industrial overhead studio lighting', icon: '🔦' },
+  { label: 'Golden Hour Aesthetic', val: 'warm golden hour sunlight with soft long shadows', icon: '🌅' },
 ];
 
 const CATEGORIES = [
@@ -335,15 +352,17 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
 
   // Mannequin builder state
   const [mqClothingType, setMqClothingType] = useState(MANNEQUIN_CLOTHING_TYPES[0].val);
+  const [mqCustomClothingType, setMqCustomClothingType] = useState('');
   const [mqMaterial, setMqMaterial] = useState(MANNEQUIN_MATERIALS[0].val);
+  const [mqCustomMaterial, setMqCustomMaterial] = useState('');
   const [mqColor, setMqColor] = useState('');
   const [mqPattern, setMqPattern] = useState('');
   const [mqMannequinType, setMqMannequinType] = useState(MANNEQUIN_TYPES[0].val);
   const [mqPose, setMqPose] = useState(MANNEQUIN_POSES[0].val);
   const [mqCameraAngle, setMqCameraAngle] = useState(MANNEQUIN_CAMERA_ANGLES[0].val);
   const [mqFraming, setMqFraming] = useState(MANNEQUIN_FRAMING[0].val);
-  const [mqSurface, setMqSurface] = useState(PEDESTAL_OPTIONS[0].val);
-  const [mqLighting, setMqLighting] = useState(LIGHTING_OPTIONS[0].val);
+  const [mqSurface, setMqSurface] = useState(MANNEQUIN_STUDIO_DIRECTIONS[0].val);
+  const [mqLighting, setMqLighting] = useState(MANNEQUIN_LIGHTINGS[0].val);
   const [mqShadow, setMqShadow] = useState(MANNEQUIN_SHADOWS[0].val);
   const [mqAdditionalDetails, setMqAdditionalDetails] = useState('');
   const [mqSelectedEffects] = useState<string[]>([EXTRA_EFFECTS[0].val]);
@@ -417,8 +436,8 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   );
 
   const mannequinPromptText = buildMannequinAutoPrompt({
-    clothingType: mqClothingType,
-    material: mqMaterial,
+    clothingType: mqClothingType === 'custom' ? mqCustomClothingType : mqClothingType,
+    material: mqMaterial === 'custom' ? mqCustomMaterial : mqMaterial,
     color: mqColor,
     pattern: mqPattern,
     mannequinType: mqMannequinType,
@@ -779,19 +798,23 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                        <div><h3 className="flex items-center gap-2 text-sm font-extrabold text-slate-900"><ShoppingBag className="h-4 w-4 text-slate-400" /> Identitas pakaian</h3><p className="text-xs text-slate-500">Apa yang harus terlihat sama di hasil akhir?</p></div>
                      </div>
                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                       <label className="text-xs font-bold text-slate-600 sm:col-span-2">Jenis pakaian
-                         <select value={mqClothingType} onChange={(e) => setMqClothingType(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20">
+                        <div className="sm:col-span-2">
+                          <label className="text-xs font-bold text-slate-600">Jenis pakaian</label>
+                          <select value={mqClothingType} onChange={(e) => setMqClothingType(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 mb-2">
                            {MANNEQUIN_CLOTHING_TYPES.map((type) => <option key={type.val} value={type.val}>{type.label}</option>)}
-                           <option value="">Lainnya</option>
-                         </select>
-                       </label>
-                       {mqClothingType === '' && <label className="text-xs font-bold text-slate-600 sm:col-span-2">Jenis pakaian manual
-                         <input autoFocus onChange={(e) => setMqClothingType(e.target.value)} placeholder="Contoh: cropped knit cardigan" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" />
-                       </label>}
-                       <label className="text-xs font-bold text-slate-600">Bahan
-                         <select value={mqMaterial} onChange={(e) => setMqMaterial(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"><option value="">Opsional</option>{MANNEQUIN_MATERIALS.map((mat) => <option key={mat.val} value={mat.val}>{mat.label}</option>)}</select>
-                       </label>
-                       <label className="text-xs font-bold text-slate-600">Warna dominan
+                          </select>
+                          {mqClothingType === 'custom' && (
+                            <input value={mqCustomClothingType} onChange={(e) => setMqCustomClothingType(e.target.value)} placeholder="Tulis jenis pakaian..." className="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" autoFocus />
+                          )}
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-slate-600">Bahan</label>
+                          <select value={mqMaterial} onChange={(e) => setMqMaterial(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 mb-2"><option value="">Opsional</option>{MANNEQUIN_MATERIALS.map((mat) => <option key={mat.val} value={mat.val}>{mat.label}</option>)}</select>
+                          {mqMaterial === 'custom' && (
+                            <input value={mqCustomMaterial} onChange={(e) => setMqCustomMaterial(e.target.value)} placeholder="Tulis bahan pakaian..." className="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" autoFocus />
+                          )}
+                        </div>
+                        <label className="text-xs font-bold text-slate-600">Warna dominan
                          <input value={mqColor} onChange={(e) => setMqColor(e.target.value)} placeholder="Contoh: navy blue" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" />
                        </label>
                        <label className="text-xs font-bold text-slate-600 sm:col-span-2">Motif atau detail penting
@@ -812,9 +835,9 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                    <section className="border-b border-slate-200/70 pb-5">
                      <div className="mb-3 flex items-center gap-3"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-xs font-black text-white">3</span><div><h3 className="text-sm font-extrabold text-slate-900">Arah studio</h3><p className="text-xs text-slate-500">Background, cahaya, bayangan, dan mood hasil.</p></div></div>
                      <div className="mb-2 flex items-center gap-2 text-xs font-bold text-slate-600"><Layers className="h-4 w-4 text-slate-400" /> Latar Belakang</div>
-                       <div className="space-y-3">
-                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{PEDESTAL_OPTIONS.map((item) => <OptionChip key={item.label} label={item.label} icon={item.icon} isSelected={mqSurface === item.val} onClick={() => setMqSurface(item.val)} accentClass="bg-cyan-50 border-cyan-500 text-cyan-900 ring-1 ring-cyan-500/20" />)}</div>
-                       <div className="mt-3 flex items-center gap-2 text-xs font-bold text-slate-600"><Sun className="h-4 w-4 text-slate-400" /> Pencahayaan</div><div className="grid grid-cols-1 gap-2">{LIGHTING_OPTIONS.map((item) => <OptionChip key={item.label} label={item.label} icon={item.icon} isSelected={mqLighting === item.val} onClick={() => setMqLighting(item.val)} accentClass="bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-500/20" />)}</div>
+                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{MANNEQUIN_STUDIO_DIRECTIONS.map((item) => <OptionChip key={item.label} label={item.label} icon={item.icon} isSelected={mqSurface === item.val} onClick={() => setMqSurface(item.val)} accentClass="bg-cyan-50 border-cyan-500 text-cyan-900 ring-1 ring-cyan-500/20" />)}</div>
+                        <div className="mt-3 flex items-center gap-2 text-xs font-bold text-slate-600"><Sun className="h-4 w-4 text-slate-400" /> Pencahayaan</div><div className="grid grid-cols-1 gap-2">{MANNEQUIN_LIGHTINGS.map((item) => <OptionChip key={item.label} label={item.label} icon={item.icon} isSelected={mqLighting === item.val} onClick={() => setMqLighting(item.val)} accentClass="bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-500/20" />)}</div>
                        <label className="block text-xs font-bold text-slate-600">Bayangan<select value={mqShadow} onChange={(e) => setMqShadow(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20">{MANNEQUIN_SHADOWS.map((item) => <option key={item.val} value={item.val}>{item.label}</option>)}</select></label>
                      </div>
                    </section>

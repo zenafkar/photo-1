@@ -53,6 +53,8 @@ export interface MannequinOptions {
 }
 
 export const MANNEQUIN_CLOTHING_TYPES = [
+  { label: 'Abaya', val: 'an elegant abaya' },
+  { label: 'Mukena', val: 'a beautiful mukena prayer dress' },
   { label: 'Kemeja (Shirt)', val: 'a button-up shirt' },
   { label: 'Kaos (T-shirt)', val: 'a classic t-shirt' },
   { label: 'Gaun (Dress)', val: 'an elegant dress' },
@@ -60,6 +62,7 @@ export const MANNEQUIN_CLOTHING_TYPES = [
   { label: 'Jaket / Mantel (Jacket/Coat)', val: 'a stylish jacket' },
   { label: 'Rok (Skirt)', val: 'a fashion skirt' },
   { label: 'Pakaian Olahraga (Activewear)', val: 'sportswear activewear' },
+  { label: 'Lainnya (Tulis sendiri)', val: 'custom' },
 ];
 
 export const MANNEQUIN_MATERIALS = [
@@ -69,6 +72,7 @@ export const MANNEQUIN_MATERIALS = [
   { label: 'Linen', val: 'breathable linen texture' },
   { label: 'Rajut (Knit/Wool)', val: 'cozy knit wool' },
   { label: 'Kulit (Leather)', val: 'premium leather' },
+  { label: 'Lainnya (Tulis sendiri)', val: 'custom' },
 ];
 
 export function buildMannequinAutoPrompt(options: MannequinOptions, currentResolution?: string): string {

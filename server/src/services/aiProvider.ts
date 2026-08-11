@@ -36,7 +36,7 @@ export class AIService {
       options: {
         method: "POST",
         headers: {
-          "Authorization": `Token ${token}`,
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
           "Prefer": "wait"
         },
@@ -60,7 +60,7 @@ export class AIService {
         const requestTimeout = setTimeout(() => controller.abort(), 15_000);
         const response = await fetch(pollUrl, {
           headers: {
-            "Authorization": `Token ${token}`,
+            "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
           },
           signal: controller.signal,

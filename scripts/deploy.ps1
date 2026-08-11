@@ -330,7 +330,7 @@ echo "HEALTH_LOCAL_OK"
 
     # ---------- PACKAGE (ZIP) ----------
     Phase "package"
-    $tempDir = "deploy_temp"
+    $tempDir = Join-Path ([IO.Path]::GetTempPath()) "zen-deploy-$releaseId"
     if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force }
     New-Item -ItemType Directory -Path "$tempDir/server/prisma" -Force | Out-Null
     
@@ -372,18 +372,11 @@ echo "HEALTH_LOCAL_OK"
     Log "release.zip dibuat: $((Get-Item release.zip).Length) bytes, SHA256=$archiveHash"
 
     # Verifikasi isi zip (mencegah deploy build kosong)
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path "release.zip"))
-    $entryNames = @($zip.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
-    $zip.Dispose()
-    # ZipArchive.Entries can expose FullName as a scalar when the archive has
-    # one entry or as a collection with PowerShell-specific comparison rules.
-    # Normalize the check through the pipeline so valid root-level artifacts
-    # are not rejected before upload.
-    if (-not ($entryNames | Where-Object { $_ -eq "dist/index.html" })) { Fail "release.zip tidak berisi dist/index.html - build tidak valid." 2 }
-    if (-not ($entryNames | Where-Object { $_ -eq "server/dist/index.js" })) { Fail "release.zip tidak berisi server/dist/index.js - build tidak valid." 2 }
-    if (-not ($entryNames | Where-Object { $_ -eq "server/ecosystem.config.js" })) { Fail "release.zip tidak berisi ecosystem config." 2 }
-    if (-not ($entryNames | Where-Object { $_ -eq "manifest.sha256" })) { Fail "release.zip tidak berisi manifest checksum." 2 }
+    $zipEntries = @(& tar.exe -tf "release.zip" 2>$null | ForEach-Object { $_.TrimStart('./').Replace('\', '/') })
+    if (-not ($zipEntries | Where-Object { $_ -eq 'dist/index.html' })) { Fail "release.zip tidak berisi dist/index.html - build tidak valid." 2 }
+    if (-not ($zipEntries | Where-Object { $_ -eq 'server/dist/index.js' })) { Fail "release.zip tidak berisi server/dist/index.js - build tidak valid." 2 }
+    if (-not ($zipEntries | Where-Object { $_ -eq 'server/ecosystem.config.js' })) { Fail "release.zip tidak berisi ecosystem config." 2 }
+    if (-not ($zipEntries | Where-Object { $_ -eq 'manifest.sha256' })) { Fail "release.zip tidak berisi manifest checksum." 2 }
     $script:evidence.artifact = [ordered]@{ file = $artifactName; bytes = (Get-Item release.zip).Length; archiveSha256 = $archiveHash; manifest = 'manifest.sha256' }
     Write-Evidence
     Log "Isi zip terverifikasi: build, ecosystem config, manifest checksum OK"
@@ -511,7 +504,7 @@ rollback() {
         mv server/node_modules.bak server/node_modules
     fi
     restore_release_metadata || return 1
-    pm2 restart backend-api || pm2 start server/dist/index.js --name "backend-api"
+    pm2 startOrRestart __TARGET__/server/ecosystem.config.js --update-env
     pm2 save
     sleep 2
     READY=""
@@ -588,8 +581,8 @@ pm2 save
 sleep 2
 READY=""
 for i in 1 2 3 4 5 6; do
-      READY_BODY=$(curl -fsS --max-time 10 http://localhost:5000/api/v1/health/ready 2>/dev/null || true)
-      READY=$(printf '%s' "$READY_BODY" | grep -Eq '"status"[[:space:]]*:[[:space:]]*"ready"' && echo 200 || echo 000)
+  READY_BODY=$(curl -fsS --max-time 10 http://localhost:5000/api/v1/health/ready 2>/dev/null || true)
+  READY=$(printf '%s' "$READY_BODY" | grep -Eq '"status"[[:space:]]*:[[:space:]]*"ready"' && echo 200 || echo 000)
   if [ "$READY" = "200" ]; then break; fi
   sleep 5
 done
@@ -671,6 +664,7 @@ echo "HEALTH_EXTERNAL_OK"
 
     # Bersihkan release.zip lokal
     if (Test-Path "release.zip") { Remove-Item "release.zip" -Force }
+    if (Test-Path "$artifactName.sha256") { Remove-Item "$artifactName.sha256" -Force }
 
     Release-Lock
     Finish-Deploy

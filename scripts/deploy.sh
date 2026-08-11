@@ -139,9 +139,9 @@ acquire_lock() {
     fi
 
     if mkdir "$LOCK_PATH" 2>/dev/null; then
-        echo $$ > "$LOCK_PATH/pid"
+        printf '%s\n' "$$" > "$LOCK_PATH/pid"
         LOCK_OWNER="shell"
-        trap 'if [ "$LOCK_OWNER" = "shell" ] && [ -f "$LOCK_PATH/pid" ] && [ "$(cat "$LOCK_PATH/pid" 2>/dev/null)" = "$$" ]; then rmdir "$LOCK_PATH" 2>/dev/null || true; fi' EXIT
+        trap 'if [ "$LOCK_OWNER" = "shell" ] && [ -f "$LOCK_PATH/pid" ] && printf "%s\n" "$$" | cmp -s - "$LOCK_PATH/pid"; then rm -rf "$LOCK_PATH" 2>/dev/null || true; fi' EXIT
     else
         log "[FAILED] Failed to acquire lock - another deploy started"
         return 75

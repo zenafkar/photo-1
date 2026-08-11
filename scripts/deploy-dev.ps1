@@ -169,7 +169,7 @@ wait_health() { local live='' ready=''; for i in 1 2 3 4 5 6; do live=$(curl -fs
 rollback_app() {
   if [ "$PROMOTION_STARTED" != 1 ]; then return 0; fi
   PREV="$ROOT/.deploy/previous-$RELEASE"
-  test -d "$PREV" && test -d "$PREV/dist" && test -d "$PREV/server-dist" && test -d "$PREV/node_modules" && test -f "$PREV/package.json" && test -f "$PREV/deploy.json" && test -f "$PREV/server-ecosystem.dev.config.js"
+  test -d "$PREV" && test -d "$PREV/dist" && test -d "$PREV/server-dist" && test -d "$PREV/node_modules" && test -f "$PREV/package.json" && test -f "$PREV/deploy.json"
   cd "$ROOT"
   rm -rf dist server/dist server/node_modules
   rm -f package.json deploy.json server/ecosystem.dev.config.js
@@ -178,7 +178,7 @@ rollback_app() {
   mv "$PREV/node_modules" server/node_modules
   mv "$PREV/package.json" package.json
   mv "$PREV/deploy.json" deploy.json
-  mv "$PREV/server-ecosystem.dev.config.js" server/ecosystem.dev.config.js
+  if [ -f "$PREV/server-ecosystem.dev.config.js" ]; then mv "$PREV/server-ecosystem.dev.config.js" server/ecosystem.dev.config.js; fi
   pm2 startOrRestart server/ecosystem.dev.config.js --update-env
   pm2 save
   wait_health
@@ -196,9 +196,9 @@ cd "$ROOT"; PREV="$ROOT/.deploy/previous-$RELEASE"; rm -rf "$PREV"; mkdir -p "$P
 if [ -d dist ]; then mv dist "$PREV/dist"; fi
 if [ -d server/dist ]; then mv server/dist "$PREV/server-dist"; fi
 if [ -d server/node_modules ]; then mv server/node_modules "$PREV/node_modules"; fi
-    if [ -f package.json ]; then cp package.json "$PREV/package.json"; fi
-    if [ -f deploy.json ]; then cp deploy.json "$PREV/deploy.json"; fi
-    if [ -f server/ecosystem.dev.config.js ]; then cp server/ecosystem.dev.config.js "$PREV/server-ecosystem.dev.config.js"; fi
+if [ -f package.json ]; then cp package.json "$PREV/package.json"; fi
+if [ -f deploy.json ]; then cp deploy.json "$PREV/deploy.json"; fi
+if [ -f server/ecosystem.dev.config.js ]; then cp server/ecosystem.dev.config.js "$PREV/server-ecosystem.dev.config.js"; fi
 PROMOTION_STARTED=1
 mv "$STAGE/dist" dist; mv "$STAGE/server/dist" server/dist; mv "$STAGE/server/node_modules" server/node_modules
 cp "$STAGE/package.json" package.json; cp "$STAGE/deploy.json" deploy.json; cp "$STAGE/server/ecosystem.dev.config.js" server/ecosystem.dev.config.js

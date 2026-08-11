@@ -26,15 +26,15 @@ describe('PromptGeneratorModal mannequin builder', () => {
     expect(screen.getByText('Latar Belakang')).toBeInTheDocument();
     expect(screen.getByText('Pencahayaan')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /Meja Kayu Oak Rustic/ }));
-    fireEvent.click(screen.getByRole('button', { name: /Neon Cyberpunk \(Cyan\/Purple\)/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Kafe Aesthetic Hangat/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Spotlight Dramatis/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Terapkan ke Studio' }));
 
     expect(onApplyPrompt).toHaveBeenCalledWith(
-      expect.stringContaining('placed on a rustic dark oak wood tabletop'),
+      expect.stringContaining('placed on a warm cozy aesthetic cafe interior'),
     );
     expect(onApplyPrompt).toHaveBeenCalledWith(
-      expect.stringContaining('lit with futuristic dual neon cyan and violet ambient lighting'),
+      expect.stringContaining('lit with dramatic cinematic spotlight with deep shadows'),
     );
     expect(onApplyPrompt).toHaveBeenCalledWith(expect.stringContaining('4k resolution'));
   });

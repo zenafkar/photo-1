@@ -335,7 +335,6 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
   isOpen,
   onClose,
   onApplyPrompt,
-  onGeneratePrompt,
   currentResolution,
 }) => {
   const [activeTab, setActiveTab] = useState<'presets' | 'custom' | 'mannequin'>('presets');

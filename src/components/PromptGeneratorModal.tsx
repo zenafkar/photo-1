@@ -919,17 +919,12 @@ export const PromptGeneratorModal: React.FC<PromptGeneratorModalProps> = ({
                    <button
                      onClick={() => {
                        const output = activeTab === 'custom' ? customPromptText : mqPromptOutput;
-                       if (activeTab === 'mannequin' && onGeneratePrompt) {
-                         const normalizedPrompt = output.trim();
-                         if (normalizedPrompt.length >= 3) onGeneratePrompt(normalizedPrompt);
-                         return;
-                       }
                        applyPrompt(output);
                      }}
                      className="flex-1 flex items-center justify-center gap-2 h-12 bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white rounded-xl font-extrabold text-[13px] md:text-[14px] transition-all shadow-md"
                    >
                      <Zap className="w-4 h-4" />
-                     {activeTab === 'mannequin' && onGeneratePrompt ? 'Generate Image' : 'Terapkan ke Studio'}
+                     Terapkan ke Studio
                    </button>
                 </div>
               </div>

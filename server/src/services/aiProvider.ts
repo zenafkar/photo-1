@@ -90,7 +90,7 @@ export class AIService {
             if (typeof data.output === "string") {
               return data.output;
             } else if (Array.isArray(data.output) && data.output.length > 0) {
-              return data.output[0];
+              return data.output[data.output.length - 1];
             }
           }
           throw new Error("Replicate prediction succeeded but output is empty.");
@@ -147,7 +147,7 @@ export class AIService {
       }
       
       if (data && data.output) {
-        const url = typeof data.output === "string" ? data.output : data.output[0];
+        const url = typeof data.output === "string" ? data.output : data.output[data.output.length - 1];
         if (url) return { url, predictionId: predId };
       }
 
@@ -205,7 +205,7 @@ export class AIService {
       }
       
       if (data && data.output) {
-        const url = typeof data.output === "string" ? data.output : data.output[0];
+        const url = typeof data.output === "string" ? data.output : data.output[data.output.length - 1];
         if (url) return { url, predictionId: predId };
       }
 
@@ -295,7 +295,7 @@ export class AIService {
       }
       
       if (data && data.output) {
-        const url = typeof data.output === "string" ? data.output : data.output[0];
+        const url = typeof data.output === "string" ? data.output : data.output[data.output.length - 1];
         if (url) return { url, predictionId: predId };
       }
 
